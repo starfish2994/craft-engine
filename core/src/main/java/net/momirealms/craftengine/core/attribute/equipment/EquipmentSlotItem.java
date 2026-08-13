@@ -3,11 +3,10 @@ import net.momirealms.craftengine.core.attribute.*;
 import net.momirealms.craftengine.core.attribute.modifier.*;
 
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.ItemDefinition;
-import net.momirealms.craftengine.core.item.setting.value.AttributeModifiers;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public final class EquipmentSlotItem {
     private final Item item;
@@ -19,11 +18,15 @@ public final class EquipmentSlotItem {
     }
 
     public static EquipmentSlotItem create(EquipmentSetSlot slot, Item item) {
-        Optional<ItemDefinition> definition = item.getDefinition();
-        if (definition.isEmpty()) return new EquipmentSlotItem(item, List.of());
-        AttributeModifiers attributeModifiers = definition.get().settings().attributeModifiers();
-        if (attributeModifiers == null) return new EquipmentSlotItem(item, List.of());
-        return new EquipmentSlotItem(item, attributeModifiers.modifiers(slot));
+        List<SlotAttributeModifierConfig> modifiers = CraftEngine.instance().attributeManager().getItemAttributeModifiers(item);
+        if (modifiers.isEmpty()) return new EquipmentSlotItem(item, List.of());
+        List<AttributeModifierConfig> snapshots = new ArrayList<>(modifiers.size());
+        for (SlotAttributeModifierConfig config : modifiers) {
+            if (config.slot.test(slot)) {
+                snapshots.add(config);
+            }
+        }
+        return new EquipmentSlotItem(item, snapshots);
     }
 
     public Item item() {

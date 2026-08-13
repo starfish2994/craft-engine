@@ -83,6 +83,12 @@ public class AttributeInstance {
     public void addOrUpdateModifier(AttributeModifier modifier) {
         AttributeModifier oldModifier = this.byId.put(modifier.id(), modifier);
         if (modifier != oldModifier) {
+            if (oldModifier != null && !oldModifier.operation().equals(modifier.operation())) {
+                Map<Key, AttributeModifier> oldOperations = this.byOperation.get(oldModifier.operation());
+                if (oldOperations != null) {
+                    oldOperations.remove(modifier.id());
+                }
+            }
             this.getModifiersByOperation(modifier.operation()).put(modifier.id(), modifier);
             this.setDirty();
         }

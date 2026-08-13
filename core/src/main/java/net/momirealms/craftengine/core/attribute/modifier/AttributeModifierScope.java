@@ -1,12 +1,29 @@
 package net.momirealms.craftengine.core.attribute.modifier;
 
-import java.util.Locale;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 
 public enum AttributeModifierScope {
-    ENTITY,
-    WEAPON;
+    ENTITY("entity"),
+    WEAPON("weapon");
 
-    public static AttributeModifierScope byName(String name) {
-        return valueOf(name.toUpperCase(Locale.ROOT));
+    private static final Map<String, AttributeModifierScope> BY_ID = Map.of(
+            "entity", ENTITY,
+            "weapon", WEAPON
+    );
+    private final String id;
+
+    AttributeModifierScope(String id) {
+        this.id = id;
+    }
+
+    public static AttributeModifierScope byId(String id) {
+        return BY_ID.get(id);
+    }
+
+    @NotNull
+    public String id() {
+        return this.id;
     }
 }

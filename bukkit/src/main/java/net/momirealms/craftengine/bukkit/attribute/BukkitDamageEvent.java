@@ -5,11 +5,13 @@ import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.attribute.*;
 import net.momirealms.craftengine.core.attribute.formula.DamageEvent;
 import net.momirealms.craftengine.core.attribute.formula.DamageSource;
+import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.setting.value.AttributeModifiers;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -29,10 +31,12 @@ public final class BukkitDamageEvent implements DamageEvent {
     private final AttributeGetter victimAttributes;
     private final AttributeGetter attackerAttributes;
     private final Context attackerContext;
-    // 本次攻击实际使用的武器，惰性解析（null 表示无）
+    // 本次攻击实际使用的武器及其合并修饰符，惰性解析（null 表示无）
     private boolean weaponResolved;
     @Nullable
     private Item activeWeapon;
+    @Nullable
+    private List<SlotAttributeModifierConfig> activeWeaponModifiers;
 
     public BukkitDamageEvent(BukkitAttributeManager manager, EntityDamageEvent event) {
         this.manager = manager;
@@ -97,7 +101,12 @@ public final class BukkitDamageEvent implements DamageEvent {
     }
 
     private double weaponAttributeValue(Attribute attribute) {
-        return this.manager.getWeaponAttributeValue(activeWeapon(), attribute, this.attackerContext);
+        Item weapon = activeWeapon();
+        if (weapon == null) return 0;
+        if (this.activeWeaponModifiers == null) {
+            this.activeWeaponModifiers = this.manager.getItemAttributeModifiers(weapon);
+        }
+        return AttributeModifiers.weaponValue(this.activeWeaponModifiers, attribute, this.attackerContext);
     }
 
     @Nullable

@@ -3,6 +3,7 @@ import net.momirealms.craftengine.core.attribute.base.*;
 import net.momirealms.craftengine.core.attribute.derived.*;
 import net.momirealms.craftengine.core.attribute.format.*;
 import net.momirealms.craftengine.core.attribute.formula.*;
+import net.momirealms.craftengine.core.attribute.modifier.*;
 import net.momirealms.craftengine.core.attribute.sync.*;
 
 
@@ -11,6 +12,9 @@ import net.momirealms.craftengine.core.attribute.sync.*;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier.Operation;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.ItemDefinition;
+import net.momirealms.craftengine.core.item.setting.value.AttributeModifiers;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.*;
@@ -34,6 +38,10 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     protected final Map<Key, AttributeOperation> configOperations = new HashMap<>();
     // 运行中的实体属性容器
     protected final ConcurrentChainedUUID2ReferenceHashTable<AttributeContainer> containers = ConcurrentChainedUUID2ReferenceHashTable.createWithCapacity(128);
+    // 物品修饰符动态来源注册表（按 id），变动时重建有序快照
+    protected final Map<Key, RegisteredProvider> itemModifiersProviders = new LinkedHashMap<>();
+    // 按优先级升序的快照，遍历时零排序开销
+    protected volatile List<ItemAttributeModifiersProvider> sortedItemModifiersProviders = List.of();
     private final OperationParser operationParser = new OperationParser();
     private final AttributeParser attributeParser = new AttributeParser();
     private final DamageFormulaParser damageFormulaParser = new DamageFormulaParser();
@@ -49,6 +57,21 @@ public abstract class AbstractAttributeManager implements AttributeManager {
         this.apiOperations.put(AttributeOperations.ADD_VALUE_ID, AttributeOperations.ADD_VALUE);
         this.apiOperations.put(AttributeOperations.ADD_MULTIPLIED_BASE_ID, AttributeOperations.ADD_MULTIPLIED_BASE);
         this.apiOperations.put(AttributeOperations.ADD_MULTIPLIED_TOTAL_ID, AttributeOperations.ADD_MULTIPLIED_TOTAL);
+        registerItemModifiersProvider(Key.ce("settings"), ItemAttributeModifiersProvider.PRIORITY_SETTINGS, item -> {
+            Optional<ItemDefinition> definition = item.getDefinition();
+            if (definition.isEmpty()) return List.of();
+            AttributeModifiers modifiers = definition.get().settings().attributeModifiers();
+            return modifiers == null ? List.of() : modifiers.modifiers();
+        });
+        registerItemModifiersProvider(Key.ce("persistent"), ItemAttributeModifiersProvider.PRIORITY_PERSISTENT, item -> {
+            List<ItemAttributeModifier> persistent = ItemAttributeModifierStore.read(item);
+            if (persistent.isEmpty()) return List.of();
+            List<SlotAttributeModifierConfig> configs = new ArrayList<>(persistent.size());
+            for (ItemAttributeModifier modifier : persistent) {
+                configs.add(modifier.toConfig());
+            }
+            return configs;
+        });
     }
 
     @Override
@@ -61,6 +84,47 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     public Optional<AttributeOperation> getOperation(Key id) {
         AttributeOperation operation = this.configOperations.get(id);
         return operation != null ? Optional.of(operation) : Optional.ofNullable(this.apiOperations.get(id));
+    }
+
+    @Override
+    public void registerItemModifiersProvider(Key id, int priority, ItemAttributeModifiersProvider provider) {
+        this.itemModifiersProviders.put(id, new RegisteredProvider(priority, provider));
+        rebuildSortedItemModifiersProviders();
+    }
+
+    @Override
+    public void unregisterItemModifiersProvider(Key id) {
+        if (this.itemModifiersProviders.remove(id) != null) {
+            rebuildSortedItemModifiersProviders();
+        }
+    }
+
+    private void rebuildSortedItemModifiersProviders() {
+        List<RegisteredProvider> all = new ArrayList<>(this.itemModifiersProviders.values());
+        all.sort(Comparator.comparingInt(RegisteredProvider::priority));
+        List<ItemAttributeModifiersProvider> sorted = new ArrayList<>(all.size());
+        for (RegisteredProvider registered : all) {
+            sorted.add(registered.provider());
+        }
+        this.sortedItemModifiersProviders = List.copyOf(sorted);
+    }
+
+    protected record RegisteredProvider(int priority, ItemAttributeModifiersProvider provider) {
+    }
+
+    @Override
+    public List<SlotAttributeModifierConfig> getItemAttributeModifiers(Item item) {
+        List<ItemAttributeModifiersProvider> providers = this.sortedItemModifiersProviders;
+        if (providers.isEmpty()) return List.of();
+        Map<Key, SlotAttributeModifierConfig> merged = new LinkedHashMap<>();
+        for (ItemAttributeModifiersProvider provider : providers) {
+            for (SlotAttributeModifierConfig modifier : provider.getModifiers(item)) {
+                if (modifier != null) {
+                    merged.put(modifier.id, modifier);
+                }
+            }
+        }
+        return merged.isEmpty() ? List.of() : List.copyOf(merged.values());
     }
 
     @Override
@@ -332,11 +396,6 @@ public abstract class AbstractAttributeManager implements AttributeManager {
         @Override
         public LoadingStage loadingStage() {
             return LoadingStages.ATTRIBUTE_OPERATION;
-        }
-
-        @Override
-        public List<LoadingStage> dependencies() {
-            return List.of();
         }
 
         @Override

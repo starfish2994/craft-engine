@@ -52,6 +52,20 @@ public final class AttributeContainer implements AttributeGetter {
         return this.equipments;
     }
 
+    // 重扫全部装备槽：实例覆盖/动态来源变化后，已穿戴物品经此方法重新生效
+    public void refreshEquipments() {
+        if (!(this.entity instanceof LivingEntity livingEntity)) return;
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            this.equipments.remove(EquipmentSetSlot.fromEquipmentSlot(slot));
+        }
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            Item item = livingEntity.getItemByEquipmentSlot(slot);
+            if (!item.isEmpty()) {
+                this.equipments.add(EquipmentSetSlot.fromEquipmentSlot(slot), item);
+            }
+        }
+    }
+
     public AttributeInstance getOrCreateInstance(Key attribute) {
         Attribute attr = this.manager.getAttribute(attribute).orElseThrow(() -> new IllegalStateException("Attribute " + attribute + " not found"));
         return getOrCreateInstance(attr);
