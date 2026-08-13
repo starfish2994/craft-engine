@@ -36,4 +36,9 @@ public final class DynamicAttributeModifier implements AttributeModifier {
     public int updateInterval() {
         return this.config.updateInterval;
     }
+
+    @Override
+    public boolean isDynamic() {
+        return this.config.dynamic;
+    }
 }

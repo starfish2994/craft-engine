@@ -17,4 +17,8 @@ public interface AttributeModifier {
     default int updateInterval() {
         return 0;
     }
+
+    default boolean isDynamic() {
+        return true;
+    }
 }

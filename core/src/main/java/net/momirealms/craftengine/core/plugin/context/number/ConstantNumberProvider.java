@@ -20,6 +20,11 @@ public record ConstantNumberProvider(double value) implements NumberProvider {
         return this.value;
     }
 
+    @Override
+    public boolean isConstant() {
+        return true;
+    }
+
     public static ConstantNumberProvider constant(final double value) {
         return new ConstantNumberProvider(value);
     }

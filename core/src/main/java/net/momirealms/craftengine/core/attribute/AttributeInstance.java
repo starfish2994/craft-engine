@@ -102,7 +102,7 @@ public class AttributeInstance {
     }
 
     private void trackIfNeeded(AttributeModifier modifier) {
-        if (modifier.updateInterval() > 0) {
+        if (modifier.isDynamic() && modifier.updateInterval() > 0) {
             if (this.trackedModifiers == null) {
                 this.trackedModifiers = new Object2ObjectArrayMap<>();
             }
@@ -127,9 +127,9 @@ public class AttributeInstance {
             if (modifier == null) continue;
             double amount = modifier.amount(this.context);
             boolean condition = modifier.condition().test(this.context);
-            if (amount != state.lastAmount || condition != state.lastCondition) {
-                state.lastAmount = amount;
-                state.lastCondition = condition;
+            if (amount != state.amount || condition != state.condition) {
+                state.amount = amount;
+                state.condition = condition;
                 this.setDirty();
             }
         }
@@ -157,12 +157,19 @@ public class AttributeInstance {
 
     public double recalculate() {
         double value = this.lastBase;
+        Map<Key, TrackedModifier> tracked = this.trackedModifiers;
         for (AttributeOperation operation : this.attribute.operations()) {
             Map<Key, AttributeModifier> attributeModifiers = this.byOperation.get(operation.id());
             if (attributeModifiers != null) {
                 double phaseBase = value;
                 for (AttributeModifier modifier : attributeModifiers.values()) {
-                    if (modifier.condition().test(this.context)) {
+                    // 被轮询跟踪的修饰符吃快照值——轮询点是唯一求值点，避免双重求值与异步变量的前后不一致
+                    TrackedModifier snapshot = tracked == null ? null : tracked.get(modifier.id());
+                    if (snapshot != null) {
+                        if (snapshot.condition) {
+                            value = operation.apply(phaseBase, value, snapshot.amount);
+                        }
+                    } else if (modifier.condition().test(this.context)) {
                         value = operation.apply(phaseBase, value, modifier.amount(this.context));
                     }
                 }
@@ -178,14 +185,14 @@ public class AttributeInstance {
     private static final class TrackedModifier {
         private final int interval;
         private long nextTick;
-        private double lastAmount;
-        private boolean lastCondition;
+        private double amount;
+        private boolean condition;
 
-        private TrackedModifier(int interval, long nextTick, double lastAmount, boolean lastCondition) {
+        private TrackedModifier(int interval, long nextTick, double amount, boolean condition) {
             this.interval = interval;
             this.nextTick = nextTick;
-            this.lastAmount = lastAmount;
-            this.lastCondition = lastCondition;
+            this.amount = amount;
+            this.condition = condition;
         }
     }
 

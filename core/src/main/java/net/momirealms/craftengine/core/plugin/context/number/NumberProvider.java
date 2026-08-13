@@ -25,4 +25,8 @@ public interface NumberProvider {
     default int getInt(RandomSource random) {
         return Math.round(this.getFloat(random));
     }
+
+    default boolean isConstant() {
+        return false;
+    }
 }

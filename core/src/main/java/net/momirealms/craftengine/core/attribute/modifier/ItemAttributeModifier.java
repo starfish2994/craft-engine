@@ -12,6 +12,6 @@ public record ItemAttributeModifier(Key attribute, Key id, double amount, Key op
     }
 
     public SlotAttributeModifierConfig toConfig() {
-        return new SlotAttributeModifierConfig(this.attribute, this.id, ConstantNumberProvider.constant(this.amount), this.operation, MiscUtils.allOf(), this.scope, this.slot, 0);
+        return new SlotAttributeModifierConfig(this.attribute, this.id, ConstantNumberProvider.constant(this.amount), this.operation, MiscUtils.allOf(), this.scope, this.slot, 0, false);
     }
 }
