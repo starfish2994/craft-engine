@@ -572,6 +572,13 @@ attribute:
   enable: false
   # By default, custom attribute settings only apply to players. Turn on this option to apply them to all entities
   apply-to-all-entities: false
+  health-scaling:
+    # Master switch for health scaling (rewrites health packets so the client-side health bar stays compact)
+    enable: false
+    # Scaling applies only when the player's real max health exceeds this value
+    threshold: 20
+    # The visual max health shown to the client after scaling
+    visual-max-health: 20
 
 gui:
   browser:

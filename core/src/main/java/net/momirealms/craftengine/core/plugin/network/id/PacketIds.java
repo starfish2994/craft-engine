@@ -159,4 +159,6 @@ public interface PacketIds {
     int clientboundShowDialogPacket$configuration();
 
     int clientboundUpdateAttributesPacket();
+
+    int clientboundSetHealthPacket();
 }

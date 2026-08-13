@@ -1,8 +1,10 @@
 package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 
+import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
@@ -20,6 +22,7 @@ import java.util.UUID;
 public final class UpdateAttributesListener implements ByteBufferPacketListener {
     public static final UpdateAttributesListener INSTANCE = new UpdateAttributesListener();
     public static final int BLOCK_BREAK_SPEED = RegistryProxy.INSTANCE.getId(BuiltInRegistriesProxy.ATTRIBUTE, RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(Key.minecraft(VersionHelper.isOrAbove1_21 ? "block_break_speed" : "player.block_break_speed"))));
+    public static final int MAX_HEALTH = RegistryProxy.INSTANCE.getId(BuiltInRegistriesProxy.ATTRIBUTE, RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(Key.minecraft("max_health"))));
     public static final UUID CUSTOM_HARDNESS_UUID = UUID.nameUUIDFromBytes(Key.ce("custom_hardness").asString().getBytes(StandardCharsets.UTF_8));
 
     @Override
@@ -30,6 +33,7 @@ public final class UpdateAttributesListener implements ByteBufferPacketListener 
         if (player.clientSideCanBreak()) {
             return;
         }
+        BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
 
         FriendlyByteBuf buf = event.getBuffer();
         int entityId = buf.readVarInt();
@@ -69,6 +73,17 @@ public final class UpdateAttributesListener implements ByteBufferPacketListener 
                         modifiers.add(new AttributeModifier1_20_5(uuid, modifierValue, operation));
                     }
                 }
+                if (attributeId == MAX_HEALTH && Config.enableHealthScaling()) {
+                    // 按原版运算规则从包内 base+修饰符算出客户端可见的血量上限
+                    double finalMaxHealth = computeFinalValue(baseValue, modifiers);
+                    serverPlayer.setClientSideMaxHealth(finalMaxHealth);
+                    if (finalMaxHealth > Config.healthScalingThreshold()) {
+                        // 血条上限固定为视觉上限，修饰符清空避免客户端自行算出真实值
+                        baseValue = Config.healthScalingVisualMaxHealth();
+                        modifiers = List.of();
+                        changed = true;
+                    }
+                }
             }
             attributeSnapshots.add(new AttributeSnapshot(attributeId, baseValue, modifiers));
         }
@@ -101,7 +116,26 @@ public final class UpdateAttributesListener implements ByteBufferPacketListener 
     public record AttributeSnapshot(int attributeType, double base, List<AttributeModifier> modifiers) {
     }
 
+    private static double computeFinalValue(double base, List<AttributeModifier> modifiers) {
+        double value = base;
+        for (AttributeModifier modifier : modifiers) {
+            if (modifier.operation() == 0) value += modifier.modifierValue();
+        }
+        double phaseBase = value;
+        for (AttributeModifier modifier : modifiers) {
+            if (modifier.operation() == 1) value += phaseBase * modifier.modifierValue();
+        }
+        for (AttributeModifier modifier : modifiers) {
+            if (modifier.operation() == 2) value *= 1 + modifier.modifierValue();
+        }
+        return value;
+    }
+
     interface AttributeModifier {
+
+        double modifierValue();
+
+        byte operation();
     }
 
     record AttributeModifier1_21(Key modifierName, double modifierValue, byte operation) implements AttributeModifier {

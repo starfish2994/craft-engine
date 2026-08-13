@@ -513,6 +513,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         registerByteBufferPacketListener(ShowDialogListener.INSTANCE, PACKET_IDS.clientboundShowDialogPacket$play(), "ClientboundShowDialogPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(ShowDialogListener.INSTANCE, PACKET_IDS.clientboundShowDialogPacket$configuration(), "ClientboundShowDialogPacket", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(UpdateAttributesListener.INSTANCE, PACKET_IDS.clientboundUpdateAttributesPacket(), "ClientboundUpdateAttributesPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetHealthListener.INSTANCE, PACKET_IDS.clientboundSetHealthPacket(), "ClientboundSetHealthPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

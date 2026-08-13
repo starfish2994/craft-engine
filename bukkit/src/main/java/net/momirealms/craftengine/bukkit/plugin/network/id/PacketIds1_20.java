@@ -412,4 +412,9 @@ public final class PacketIds1_20 implements PacketIds {
     public int clientboundUpdateAttributesPacket() {
         return PacketIdHelper.byClazz(ClientboundUpdateAttributesPacketProxy.CLASS, ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
     }
+
+    @Override
+    public int clientboundSetHealthPacket() {
+        return PacketIdHelper.byClazz(ClientboundSetHealthPacketProxy.CLASS, ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+    }
 }

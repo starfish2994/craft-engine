@@ -151,8 +151,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     private Reference<org.bukkit.entity.Player> bukkitPlayerRef;
     private Reference<Object> nmsPlayerRef;
     // client side dimension info
-    private World clientSideWorld;
-    // check main hand/offhand interaction
+    private World clientSideWorld;    // check main hand/offhand interaction
     private int lastSuccessfulInteraction;
     // to prevent duplicated events
     private int lastInteractEntityWithMainHand;
@@ -181,6 +180,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     private IntIdentityList blockList = new IntIdentityList(BlockStateUtils.vanillaBlockStateCount());
     // cache if player can break blocks
     private boolean clientSideCanBreak = true;
+    // 血量缩放：最近一次 UpdateAttributes 包内算出的客户端可见血量上限，-1 表示未知
+    private double clientSideMaxHealth = 20;
     // a cooldown for better breaking experience
     private int lastSuccessfulBreak;
     // player's game tick
@@ -619,6 +620,14 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     @Override
     public void setClientSideWorld(World world) {
         this.clientSideWorld = world;
+    }
+
+    public double clientSideMaxHealth() {
+        return this.clientSideMaxHealth;
+    }
+
+    public void setClientSideMaxHealth(double maxHealth) {
+        this.clientSideMaxHealth = maxHealth;
     }
 
     public void setConnectionState(ConnectionState connectionState) {
