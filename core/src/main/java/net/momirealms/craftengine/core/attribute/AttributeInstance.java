@@ -1,14 +1,15 @@
 package net.momirealms.craftengine.core.attribute;
-import net.momirealms.craftengine.core.attribute.modifier.*;
-import net.momirealms.craftengine.core.attribute.sync.*;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.momirealms.craftengine.core.attribute.modifier.AttributeModifier;
+import net.momirealms.craftengine.core.attribute.sync.SyncTarget;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.SwapList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -22,7 +23,11 @@ public class AttributeInstance {
     private final Map<Key, AttributeModifier> byId = new Object2ObjectArrayMap<>();
     private final Context context;
     @Nullable
-    private Map<Key, TrackedModifier> trackedModifiers;
+    private Map<Key, TrackedModifier> trackedById;
+    @Nullable
+    private SwapList<TrackedModifier> trackedList;
+    // 最早到期 tick，未到期时整表跳过
+    private volatile int nextTrackedTick = Integer.MAX_VALUE;
     private double cachedValue;
     private boolean dirty = true;
     private double lastBase;
@@ -65,8 +70,14 @@ public class AttributeInstance {
                 operations.remove(id);
             }
         }
-        if (this.trackedModifiers != null) {
-            this.trackedModifiers.remove(id);
+        if (this.trackedById != null) {
+            TrackedModifier removedTracked = this.trackedById.remove(id);
+            if (removedTracked != null) {
+                this.trackedList.swapRemove(removedTracked);
+                if (this.trackedById.isEmpty()) {
+                    this.nextTrackedTick = Integer.MAX_VALUE;
+                }
+            }
         }
         this.setDirty();
     }
@@ -103,36 +114,70 @@ public class AttributeInstance {
 
     private void trackIfNeeded(AttributeModifier modifier) {
         if (modifier.isDynamic() && modifier.updateInterval() > 0) {
-            if (this.trackedModifiers == null) {
-                this.trackedModifiers = new Object2ObjectArrayMap<>();
+            if (this.trackedById == null) {
+                this.trackedById = new Object2ObjectOpenHashMap<>();
+                this.trackedList = new SwapList<>();
             }
-            this.trackedModifiers.put(modifier.id(), new TrackedModifier(modifier.updateInterval(), -1, modifier.amount(this.context), modifier.condition().test(this.context)));
-        } else if (this.trackedModifiers != null) {
-            this.trackedModifiers.remove(modifier.id());
+            TrackedModifier tracked = new TrackedModifier(modifier, modifier.amount(this.context), modifier.condition().test(this.context));
+            TrackedModifier previous = this.trackedById.put(modifier.id(), tracked);
+            if (previous != null) {
+                // 原位替换列表中的旧快照
+                this.trackedList.set(previous.index(), tracked);
+            } else {
+                this.trackedList.add(tracked);
+            }
+            // 新条目待初始化，下一 tick 强制扫描一次
+            this.nextTrackedTick = Integer.MIN_VALUE;
+        } else if (this.trackedById != null) {
+            TrackedModifier removed = this.trackedById.remove(modifier.id());
+            if (removed != null) {
+                this.trackedList.swapRemove(removed);
+                if (this.trackedById.isEmpty()) {
+                    this.nextTrackedTick = Integer.MAX_VALUE;
+                }
+            }
         }
     }
 
-    public void updateTrackedModifiers(long tick) {
-        Map<Key, TrackedModifier> tracked = this.trackedModifiers;
-        if (tracked == null || tracked.isEmpty()) return;
-        for (Map.Entry<Key, TrackedModifier> entry : tracked.entrySet()) {
-            TrackedModifier state = entry.getValue();
+    public void updateTrackedModifiers(int tick) {
+        if (tick < this.nextTrackedTick) return;
+        SwapList<TrackedModifier> tracked = this.trackedList;
+        if (tracked == null) {
+            this.nextTrackedTick = Integer.MAX_VALUE;
+            return;
+        }
+        Object[] array = tracked.elements();
+        int size = array.length;
+        if (size == 0) {
+            this.nextTrackedTick = Integer.MAX_VALUE;
+            return;
+        }
+        int nextDue = Integer.MAX_VALUE;
+        for (int i = 0; i < size; i++) {
+            TrackedModifier state = (TrackedModifier) array[i];
+            if (state == null || state.index() == -1) continue;
+            AttributeModifier modifier = state.modifier;
+            int interval = modifier.updateInterval();
             if (state.nextTick == -1) {
-                state.nextTick = tick + state.interval;
+                // 首次调度按 id 哈希错开，避免批量刷新后同 interval 的修饰符挤在同一 tick 求值
+                state.nextTick = tick + interval + Math.floorMod(modifier.id().hashCode(), interval);
+            }
+            if (tick < state.nextTick) {
+                nextDue = Math.min(nextDue, state.nextTick);
                 continue;
             }
-            if (tick < state.nextTick) continue;
-            state.nextTick = tick + state.interval;
-            AttributeModifier modifier = this.byId.get(entry.getKey());
-            if (modifier == null) continue;
-            double amount = modifier.amount(this.context);
+            state.nextTick = tick + interval;
+            nextDue = Math.min(nextDue, state.nextTick);
             boolean condition = modifier.condition().test(this.context);
-            if (amount != state.amount || condition != state.condition) {
+            // 条件不满足时快照值不参与 recalculate，跳过 amount 求值
+            double amount = condition ? modifier.amount(this.context) : state.amount;
+            if (condition != state.condition || amount != state.amount) {
                 state.amount = amount;
                 state.condition = condition;
                 this.setDirty();
             }
         }
+        this.nextTrackedTick = nextDue;
     }
 
     public void setDirty() {
@@ -157,7 +202,7 @@ public class AttributeInstance {
 
     public double recalculate() {
         double value = this.lastBase;
-        Map<Key, TrackedModifier> tracked = this.trackedModifiers;
+        Map<Key, TrackedModifier> tracked = this.trackedById;
         for (AttributeOperation operation : this.attribute.operations()) {
             Map<Key, AttributeModifier> attributeModifiers = this.byOperation.get(operation.id());
             if (attributeModifiers != null) {
@@ -182,20 +227,6 @@ public class AttributeInstance {
         return !this.attribute.syncTargets().isEmpty();
     }
 
-    private static final class TrackedModifier {
-        private final int interval;
-        private long nextTick;
-        private double amount;
-        private boolean condition;
-
-        private TrackedModifier(int interval, long nextTick, double amount, boolean condition) {
-            this.interval = interval;
-            this.nextTick = nextTick;
-            this.amount = amount;
-            this.condition = condition;
-        }
-    }
-
     public void syncToVanilla() {
         List<SyncTarget> targets = this.attribute.syncTargets();
         if (targets.isEmpty()) return;
@@ -210,6 +241,30 @@ public class AttributeInstance {
             if (vanillaAttribute != null) {
                 vanillaAttribute.addOrUpdateTransientModifier(this.attribute.id(), target.operation(), target.evaluate(value, base));
             }
+        }
+    }
+
+    private static final class TrackedModifier implements SwapList.Indexed {
+        private final AttributeModifier modifier;
+        private int nextTick = -1;
+        private double amount;
+        private boolean condition;
+        private int index = -1;
+
+        private TrackedModifier(AttributeModifier modifier, double amount, boolean condition) {
+            this.modifier = modifier;
+            this.amount = amount;
+            this.condition = condition;
+        }
+
+        @Override
+        public int index() {
+            return this.index;
+        }
+
+        @Override
+        public void index(int index) {
+            this.index = index;
         }
     }
 }
