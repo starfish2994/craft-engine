@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.momirealms.antigrieflib.AntiGriefCompatibility;
 import net.momirealms.antigrieflib.AntiGriefLib;
 import net.momirealms.craftengine.bukkit.advancement.BukkitAdvancementManager;
@@ -55,6 +56,8 @@ import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
 import net.momirealms.craftengine.core.plugin.script.ScriptManagerImpl;
 import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.BukkitProxy;
+import net.momirealms.craftengine.proxy.adventure.text.event.RelocatedClickEventProxy;
+import net.momirealms.sparrow.nbt.adventure.NBTComponentSerializer;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -180,6 +183,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         }
         // 初始化一些注册表
         super.onPluginLoad();
+        NBTComponentSerializer.setClickEventFactory(RelocatedClickEventProxy.INSTANCE::newInstance);
         BukkitBlockBehaviors.init();
         BukkitItemBehaviors.init();
         BukkitFurnitureBehaviors.init();
