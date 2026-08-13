@@ -15,13 +15,15 @@ public class AttributeModifierConfig {
     public final NumberProvider amount;
     public final Key operation;
     public final Predicate<Context> condition;
+    public final AttributeModifierScope scope;
 
-    public AttributeModifierConfig(Key attribute, Key id, NumberProvider amount, Key operation, Predicate<Context> condition) {
+    public AttributeModifierConfig(Key attribute, Key id, NumberProvider amount, Key operation, Predicate<Context> condition, AttributeModifierScope scope) {
         this.attribute = attribute;
         this.id = id;
         this.amount = amount;
         this.operation = operation;
         this.condition = condition;
+        this.scope = scope;
     }
 
     public DynamicAttributeModifier build() {
@@ -34,6 +36,7 @@ public class AttributeModifierConfig {
         NumberProvider amount = section.getNonNullNumber("amount");
         Key operation = section.getNonNullIdentifier("operation");
         Predicate<Context> conditions = MiscUtils.allOf(section.getList("conditions", CommonConditions::fromConfig));
-        return new AttributeModifierConfig(attribute, id, amount, operation, conditions);
+        AttributeModifierScope scope = section.getEnum("scope", AttributeModifierScope.class, AttributeModifierScope.ENTITY);
+        return new AttributeModifierConfig(attribute, id, amount, operation, conditions, scope);
     }
 }

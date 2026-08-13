@@ -36,6 +36,7 @@ public final class EquipmentSlotItem {
 
     public void addOrUpdateModifiers(AttributeContainer container) {
         for (AttributeModifierConfig config : this.snapshots) {
+            if (config.scope == AttributeModifierScope.WEAPON) continue;
             AttributeInstance instance = container.getOrCreateInstance(config.attribute);
             instance.addOrUpdateModifier(config.build());
         }
@@ -43,6 +44,7 @@ public final class EquipmentSlotItem {
 
     public void removeModifiers(AttributeContainer container) {
         for (AttributeModifierConfig config : this.snapshots) {
+            if (config.scope == AttributeModifierScope.WEAPON) continue;
             AttributeInstance instance = container.getOrCreateInstance(config.attribute);
             instance.removeModifier(config.id);
         }

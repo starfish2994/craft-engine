@@ -30,6 +30,8 @@ public final class AttributeContainer implements AttributeGetter {
         this.context = entity instanceof Player player ? PlayerOptionalContext.of(player) : PlayerOptionalContext.emptyImmutable();
         this.equipments = new EntityEquipments(this);
         for (Attribute attribute : manager.attributesByEntityType(entity.type())) {
+            // 派生属性无实例：无缓存、无修饰符，查询时现算
+            if (attribute.derived() != null) continue;
             this.getOrCreateInstance(attribute);
         }
         if (entity instanceof LivingEntity livingEntity) {
@@ -74,6 +76,9 @@ public final class AttributeContainer implements AttributeGetter {
 
     @Override
     public double getAttributeValue(Attribute attribute) {
+        if (attribute.derived != null) {
+            return attribute.derive(this::getAttributeValue);
+        }
         AttributeInstance instance = getOrCreateInstance(attribute);
         if (instance == null) return 0;
         return instance.getValue();

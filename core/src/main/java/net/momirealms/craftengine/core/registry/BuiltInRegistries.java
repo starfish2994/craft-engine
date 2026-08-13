@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.registry;
 
 import net.momirealms.craftengine.core.attribute.*;
 import net.momirealms.craftengine.core.attribute.base.*;
+import net.momirealms.craftengine.core.attribute.derived.*;
 import net.momirealms.craftengine.core.attribute.format.*;
 import net.momirealms.craftengine.core.attribute.formula.*;
 import net.momirealms.craftengine.core.attribute.sync.*;
@@ -109,6 +110,7 @@ public final class BuiltInRegistries {
     public static final Registry<NumberProviderType<? extends NumberProvider>> NUMBER_PROVIDER_TYPE = createConstantBoundRegistry(Registries.NUMBER_PROVIDER_TYPE, 16);
     public static final Registry<DamageFormulaType<? extends DamageFormula>> DAMAGE_FORMULA_TYPE = createConstantBoundRegistry(Registries.DAMAGE_FORMULA_TYPE, 4);
     public static final Registry<BaseValueSourceType<? extends BaseValueSource>> BASE_VALUE_SOURCE_TYPE = createConstantBoundRegistry(Registries.BASE_VALUE_SOURCE_TYPE, 8);
+    public static final Registry<DerivedValueType<? extends DerivedValue>> DERIVED_VALUE_TYPE = createConstantBoundRegistry(Registries.DERIVED_VALUE_TYPE, 4);
     public static final Registry<SyncValueProviderType<? extends SyncValueProvider>> SYNC_VALUE_PROVIDER_TYPE = createConstantBoundRegistry(Registries.SYNC_VALUE_PROVIDER_TYPE, 8);
     public static final Registry<ValueTransformerType<? extends ValueTransformer>> VALUE_TRANSFORMER_TYPE = createConstantBoundRegistry(Registries.VALUE_TRANSFORMER_TYPE, 8);
     public static final Registry<ValueFormatterType<? extends ValueFormatter>> VALUE_FORMATTER_TYPE = createConstantBoundRegistry(Registries.VALUE_FORMATTER_TYPE, 8);

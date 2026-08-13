@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.attribute;
 import net.momirealms.craftengine.core.attribute.base.*;
+import net.momirealms.craftengine.core.attribute.derived.*;
 import net.momirealms.craftengine.core.attribute.format.*;
 import net.momirealms.craftengine.core.attribute.formula.*;
 import net.momirealms.craftengine.core.attribute.sync.*;
@@ -251,6 +252,12 @@ public abstract class AbstractAttributeManager implements AttributeManager {
                 byTypeImmutable.put(type, List.copyOf(merged));
             });
             AbstractAttributeManager.this.attributesByEntityType = Map.copyOf(byTypeImmutable);
+            for (Attribute attribute : attributes.values()) {
+                DerivedValue derived = attribute.derived();
+                if (derived != null) {
+                    derived.bind(attributes::get);
+                }
+            }
         }
 
         @Override
@@ -272,7 +279,8 @@ public abstract class AbstractAttributeManager implements AttributeManager {
             ValueFormatter formatter = section.getValue("format", ValueFormatters::fromConfig);
             Set<Key> applicableEntityTypes = parseApplicableEntityTypes(section);
             List<AttributeOperation> operations = parseOperations(section);
-            Attribute attribute = new Attribute(id, baseValueSource, constraint, operations, applicableEntityTypes, sync, formatter);
+            DerivedValue derived = section.getValue("derived", DerivedValues::fromConfig);
+            Attribute attribute = new Attribute(id, baseValueSource, constraint, operations, applicableEntityTypes, sync, formatter, derived);
             AbstractAttributeManager.this.configAttributes.put(id, attribute);
         }
     }

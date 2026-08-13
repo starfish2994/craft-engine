@@ -53,10 +53,15 @@ public final class BukkitDamageSource implements DamageSource {
     @Nullable
     @Override
     public Entity directEntity() {
-        Object directEntity = DamageSourceProxy.INSTANCE.getDirectEntity(this.source);
+        Object directEntity = directNmsEntity();
         if (directEntity == null) {
             return null;
         }
         return EntityUtils.adaptNMS(directEntity);
+    }
+
+    @Nullable
+    public Object directNmsEntity() {
+        return DamageSourceProxy.INSTANCE.getDirectEntity(this.source);
     }
 }

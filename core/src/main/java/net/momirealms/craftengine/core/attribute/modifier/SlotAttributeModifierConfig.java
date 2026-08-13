@@ -14,8 +14,8 @@ import java.util.function.Predicate;
 public final class SlotAttributeModifierConfig extends AttributeModifierConfig {
     public final EquipmentSlotGroup slot;
 
-    public SlotAttributeModifierConfig(Key attribute, Key id, NumberProvider amount, Key operation, Predicate<Context> condition, EquipmentSlotGroup slot) {
-        super(attribute, id, amount, operation, condition);
+    public SlotAttributeModifierConfig(Key attribute, Key id, NumberProvider amount, Key operation, Predicate<Context> condition, AttributeModifierScope scope, EquipmentSlotGroup slot) {
+        super(attribute, id, amount, operation, condition, scope);
         this.slot = slot;
     }
 
@@ -26,6 +26,7 @@ public final class SlotAttributeModifierConfig extends AttributeModifierConfig {
         Key operation = section.getNonNullIdentifier("operation");
         EquipmentSlotGroup slot = Objects.requireNonNull(EquipmentSlotGroup.byNameOrSlot(section.getNonEmptyString("slot")));
         Predicate<Context> conditions = MiscUtils.allOf(section.getList("conditions", CommonConditions::fromConfig));
-        return new SlotAttributeModifierConfig(attribute, id, amount, operation, conditions, slot);
+        AttributeModifierScope scope = section.getEnum("scope", AttributeModifierScope.class, AttributeModifierScope.ENTITY);
+        return new SlotAttributeModifierConfig(attribute, id, amount, operation, conditions, scope, slot);
     }
 }
