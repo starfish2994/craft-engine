@@ -6,7 +6,6 @@ import net.momirealms.craftengine.bukkit.util.EquipmentSlotUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.attribute.AttributeContainer;
 import net.momirealms.craftengine.core.attribute.equipment.EntityEquipments;
-import net.momirealms.craftengine.core.plugin.config.Config;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,9 +22,8 @@ public final class PaperAttributeEventListener implements Listener {
 
     @EventHandler
     public void onEquipmentChange(EntityEquipmentChangedEvent event) {
-        if (!Config.enableAttributeSystem()) return;
         LivingEntity entity = event.getEntity();
-        AttributeContainer container = (AttributeContainer) this.manager.getOrCreateContainer(BukkitAdaptor.adapt(entity));
+        AttributeContainer container = this.manager.getContainer(entity.getUniqueId());
         if (container == null) {
             return;
         }

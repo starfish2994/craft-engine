@@ -13,4 +13,8 @@ public interface AttributeModifier {
     double amount(Context context);
 
     Key operation();
+
+    default int updateInterval() {
+        return 0;
+    }
 }

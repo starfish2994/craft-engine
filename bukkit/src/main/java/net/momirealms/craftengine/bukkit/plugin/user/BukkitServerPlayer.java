@@ -677,7 +677,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         if (Config.enableAttributeSystem()) {
             AttributeContainer attributeContainer = this.plugin.attributeManager().getContainer(this.uuid());
             if (attributeContainer != null) {
-                attributeContainer.tick();
+                attributeContainer.tick(this.gameTicks);
             }
         }
 

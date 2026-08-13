@@ -334,6 +334,7 @@ public abstract class CraftEngine implements Plugin {
                         this.advancementManager.runDelayedSyncTasks();
                         // 注册所需的监听器
                         this.lootManager.runDelayedSyncTasks();
+                        this.attributeManager.runDelayedSyncTasks();
                         this.itemManager.runDelayedSyncTasks();
                         this.compatibilityManager.runDelayedSyncTasks();
                         if (callEvent) this.callReloadEvent();
@@ -442,6 +443,7 @@ public abstract class CraftEngine implements Plugin {
                 this.advancementManager.runDelayedSyncTasks();
                 // 注册所需的监听器
                 this.lootManager.runDelayedSyncTasks();
+                this.attributeManager.runDelayedSyncTasks();
                 this.itemManager.runDelayedSyncTasks();
                 this.compatibilityManager.runDelayedSyncTasks();
             } else {

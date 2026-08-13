@@ -31,4 +31,9 @@ public final class DynamicAttributeModifier implements AttributeModifier {
     public Key operation() {
         return this.config.operation;
     }
+
+    @Override
+    public int updateInterval() {
+        return this.config.updateInterval;
+    }
 }

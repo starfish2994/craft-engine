@@ -14,8 +14,8 @@ import java.util.function.Predicate;
 public final class SlotAttributeModifierConfig extends AttributeModifierConfig {
     public final EquipmentSlotGroup slot;
 
-    public SlotAttributeModifierConfig(Key attribute, Key id, NumberProvider amount, Key operation, Predicate<Context> condition, AttributeModifierScope scope, EquipmentSlotGroup slot) {
-        super(attribute, id, amount, operation, condition, scope);
+    public SlotAttributeModifierConfig(Key attribute, Key id, NumberProvider amount, Key operation, Predicate<Context> condition, AttributeModifierScope scope, EquipmentSlotGroup slot, int updateInterval) {
+        super(attribute, id, amount, operation, condition, scope, updateInterval);
         this.slot = slot;
     }
 
@@ -27,6 +27,7 @@ public final class SlotAttributeModifierConfig extends AttributeModifierConfig {
         EquipmentSlotGroup slot = Objects.requireNonNull(EquipmentSlotGroup.byNameOrSlot(section.getNonEmptyString("slot")));
         Predicate<Context> conditions = MiscUtils.allOf(section.getList("conditions", CommonConditions::fromConfig));
         AttributeModifierScope scope = section.getEnum("scope", AttributeModifierScope.class, AttributeModifierScope.ENTITY);
-        return new SlotAttributeModifierConfig(attribute, id, amount, operation, conditions, scope, slot);
+        int updateInterval = Math.max(0, section.getInt("update-interval", 0));
+        return new SlotAttributeModifierConfig(attribute, id, amount, operation, conditions, scope, slot, updateInterval);
     }
 }

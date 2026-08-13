@@ -4,6 +4,7 @@ import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.core.attribute.AbstractAttributeManager;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
@@ -23,6 +24,7 @@ public final class BukkitAttributeManager extends AbstractAttributeManager {
     private final AttributeEventListener attributeEventListener;
     private final PaperAttributeEventListener paperAttributeEventListener;
     private final Map<Key, Map<Key, Double>> vanillaDefaultAttributes;
+    private boolean listenersActive;
 
     public BukkitAttributeManager(BukkitCraftEngine plugin) {
         super(plugin);
@@ -34,18 +36,35 @@ public final class BukkitAttributeManager extends AbstractAttributeManager {
 
     @Override
     public void delayedInit() {
-        Bukkit.getPluginManager().registerEvents(this.attributeEventListener, this.plugin.javaPlugin());
-        if (this.paperAttributeEventListener != null) {
-            Bukkit.getPluginManager().registerEvents(this.paperAttributeEventListener, this.plugin.javaPlugin());
-        }
         buildVanillaDefaultAttributeTable();
     }
 
     @Override
+    public void runDelayedSyncTasks() {
+        boolean enable = Config.enableAttributeSystem();
+        if (enable == this.listenersActive) return;
+        this.listenersActive = enable;
+        if (enable) {
+            Bukkit.getPluginManager().registerEvents(this.attributeEventListener, this.plugin.javaPlugin());
+            if (this.paperAttributeEventListener != null) {
+                Bukkit.getPluginManager().registerEvents(this.paperAttributeEventListener, this.plugin.javaPlugin());
+            }
+        } else {
+            HandlerList.unregisterAll(this.attributeEventListener);
+            if (this.paperAttributeEventListener != null) {
+                HandlerList.unregisterAll(this.paperAttributeEventListener);
+            }
+        }
+    }
+
+    @Override
     public void disable() {
-        HandlerList.unregisterAll(this.attributeEventListener);
-        if (this.paperAttributeEventListener != null) {
-            HandlerList.unregisterAll(this.paperAttributeEventListener);
+        if (this.listenersActive) {
+            this.listenersActive = false;
+            HandlerList.unregisterAll(this.attributeEventListener);
+            if (this.paperAttributeEventListener != null) {
+                HandlerList.unregisterAll(this.paperAttributeEventListener);
+            }
         }
     }
 

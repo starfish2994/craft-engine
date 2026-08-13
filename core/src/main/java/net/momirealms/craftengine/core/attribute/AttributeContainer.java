@@ -98,9 +98,10 @@ public final class AttributeContainer implements AttributeGetter {
         return instance.getValue();
     }
 
-    public void tick() {
+    public void tick(int gameTicks) {
         for (AttributeInstance instance : this.instances.values()) {
             instance.updateBaseValue();
+            instance.updateTrackedModifiers(gameTicks);
             if (instance.needVanillaSync()) {
                 instance.getValue(); // 触发 dirty
                 instance.syncToVanilla();

@@ -21,6 +21,8 @@ public class AttributeInstance {
     private final Map<Key, Map<Key, AttributeModifier>> byOperation = new HashMap<>();
     private final Map<Key, AttributeModifier> byId = new Object2ObjectArrayMap<>();
     private final Context context;
+    @Nullable
+    private Map<Key, TrackedModifier> trackedModifiers;
     private double cachedValue;
     private boolean dirty = true;
     private double lastBase;
@@ -63,6 +65,9 @@ public class AttributeInstance {
                 operations.remove(id);
             }
         }
+        if (this.trackedModifiers != null) {
+            this.trackedModifiers.remove(id);
+        }
         this.setDirty();
     }
 
@@ -76,6 +81,7 @@ public class AttributeInstance {
             throw new IllegalArgumentException("Modifier is already applied on this attribute!");
         } else {
             this.getModifiersByOperation(modifier.operation()).put(modifier.id(), modifier);
+            this.trackIfNeeded(modifier);
             this.setDirty();
         }
     }
@@ -90,7 +96,42 @@ public class AttributeInstance {
                 }
             }
             this.getModifiersByOperation(modifier.operation()).put(modifier.id(), modifier);
+            this.trackIfNeeded(modifier);
             this.setDirty();
+        }
+    }
+
+    private void trackIfNeeded(AttributeModifier modifier) {
+        if (modifier.updateInterval() > 0) {
+            if (this.trackedModifiers == null) {
+                this.trackedModifiers = new Object2ObjectArrayMap<>();
+            }
+            this.trackedModifiers.put(modifier.id(), new TrackedModifier(modifier.updateInterval(), -1, modifier.amount(this.context), modifier.condition().test(this.context)));
+        } else if (this.trackedModifiers != null) {
+            this.trackedModifiers.remove(modifier.id());
+        }
+    }
+
+    public void updateTrackedModifiers(long tick) {
+        Map<Key, TrackedModifier> tracked = this.trackedModifiers;
+        if (tracked == null || tracked.isEmpty()) return;
+        for (Map.Entry<Key, TrackedModifier> entry : tracked.entrySet()) {
+            TrackedModifier state = entry.getValue();
+            if (state.nextTick == -1) {
+                state.nextTick = tick + state.interval;
+                continue;
+            }
+            if (tick < state.nextTick) continue;
+            state.nextTick = tick + state.interval;
+            AttributeModifier modifier = this.byId.get(entry.getKey());
+            if (modifier == null) continue;
+            double amount = modifier.amount(this.context);
+            boolean condition = modifier.condition().test(this.context);
+            if (amount != state.lastAmount || condition != state.lastCondition) {
+                state.lastAmount = amount;
+                state.lastCondition = condition;
+                this.setDirty();
+            }
         }
     }
 
@@ -132,6 +173,20 @@ public class AttributeInstance {
 
     public boolean needVanillaSync() {
         return !this.attribute.syncTargets().isEmpty();
+    }
+
+    private static final class TrackedModifier {
+        private final int interval;
+        private long nextTick;
+        private double lastAmount;
+        private boolean lastCondition;
+
+        private TrackedModifier(int interval, long nextTick, double lastAmount, boolean lastCondition) {
+            this.interval = interval;
+            this.nextTick = nextTick;
+            this.lastAmount = lastAmount;
+            this.lastCondition = lastCondition;
+        }
     }
 
     public void syncToVanilla() {
