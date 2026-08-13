@@ -21,6 +21,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.CraftEngineGUIHolder;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
+import net.momirealms.craftengine.bukkit.plugin.network.handler.PlayerPacketHandler;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
@@ -1499,6 +1500,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     @Override
     public void clearEntityView() {
         this.entityTypeView.clear();
+        // 玩家自身实体的包处理器不随视野清空（重生/切世界后仍需要血量 metadata 缩放等处理）
+        this.entityTypeView.put(this.entityId, PlayerPacketHandler.INSTANCE);
     }
 
     @Override

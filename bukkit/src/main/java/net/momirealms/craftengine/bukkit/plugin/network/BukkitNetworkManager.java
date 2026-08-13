@@ -11,6 +11,7 @@ import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.command.feature.TotemAnimationCommand;
 import net.momirealms.craftengine.bukkit.plugin.injector.HashedStackGenerator;
+import net.momirealms.craftengine.bukkit.plugin.network.handler.PlayerPacketHandler;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIdHelper;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20_5;
@@ -522,6 +523,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         BukkitServerPlayer user = (BukkitServerPlayer) getUser(player);
         if (user != null) {
             user.setPlayer(player);
+            // 玩家自身实体的包处理器（血量 metadata 缩放等）
+            user.entityPacketHandlers().put(user.entityId(), PlayerPacketHandler.INSTANCE);
             this.onlineUsers.put(player.getUniqueId(), user);
             this.resetUserArray();
             // folia在此tick每个玩家
