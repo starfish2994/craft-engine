@@ -55,7 +55,7 @@ public final class BukkitAttributeManager extends AbstractAttributeManager {
     }
 
     @Override
-    public double vanillaAttributeDefaultBaseValue(Key entityType, Key attribute, double fallback) {
+    protected double vanillaEntityTypeDefaultBaseValue(Key entityType, Key attribute, double fallback) {
         Map<Key, Double> attributes = this.vanillaDefaultAttributes.get(entityType);
         if (attributes == null) return fallback;
         return attributes.getOrDefault(attribute, fallback);

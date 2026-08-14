@@ -34,6 +34,8 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxConfigType;
 import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifier;
 import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifierType;
+import net.momirealms.craftengine.core.entity.setting.EntitySettingsModifier;
+import net.momirealms.craftengine.core.entity.setting.EntitySettingsModifierType;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorType;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
@@ -154,6 +156,7 @@ public final class BuiltInRegistries {
     public static final Registry<FurnitureSettingsModifierType<? extends FurnitureSettingsModifier>> FURNITURE_SETTINGS_TYPE = createConstantBoundRegistry(Registries.FURNITURE_SETTINGS_TYPE, 16);
     public static final Registry<BlockSettingsModifierType<? extends BlockSettingsModifier>> BLOCK_SETTINGS_TYPE = createConstantBoundRegistry(Registries.BLOCK_SETTINGS_TYPE, 16);
     public static final Registry<ItemSettingsModifierType<? extends ItemSettingsModifier>> ITEM_SETTINGS_TYPE = createConstantBoundRegistry(Registries.ITEM_SETTINGS_TYPE, 16);
+    public static final Registry<EntitySettingsModifierType<? extends EntitySettingsModifier>> ENTITY_SETTINGS_TYPE = createConstantBoundRegistry(Registries.ENTITY_SETTINGS_TYPE, 16);
     public static final Registry<LootFunctionType<? extends LootFunction>> LOOT_FUNCTION_TYPE = createConstantBoundRegistry(Registries.LOOT_FUNCTION_TYPE, 32);
     public static final Registry<LootEntryContainerType<? extends LootEntryContainer>> LOOT_ENTRY_CONTAINER_TYPE = createConstantBoundRegistry(Registries.LOOT_ENTRY_CONTAINER_TYPE, 16);
     public static final Registry<LootSourceType<? extends LootSource>> LOOT_SOURCE_TYPE = createConstantBoundRegistry(Registries.LOOT_SOURCE_TYPE, 16);

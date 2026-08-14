@@ -14,7 +14,7 @@ import java.util.Map;
 public final class BaseValueSources {
     public static final BaseValueSourceType<ConstantBaseValueSource> CONSTANT = register(Key.ce("constant"), ConstantBaseValueSource.FACTORY);
     public static final BaseValueSourceType<VanillaBaseValueSource> VANILLA = register(Key.ce("vanilla"), VanillaBaseValueSource.FACTORY);
-    public static final BaseValueSourceType<VanillaDefaultBaseValueSource> VANILLA_DEFAULT = register(Key.ce("vanilla_default"), VanillaDefaultBaseValueSource.FACTORY);
+    public static final BaseValueSourceType<ByEntityTypeBaseValueSource> BY_ENTITY_TYPE = register(Key.ce("by_entity_type"), ByEntityTypeBaseValueSource.FACTORY);
 
     private BaseValueSources() {}
 

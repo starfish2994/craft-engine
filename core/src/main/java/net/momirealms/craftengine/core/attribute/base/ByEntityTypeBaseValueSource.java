@@ -7,8 +7,8 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
-public record VanillaDefaultBaseValueSource(Key attribute, double fallback, @Nullable ValueTransformer transformer) implements BaseValueSource {
-    public static final BaseValueSourceFactory<VanillaDefaultBaseValueSource> FACTORY = args -> new VanillaDefaultBaseValueSource(
+public record ByEntityTypeBaseValueSource(Key attribute, double fallback, @Nullable ValueTransformer transformer) implements BaseValueSource {
+    public static final BaseValueSourceFactory<ByEntityTypeBaseValueSource> FACTORY = args -> new ByEntityTypeBaseValueSource(
             args.getNonNullKey("attribute"),
             args.getDouble("fallback", 0d),
             args.getValue("transform", ValueTransformers::fromConfig)

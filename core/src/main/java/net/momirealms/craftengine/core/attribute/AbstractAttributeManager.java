@@ -18,6 +18,7 @@ import net.momirealms.craftengine.core.attribute.sync.SyncValueProvider;
 import net.momirealms.craftengine.core.attribute.sync.SyncValueProviders;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier.Operation;
 import net.momirealms.craftengine.core.entity.Entity;
+import net.momirealms.craftengine.core.entity.EntityDefinition;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.setting.value.AttributeModifiers;
@@ -209,7 +210,16 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     @Override
-    public abstract double vanillaAttributeDefaultBaseValue(Key entityType, Key attribute, double fallback);
+    public double vanillaAttributeDefaultBaseValue(Key entityType, Key attribute, double fallback) {
+        EntityDefinition definition = this.plugin.entityManager().entityDefinition(entityType);
+        if (definition != null) {
+            Double value = definition.settings().attributeValue(attribute);
+            if (value != null) return value;
+        }
+        return vanillaEntityTypeDefaultBaseValue(entityType, attribute, fallback);
+    }
+
+    protected abstract double vanillaEntityTypeDefaultBaseValue(Key entityType, Key attribute, double fallback);
 
     private final class DamageFormulaParser extends SectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("damage_rule(s)");

@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.entity.EntityManager;
 import net.momirealms.craftengine.core.entity.culling.EntityCullingManager;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureManager;
 import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifiers;
+import net.momirealms.craftengine.core.entity.setting.EntitySettingsModifiers;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
 import net.momirealms.craftengine.core.entity.seat.SeatManager;
 import net.momirealms.craftengine.core.font.FontManager;
@@ -149,6 +150,7 @@ public abstract class CraftEngine implements Plugin {
         ItemSettingsModifiers.init();
         BlockSettingsModifiers.init();
         FurnitureSettingsModifiers.init();
+        EntitySettingsModifiers.init();
         ItemProcessors.init();
         NBTDataComponentConverter.register();
 

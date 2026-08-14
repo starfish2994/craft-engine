@@ -34,6 +34,8 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxConfigType;
 import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifier;
 import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifierType;
+import net.momirealms.craftengine.core.entity.setting.EntitySettingsModifier;
+import net.momirealms.craftengine.core.entity.setting.EntitySettingsModifierType;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorType;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
@@ -157,6 +159,7 @@ public final class Registries {
     public static final ResourceKey<Registry<FurnitureSettingsModifierType<? extends FurnitureSettingsModifier>>> FURNITURE_SETTINGS_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("furniture_settings_type"));
     public static final ResourceKey<Registry<BlockSettingsModifierType<? extends BlockSettingsModifier>>> BLOCK_SETTINGS_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("block_settings_type"));
     public static final ResourceKey<Registry<ItemSettingsModifierType<? extends ItemSettingsModifier>>> ITEM_SETTINGS_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_settings_type"));
+    public static final ResourceKey<Registry<EntitySettingsModifierType<? extends EntitySettingsModifier>>> ENTITY_SETTINGS_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("entity_settings_type"));
     public static final ResourceKey<Registry<LootFunctionType<? extends LootFunction>>> LOOT_FUNCTION_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("loot_function_type"));
     public static final ResourceKey<Registry<LootEntryContainerType<? extends LootEntryContainer>>> LOOT_ENTRY_CONTAINER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("loot_entry_container_type"));
     public static final ResourceKey<Registry<LootSourceType<? extends LootSource>>> LOOT_SOURCE_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("loot_source_type"));
