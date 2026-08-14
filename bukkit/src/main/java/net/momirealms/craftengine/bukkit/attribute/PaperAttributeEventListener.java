@@ -4,7 +4,7 @@ import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
-import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
+import net.momirealms.craftengine.bukkit.plugin.listener.AbstractListener;
 import net.momirealms.craftengine.bukkit.util.EquipmentSlotUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.attribute.AttributeContainer;
@@ -12,12 +12,11 @@ import net.momirealms.craftengine.core.attribute.equipment.EntityEquipments;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.inventory.EquipmentSlot;
 
 import java.util.Map;
 
-public final class PaperAttributeEventListener implements Listener {
+public final class PaperAttributeEventListener extends AbstractListener {
     private final BukkitAttributeManager manager;
 
     public PaperAttributeEventListener(BukkitAttributeManager manager) {

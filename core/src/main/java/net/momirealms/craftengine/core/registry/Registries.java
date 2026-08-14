@@ -2,14 +2,14 @@ package net.momirealms.craftengine.core.registry;
 
 import net.momirealms.craftengine.core.attribute.base.BaseValueSource;
 import net.momirealms.craftengine.core.attribute.base.BaseValueSourceType;
+import net.momirealms.craftengine.core.attribute.damage.DamageIndicator;
+import net.momirealms.craftengine.core.attribute.damage.DamageIndicatorType;
 import net.momirealms.craftengine.core.attribute.derived.DerivedValue;
 import net.momirealms.craftengine.core.attribute.derived.DerivedValueType;
 import net.momirealms.craftengine.core.attribute.format.ValueFormatter;
 import net.momirealms.craftengine.core.attribute.format.ValueFormatterType;
 import net.momirealms.craftengine.core.attribute.formula.DamageFormula;
 import net.momirealms.craftengine.core.attribute.formula.DamageFormulaType;
-import net.momirealms.craftengine.core.entity.hologram.DamageIndicator;
-import net.momirealms.craftengine.core.entity.hologram.DamageIndicatorType;
 import net.momirealms.craftengine.core.attribute.sync.SyncValueProvider;
 import net.momirealms.craftengine.core.attribute.sync.SyncValueProviderType;
 import net.momirealms.craftengine.core.attribute.transform.ValueTransformer;

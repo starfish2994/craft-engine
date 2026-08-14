@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.entity.hologram;
+package net.momirealms.craftengine.core.attribute.damage;
 
 import org.jetbrains.annotations.Nullable;
 

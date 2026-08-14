@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.util;
 
-import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;

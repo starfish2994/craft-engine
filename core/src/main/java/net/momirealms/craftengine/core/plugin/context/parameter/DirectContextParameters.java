@@ -73,4 +73,8 @@ public final class DirectContextParameters {
     public static final ContextKey<Boolean> OPEN_WATER = ContextKey.direct("open_water");
     public static final ContextKey<Key> BIOME = ContextKey.direct("biome");
     public static final ContextKey<Key> FIRE_TICKS = ContextKey.direct("fire_ticks");
+    public static final ContextKey<Double> ORIGINAL_DAMAGE = ContextKey.direct("original_damage");
+    public static final ContextKey<Double> DAMAGE = ContextKey.direct("damage");
+    public static final ContextKey<Boolean> IS_CRITICAL = ContextKey.direct("is_critical");
+    public static final ContextKey<Boolean> IS_SWEEP = ContextKey.direct("is_sweep");
 }

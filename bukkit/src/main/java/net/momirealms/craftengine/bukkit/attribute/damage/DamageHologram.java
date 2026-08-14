@@ -1,11 +1,11 @@
-package net.momirealms.craftengine.bukkit.entity.hologram;
+package net.momirealms.craftengine.bukkit.attribute.damage;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.entity.data.DisplayData;
-import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -28,7 +28,7 @@ public final class DamageHologram {
     private static final int SHRINK_INTERPOLATION_TICKS = 3;
     private static final float SHRINK_SCALE = 0.01f;
 
-    private final List<BukkitServerPlayer> viewers;
+    private final List<Player> viewers;
     private final Component text;
     private final Animation animation;
     private final int entityId;
@@ -36,7 +36,7 @@ public final class DamageHologram {
     private final double y;
     private final double z;
 
-    public DamageHologram(List<BukkitServerPlayer> viewers, Component text, Animation animation, double x, double y, double z) {
+    public DamageHologram(List<Player> viewers, Component text, Animation animation, double x, double y, double z) {
         this.viewers = viewers;
         this.text = text;
         this.animation = animation;
@@ -57,7 +57,7 @@ public final class DamageHologram {
                 EntityTypesProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         Object dataPacket = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, dataValues);
-        for (BukkitServerPlayer viewer : this.viewers) {
+        for (Player viewer : this.viewers) {
             viewer.sendPackets(List.of(spawnPacket, dataPacket), false);
         }
 
@@ -82,14 +82,14 @@ public final class DamageHologram {
         }
         DisplayData.Scale.addEntityData(new Vector3f(scale), dataValues);
         Object packet = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, dataValues);
-        for (BukkitServerPlayer viewer : this.viewers) {
+        for (Player viewer : this.viewers) {
             viewer.sendPacket(packet, false);
         }
     }
 
     private void remove() {
         Object packet = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(new IntArrayList(new int[]{this.entityId}));
-        for (BukkitServerPlayer viewer : this.viewers) {
+        for (Player viewer : this.viewers) {
             viewer.sendPacket(packet, false);
         }
     }

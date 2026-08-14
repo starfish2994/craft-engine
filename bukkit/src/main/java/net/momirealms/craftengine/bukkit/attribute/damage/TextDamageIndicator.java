@@ -1,31 +1,25 @@
-package net.momirealms.craftengine.bukkit.entity.hologram;
+package net.momirealms.craftengine.bukkit.attribute.damage;
 
 import net.kyori.adventure.text.Component;
-import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
-import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.core.attribute.damage.DamageIndicator;
+import net.momirealms.craftengine.core.attribute.damage.DamageIndicatorFactory;
+import net.momirealms.craftengine.core.attribute.damage.ViewPointSelector;
 import net.momirealms.craftengine.core.entity.Entity;
-import net.momirealms.craftengine.core.entity.hologram.DamageIndicator;
-import net.momirealms.craftengine.core.entity.hologram.DamageIndicatorFactory;
-import net.momirealms.craftengine.core.entity.hologram.ViewPointSelector;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.plugin.context.ContextHolder;
-import net.momirealms.craftengine.core.plugin.context.ContextKey;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.CommonConditions;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.MiscUtils;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.phys.AABBProxy;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public final class TextDamageIndicator implements DamageIndicator {
-    public static final DamageIndicatorFactory<TextDamageIndicator> FACTORY = TextDamageIndicator::new;
-    private static final String[] NUMBER_FORMAT = ConfigKeys.of("number_format");
     private static final String[] ANGLE_SPREAD = ConfigKeys.of("angle_spread");
     private static final String[] HEIGHT_SPREAD = ConfigKeys.of("height_spread");
     private static final String[] SPAWN_SCALE = ConfigKeys.of("spawn_scale");
@@ -35,16 +29,16 @@ public final class TextDamageIndicator implements DamageIndicator {
     private static final String[] SETTLE_DELAY = ConfigKeys.of("settle_delay");
     private static final String[] SHRINK_DELAY = ConfigKeys.of("shrink_delay");
     private static final String[] REMOVE_DELAY = ConfigKeys.of("remove_delay");
-
-    private final String numberFormat;
+    public static final DamageIndicatorFactory<TextDamageIndicator> FACTORY = TextDamageIndicator::new;
     private final String text;
     private final double angleSpread;
     private final double heightSpread;
     private final DamageHologram.Animation animation;
+    private final Predicate<Context> conditions;
 
     public TextDamageIndicator(ConfigSection args) {
-        this.numberFormat = args.getString(NUMBER_FORMAT, "#.#");
         this.text = args.getString("text", "<white><arg:damage></white>");
+        this.conditions = MiscUtils.allOf(args.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig));
         ConfigSection position = args.getSection("position");
         this.angleSpread = position != null ? position.getDouble(ANGLE_SPREAD, 30d) : 30d;
         this.heightSpread = position != null ? position.getDouble(HEIGHT_SPREAD, 0.15d) : 0.15d;
@@ -61,26 +55,16 @@ public final class TextDamageIndicator implements DamageIndicator {
     }
 
     @Override
-    public void display(Player attacker, Entity victim, double damage, List<Player> viewers) {
-        if (!(attacker instanceof BukkitServerPlayer attackerUser) || !(victim instanceof BukkitEntity victimEntity)) return;
-        List<BukkitServerPlayer> serverPlayers = new ArrayList<>(viewers.size());
-        for (Player viewer : viewers) {
-            if (viewer instanceof BukkitServerPlayer serverPlayer) {
-                serverPlayers.add(serverPlayer);
-            }
-        }
-        if (serverPlayers.isEmpty()) return;
-        String damageText = new DecimalFormat(this.numberFormat).format(damage);
-        PlayerOptionalContext context = PlayerOptionalContext.of(attackerUser, ContextHolder.builder()
-                .withParameter(ContextKey.direct("damage"), damageText));
+    public void display(Player attacker, Entity victim, List<Player> viewers, Context context) {
+        if (!this.conditions.test(context)) return;
         Component text = AdventureHelper.miniMessage().deserialize(this.text, context.tagResolvers());
-        Object aabb = EntityProxy.INSTANCE.getBoundingBox(victimEntity.minecraftEntity());
+        Object aabb = EntityProxy.INSTANCE.getBoundingBox(victim.minecraftEntity());
         double width = AABBProxy.INSTANCE.getMaxX(aabb) - AABBProxy.INSTANCE.getMinX(aabb);
         double depth = AABBProxy.INSTANCE.getMaxZ(aabb) - AABBProxy.INSTANCE.getMinZ(aabb);
         double radius = MiscUtils.sqrt((float) (width * width + depth * depth)) / 2;
-        Vec3d eye = attackerUser.getEyePos();
-        float yawRad = MiscUtils.toRadians(attackerUser.yRot());
-        float pitchRad = MiscUtils.toRadians(attackerUser.xRot());
+        Vec3d eye = attacker.getEyePos();
+        float yawRad = MiscUtils.toRadians(attacker.yRot());
+        float pitchRad = MiscUtils.toRadians(attacker.xRot());
         ViewPointSelector.Point3D point = ViewPointSelector.findViewIntersection(
                 new ViewPointSelector.Point3D(eye.x, eye.y, eye.z),
                 new ViewPointSelector.Point3D(
@@ -98,6 +82,6 @@ public final class TextDamageIndicator implements DamageIndicator {
                 this.angleSpread,
                 this.heightSpread
         );
-        new DamageHologram(serverPlayers, text, this.animation, point.x(), point.y(), point.z()).start();
+        new DamageHologram(viewers, text, this.animation, point.x(), point.y(), point.z()).start();
     }
 }

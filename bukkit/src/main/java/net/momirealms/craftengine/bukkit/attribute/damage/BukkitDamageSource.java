@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.bukkit.attribute;
+package net.momirealms.craftengine.bukkit.attribute.damage;
 
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;

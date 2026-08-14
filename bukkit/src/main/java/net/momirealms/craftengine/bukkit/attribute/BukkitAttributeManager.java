@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.attribute;
 
+import net.momirealms.craftengine.bukkit.attribute.damage.EntityDamageListener;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
@@ -11,8 +12,6 @@ import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeSupplierProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.DefaultAttributesProxy;
-import org.bukkit.Bukkit;
-import org.bukkit.event.HandlerList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,13 +22,14 @@ public final class BukkitAttributeManager extends AbstractAttributeManager {
     private final BukkitCraftEngine plugin;
     private final AttributeEventListener attributeEventListener;
     private final PaperAttributeEventListener paperAttributeEventListener;
+    private final EntityDamageListener entityDamageListener;
     private final Map<Key, Map<Key, Double>> vanillaDefaultAttributes;
-    private boolean listenersActive;
 
     public BukkitAttributeManager(BukkitCraftEngine plugin) {
         super(plugin);
         this.plugin = plugin;
         this.attributeEventListener = new AttributeEventListener(this);
+        this.entityDamageListener = new EntityDamageListener(this);
         this.paperAttributeEventListener = VersionHelper.hasPaperPatch ? new PaperAttributeEventListener(this) : null;
         this.vanillaDefaultAttributes = buildVanillaDefaultAttributeTable();
     }
@@ -42,30 +42,16 @@ public final class BukkitAttributeManager extends AbstractAttributeManager {
     @Override
     public void runDelayedSyncTasks() {
         boolean enable = Config.enableAttributeSystem();
-        if (enable == this.listenersActive) return;
-        this.listenersActive = enable;
-        if (enable) {
-            Bukkit.getPluginManager().registerEvents(this.attributeEventListener, this.plugin.javaPlugin());
-            if (this.paperAttributeEventListener != null) {
-                Bukkit.getPluginManager().registerEvents(this.paperAttributeEventListener, this.plugin.javaPlugin());
-            }
-        } else {
-            HandlerList.unregisterAll(this.attributeEventListener);
-            if (this.paperAttributeEventListener != null) {
-                HandlerList.unregisterAll(this.paperAttributeEventListener);
-            }
-        }
+        this.attributeEventListener.setActive(enable);
+        this.entityDamageListener.setActive(enable || Config.enableDamageIndicator());
+        if (this.paperAttributeEventListener != null) this.paperAttributeEventListener.setActive(enable);
     }
 
     @Override
     public void disable() {
-        if (this.listenersActive) {
-            this.listenersActive = false;
-            HandlerList.unregisterAll(this.attributeEventListener);
-            if (this.paperAttributeEventListener != null) {
-                HandlerList.unregisterAll(this.paperAttributeEventListener);
-            }
-        }
+        this.attributeEventListener.setActive(false);
+        this.entityDamageListener.setActive(false);
+        if (this.paperAttributeEventListener != null) this.paperAttributeEventListener.setActive(false);
     }
 
     @Override

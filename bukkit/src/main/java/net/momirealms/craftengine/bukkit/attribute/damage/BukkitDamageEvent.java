@@ -1,6 +1,7 @@
-package net.momirealms.craftengine.bukkit.attribute;
+package net.momirealms.craftengine.bukkit.attribute.damage;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.attribute.BukkitAttributeManager;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.attribute.*;
 import net.momirealms.craftengine.core.attribute.formula.DamageEvent;
@@ -21,7 +22,9 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.metadata.MetadataValue;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class BukkitDamageEvent implements DamageEvent {
     private final EntityDamageEvent event;
@@ -37,6 +40,7 @@ public final class BukkitDamageEvent implements DamageEvent {
     private Item activeWeapon;
     @Nullable
     private List<SlotAttributeModifierConfig> activeWeaponModifiers;
+    private final Map<String, Double> damageParts = new LinkedHashMap<>();
 
     public BukkitDamageEvent(BukkitAttributeManager manager, EntityDamageEvent event) {
         this.manager = manager;
@@ -69,6 +73,21 @@ public final class BukkitDamageEvent implements DamageEvent {
     @Override
     public Entity victim() {
         return this.victim;
+    }
+
+    @Override
+    public boolean isSweepAttack() {
+        return this.event.getCause() == EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK;
+    }
+
+    @Override
+    public void recordDamagePart(String id, double amount) {
+        this.damageParts.put(id, amount);
+    }
+
+    @Override
+    public Map<String, Double> damageParts() {
+        return this.damageParts;
     }
 
     @SuppressWarnings("deprecation")

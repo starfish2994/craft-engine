@@ -45,6 +45,8 @@ public class ExpressionDamageFormula implements DamageFormula {
                         bindings.add(VariableBinding.field(variable, VariableBinding.FIELD_DAMAGE));
                 case "is_critical" ->
                         bindings.add(VariableBinding.field(variable, VariableBinding.FIELD_IS_CRITICAL));
+                case "is_sweep" ->
+                        bindings.add(VariableBinding.field(variable, VariableBinding.FIELD_IS_SWEEP));
                 default -> {
                     if (variable.startsWith(ATTACKER_PREFIX)) {
                         bindings.add(VariableBinding.attribute(variable, AttributeSide.ATTACKER, resolveAttribute(path, formula, variable, ATTACKER_PREFIX)));
@@ -84,6 +86,7 @@ public class ExpressionDamageFormula implements DamageFormula {
         static final int KIND_ATTRIBUTE = 0;
         static final int FIELD_DAMAGE = 1;
         static final int FIELD_IS_CRITICAL = 2;
+        static final int FIELD_IS_SWEEP = 3;
 
         static VariableBinding field(String name, int fieldKind) {
             return new VariableBinding(name, null, null, fieldKind);
@@ -93,10 +96,11 @@ public class ExpressionDamageFormula implements DamageFormula {
             return new VariableBinding(name, side, attribute, KIND_ATTRIBUTE);
         }
 
-        double resolve(DamageEvent event) {
+        Object resolve(DamageEvent event) {
             return switch (this.fieldKind) {
                 case FIELD_DAMAGE -> event.damage();
-                case FIELD_IS_CRITICAL -> event.source().isCritical() ? 1d : 0d;
+                case FIELD_IS_CRITICAL -> event.source().isCritical();
+                case FIELD_IS_SWEEP -> event.isSweepAttack();
                 default -> event.getAttributeValue(this.side, this.attribute);
             };
         }

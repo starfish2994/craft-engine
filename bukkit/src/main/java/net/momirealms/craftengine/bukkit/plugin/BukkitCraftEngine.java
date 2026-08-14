@@ -6,6 +6,7 @@ import net.momirealms.antigrieflib.AntiGriefLib;
 import net.momirealms.craftengine.bukkit.advancement.BukkitAdvancementManager;
 import net.momirealms.craftengine.bukkit.api.event.CraftEngineReloadEvent;
 import net.momirealms.craftengine.bukkit.attribute.BukkitAttributeManager;
+import net.momirealms.craftengine.bukkit.attribute.damage.BukkitDamageIndicators;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.block.behavior.BukkitBlockBehaviors;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.constant.BukkitBlockEntityElementConfigs;
@@ -14,8 +15,6 @@ import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager
 import net.momirealms.craftengine.bukkit.entity.furniture.behavior.BukkitFurnitureBehaviors;
 import net.momirealms.craftengine.bukkit.entity.furniture.element.BukkitFurnitureElementConfigs;
 import net.momirealms.craftengine.bukkit.entity.furniture.hitbox.BukkitFurnitureHitboxTypes;
-import net.momirealms.craftengine.bukkit.entity.hologram.BukkitDamageIndicators;
-import net.momirealms.craftengine.bukkit.entity.hologram.DamageIndicatorListener;
 import net.momirealms.craftengine.bukkit.entity.projectile.BukkitProjectileManager;
 import net.momirealms.craftengine.bukkit.entity.seat.BukkitSeatManager;
 import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
@@ -112,13 +111,13 @@ public final class BukkitCraftEngine extends CraftEngine {
         }
     }
 
+    public static BukkitCraftEngine instance() {
+        return instance;
+    }
+
     @Override
     protected void callReloadEvent() {
         EventUtils.fireAndForget(new CraftEngineReloadEvent(this));
-    }
-
-    public static BukkitCraftEngine instance() {
-        return instance;
     }
 
     void setJavaPlugin(JavaPlugin javaPlugin) {
@@ -290,7 +289,6 @@ public final class BukkitCraftEngine extends CraftEngine {
             this.serverEventListener = new ServerEventListener(this);
             Bukkit.getPluginManager().registerEvents(this.serverEventListener, javaPlugin());
         }
-        Bukkit.getPluginManager().registerEvents(new DamageIndicatorListener(), javaPlugin());
     }
 
     @Override

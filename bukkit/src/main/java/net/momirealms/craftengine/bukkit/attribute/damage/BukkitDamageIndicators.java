@@ -1,7 +1,7 @@
-package net.momirealms.craftengine.bukkit.entity.hologram;
+package net.momirealms.craftengine.bukkit.attribute.damage;
 
-import net.momirealms.craftengine.core.entity.hologram.DamageIndicatorType;
-import net.momirealms.craftengine.core.entity.hologram.DamageIndicators;
+import net.momirealms.craftengine.core.attribute.damage.DamageIndicatorType;
+import net.momirealms.craftengine.core.attribute.damage.DamageIndicators;
 import net.momirealms.craftengine.core.util.Key;
 
 public final class BukkitDamageIndicators {

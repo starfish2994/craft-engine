@@ -13,7 +13,6 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.slot.Slot;
 import ch.njol.util.Kleenean;
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems;
-import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.util.Key;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;

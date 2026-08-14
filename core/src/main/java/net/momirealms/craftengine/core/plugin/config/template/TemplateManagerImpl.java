@@ -2,7 +2,6 @@ package net.momirealms.craftengine.core.plugin.config.template;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.momirealms.craftengine.core.pack.Pack;
-import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;

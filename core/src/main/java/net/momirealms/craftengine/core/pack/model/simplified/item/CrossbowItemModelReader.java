@@ -8,7 +8,6 @@ import net.momirealms.craftengine.core.pack.model.definition.condition.UsingItem
 import net.momirealms.craftengine.core.pack.model.definition.rangedisptach.CrossBowPullingRangeDispatchProperty;
 import net.momirealms.craftengine.core.pack.model.definition.select.ChargeTypeSelectProperty;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
-import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.Map2;
