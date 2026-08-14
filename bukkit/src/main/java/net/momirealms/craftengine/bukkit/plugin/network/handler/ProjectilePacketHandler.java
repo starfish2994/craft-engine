@@ -115,7 +115,7 @@ public final class ProjectilePacketHandler implements EntityPacketHandler {
             buf.writeShort(ya);
             buf.writeShort(za);
         }
-        user.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.createCustomProjectileEntityDataValues((Player) user)), false);
+        user.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, new ArrayList<>(4)), false);
     }
 
     public List<Object> createCustomProjectileEntityDataValues(Player player) {
