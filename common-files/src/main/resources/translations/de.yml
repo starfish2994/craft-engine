@@ -87,6 +87,7 @@ command.locale.unset.success: <white>Ausgewählte Sprache für <arg:0> zurückge
 command.display_entity_view_distance_scale.set.success: <white>Display Entity View Distance Scale auf <arg:0> für <arg:1> aktualisiert</white>
 command.entity_culling_distance_scale.set.success: <white>Entity Culling Distance Scale auf <arg:0> für <arg:1> aktualisiert</white>
 command.entity_culling.toggle.success: <white>Entity Culling Status auf <arg:0> für <arg:1> aktualisiert</white>
+command.damage_visibility.set.success: <white>Schadenszahlen-Sichtbarkeit auf <arg:0> für <arg:1> aktualisiert</white>
 command.place_feature.failed: <red>Feature konnte nicht platziert werden</red>
 command.place_feature.success: <white>"<arg:0>" platziert an <arg:1>, <arg:2>, <arg:3></white>
 command.place_feature.invalid: <red>Es gibt kein Feature vom Typ "<arg:0>"</red>

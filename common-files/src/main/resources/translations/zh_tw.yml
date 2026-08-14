@@ -84,6 +84,7 @@ command.locale.unset.success: <white>重置了 <arg:0> 的區域設定</white>
 command.display_entity_view_distance_scale.set.success: <white>已將 <arg:1> 的展示實體可見距離百分比設為 <arg:0></white>
 command.entity_culling_distance_scale.set.success: <white>已將 <arg:1> 的實體剔除距離百分比設為 <arg:0></white>
 command.entity_culling.toggle.success: <white>已將 <arg:1> 的實體剔除狀態設為 <arg:0></white>
+command.damage_visibility.set.success: <white>已將 <arg:1> 的傷害數字可見性設為 <arg:0></white>
 command.place_feature.failed: <red>放置地物失敗</red>
 command.place_feature.success: <white>已在 <arg:1>, <arg:2>, <arg:3> 處放置 '<arg:0>'</white>
 command.place_feature.invalid: <red>沒有類型為 '<arg:0>' 的地物</red>

@@ -1,7 +1,10 @@
 package net.momirealms.craftengine.core.attribute.equipment;
-import net.momirealms.craftengine.core.attribute.*;
-import net.momirealms.craftengine.core.attribute.modifier.*;
 
+import net.momirealms.craftengine.core.attribute.AttributeContainer;
+import net.momirealms.craftengine.core.attribute.AttributeInstance;
+import net.momirealms.craftengine.core.attribute.modifier.AttributeModifierConfig;
+import net.momirealms.craftengine.core.attribute.modifier.AttributeModifierScope;
+import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 

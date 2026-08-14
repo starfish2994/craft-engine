@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.bukkit.plugin;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.kyori.adventure.text.event.ClickEvent;
 import net.momirealms.antigrieflib.AntiGriefCompatibility;
 import net.momirealms.antigrieflib.AntiGriefLib;
 import net.momirealms.craftengine.bukkit.advancement.BukkitAdvancementManager;
@@ -15,6 +14,7 @@ import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager
 import net.momirealms.craftengine.bukkit.entity.furniture.behavior.BukkitFurnitureBehaviors;
 import net.momirealms.craftengine.bukkit.entity.furniture.element.BukkitFurnitureElementConfigs;
 import net.momirealms.craftengine.bukkit.entity.furniture.hitbox.BukkitFurnitureHitboxTypes;
+import net.momirealms.craftengine.bukkit.entity.hologram.DamageIndicatorListener;
 import net.momirealms.craftengine.bukkit.entity.projectile.BukkitProjectileManager;
 import net.momirealms.craftengine.bukkit.entity.seat.BukkitSeatManager;
 import net.momirealms.craftengine.bukkit.font.BukkitFontManager;
@@ -288,6 +288,7 @@ public final class BukkitCraftEngine extends CraftEngine {
             this.serverEventListener = new ServerEventListener(this);
             Bukkit.getPluginManager().registerEvents(this.serverEventListener, javaPlugin());
         }
+        Bukkit.getPluginManager().registerEvents(new DamageIndicatorListener(), javaPlugin());
     }
 
     @Override

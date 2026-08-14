@@ -9,8 +9,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.damagesource.DamageSourc
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
-
 public final class BukkitDamageSource implements DamageSource {
     private final Object source;
 

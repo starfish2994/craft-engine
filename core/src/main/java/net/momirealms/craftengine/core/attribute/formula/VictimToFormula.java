@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.attribute.formula;
 
-import net.momirealms.craftengine.core.attribute.formula.DamageFormula;
 import net.momirealms.craftengine.core.util.Key;
 
 import java.util.Map;

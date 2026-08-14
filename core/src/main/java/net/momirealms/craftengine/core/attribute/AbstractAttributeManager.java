@@ -1,17 +1,23 @@
 package net.momirealms.craftengine.core.attribute;
-import net.momirealms.craftengine.core.attribute.base.*;
-import net.momirealms.craftengine.core.attribute.derived.*;
-import net.momirealms.craftengine.core.attribute.format.*;
+
+import net.momirealms.craftengine.core.attribute.base.BaseValueSource;
+import net.momirealms.craftengine.core.attribute.base.BaseValueSources;
+import net.momirealms.craftengine.core.attribute.base.ConstantBaseValueSource;
+import net.momirealms.craftengine.core.attribute.derived.DerivedValue;
+import net.momirealms.craftengine.core.attribute.derived.DerivedValues;
+import net.momirealms.craftengine.core.attribute.format.ValueFormatter;
+import net.momirealms.craftengine.core.attribute.format.ValueFormatters;
 import net.momirealms.craftengine.core.attribute.formula.*;
-import net.momirealms.craftengine.core.attribute.modifier.*;
-import net.momirealms.craftengine.core.attribute.sync.*;
-
-
-
-
+import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifier;
+import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifierStore;
+import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifiersProvider;
+import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
+import net.momirealms.craftengine.core.attribute.sync.ExpressionSyncValueProvider;
+import net.momirealms.craftengine.core.attribute.sync.SyncTarget;
+import net.momirealms.craftengine.core.attribute.sync.SyncValueProvider;
+import net.momirealms.craftengine.core.attribute.sync.SyncValueProviders;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier.Operation;
 import net.momirealms.craftengine.core.entity.Entity;
-import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.setting.value.AttributeModifiers;

@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureLightData;
+import net.momirealms.craftengine.core.entity.hologram.DamageVisibility;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
@@ -213,6 +214,10 @@ public interface Player extends NetWorkUser, LivingEntity {
     boolean enableEntityCulling();
 
     boolean enableFurnitureDebug();
+
+    void setDamageVisibility(DamageVisibility visibility);
+
+    DamageVisibility damageVisibility();
 
     void setEnableFurnitureDebug(boolean enableFurnitureDebug);
 

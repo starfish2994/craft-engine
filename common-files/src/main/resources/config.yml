@@ -570,8 +570,6 @@ recipe:
 attribute:
   # Master switch for attribute system
   enable: false
-  # Cancel vanilla damage indicator particles (vanilla spawns them scaled by damage; custom damage formulas with big numbers would flood the screen)
-  disable-damage-indicator: false
   # If your player has a large amount of health, it can easily cause FPS drops and block the screen. This option allows you to scale the player's health bar
   health-scaling:
     # Master switch for health scaling
@@ -580,6 +578,39 @@ attribute:
     threshold: 20
     # The visual max health shown to the client after scaling
     visual-max-health: 20
+
+damage-indicator:
+  # Master switch for floating damage numbers
+  enable: false
+  # Default visibility for players who have never set their preference: none / self / all
+  # none = indicators are invisible; self = only own damage is visible; all = everyone's damage is visible
+  default-visibility: self
+  # Cancel vanilla damage indicator particles (vanilla spawns them scaled by damage; custom damage formulas with big numbers would flood the screen)
+  disable-vanilla-particles: false
+  # DecimalFormat pattern for the damage number
+  number-format: "#.#"
+  # Displayed text in MiniMessage format. <arg:damage> is replaced with the final damage value
+  text: "<white><arg:damage></white>"
+  # The indicator spawns near the first intersection of the attacker's view ray with the victim's bounding cylinder
+  # (radius = distance from the bounding box bottom center to a bottom corner: sqrt(width² + depth²) / 2)
+  position:
+    # Random angular spread around the intersection point (degrees)
+    angle-spread: 30
+    # Random vertical spread, as a fraction of the victim's bounding box height
+    height-spread: 0.15
+  # Scale pop animation
+  animation:
+    # Initial scale when the indicator spawns
+    spawn-scale: 0.1
+    # The scale it pops up to
+    pop-scale: 1.25
+    # The scale it settles at
+    settle-scale: 1.0
+    # Tick timing of each animation stage
+    pop-delay: 1
+    settle-delay: 5
+    shrink-delay: 16
+    remove-delay: 19
 
 gui:
   browser:

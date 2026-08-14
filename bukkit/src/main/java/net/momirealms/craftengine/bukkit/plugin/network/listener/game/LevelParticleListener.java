@@ -49,7 +49,7 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
         public void handleSend(NetWorkUser user, ByteBufPacketEvent event) {
             FriendlyByteBuf buf = event.getBuffer();
             int particleTypeId = buf.readVarInt();
-            if (Config.disableDamageIndicator() && particleTypeId == DAMAGE_INDICATOR) {
+            if (Config.disableVanillaDamageParticles() && particleTypeId == DAMAGE_INDICATOR) {
                 event.setCancelled(true);
                 return;
             }
@@ -116,7 +116,7 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
             int count = buf.readInt();
             // 1.20.5+ 的 ParticleOptions 流式编码以 VarInt 类型 id 开头，先窥探判定
             int optionStart = buf.readerIndex();
-            if (Config.disableDamageIndicator() && buf.readVarInt() == DAMAGE_INDICATOR) {
+            if (Config.disableVanillaDamageParticles() && buf.readVarInt() == DAMAGE_INDICATOR) {
                 event.setCancelled(true);
                 return;
             }
@@ -174,7 +174,7 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
             int count = buf.readInt();
             // 1.20.5+ 的 ParticleOptions 流式编码以 VarInt 类型 id 开头，先窥探判定
             int optionStart = buf.readerIndex();
-            if (Config.disableDamageIndicator() && buf.readVarInt() == DAMAGE_INDICATOR) {
+            if (Config.disableVanillaDamageParticles() && buf.readVarInt() == DAMAGE_INDICATOR) {
                 event.setCancelled(true);
                 return;
             }

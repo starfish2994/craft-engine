@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.bukkit.attribute;
 
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
-import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.util.EquipmentSlotUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.attribute.AttributeContainer;

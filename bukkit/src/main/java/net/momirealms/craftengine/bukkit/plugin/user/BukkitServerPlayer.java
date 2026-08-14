@@ -25,6 +25,7 @@ import net.momirealms.craftengine.bukkit.plugin.network.handler.PlayerPacketHand
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
+import net.momirealms.craftengine.core.attribute.AttributeContainer;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
@@ -39,12 +40,12 @@ import net.momirealms.craftengine.core.entity.furniture.FurnitureVariant;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureLightData;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureHitData;
+import net.momirealms.craftengine.core.entity.hologram.DamageVisibility;
 import net.momirealms.craftengine.core.entity.player.GameMode;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
-import net.momirealms.craftengine.core.attribute.AttributeContainer;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
@@ -129,6 +130,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     public static final Key DISPLAY_ENTITY_VIEW_DISTANCE_SCALE = Key.ce("display_entity_view_distance_scale");
     public static final Key ENABLE_ENTITY_CULLING = Key.ce("enable_entity_culling");
     public static final Key ENABLE_FURNITURE_DEBUG = Key.ce("enable_furniture_debug");
+    public static final Key DAMAGE_VISIBILITY = Key.ce("damage_visibility");
     private static final int CUSTOM_PAYLOAD_PLAY = BukkitNetworkManager.PACKET_IDS.clientboundCustomPayloadPacket$play();
     private static final int CUSTOM_PAYLOAD_CONFIG = BukkitNetworkManager.PACKET_IDS.clientboundCustomPayloadPacket$configuration();
     private final BukkitCraftEngine plugin;
@@ -212,6 +214,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     private Vec3d eyeLocation;
     // 是否启用家具调试
     private boolean enableFurnitureDebug;
+    // 伤害数字悬浮字可见性
+    private DamageVisibility damageVisibility = Config.damageIndicatorDefaultVisibility();
     // 上一次对准的家具
     private BukkitFurniture lastHitFurniture;
     // 缓存的tick
@@ -272,6 +276,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         this.displayEntityViewDistance = Optional.ofNullable(player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(DISPLAY_ENTITY_VIEW_DISTANCE_SCALE), PersistentDataType.DOUBLE)).orElse(1d);
         this.enableEntityCulling = Optional.ofNullable(player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(ENABLE_ENTITY_CULLING), PersistentDataType.BOOLEAN)).orElse(true);
         this.enableFurnitureDebug = Optional.ofNullable(player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(ENABLE_FURNITURE_DEBUG), PersistentDataType.BOOLEAN)).orElse(false);
+        this.damageVisibility = DamageVisibility.byName(player.getPersistentDataContainer().get(KeyUtils.toNamespacedKey(DAMAGE_VISIBILITY), PersistentDataType.STRING), Config.damageIndicatorDefaultVisibility());
         this.culling.setDistanceScale(Optional.ofNullable(scale).orElse(1.0));
         this.selectedLocale = TranslationManager.parseLocale(locale);
         this.eyeLocation = getEyePos();
@@ -1681,6 +1686,17 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     @Override
     public boolean enableEntityCulling() {
         return this.enableEntityCulling;
+    }
+
+    @Override
+    public DamageVisibility damageVisibility() {
+        return this.damageVisibility;
+    }
+
+    @Override
+    public void setDamageVisibility(DamageVisibility visibility) {
+        this.damageVisibility = visibility;
+        platformPlayer().getPersistentDataContainer().set(KeyUtils.toNamespacedKey(DAMAGE_VISIBILITY), PersistentDataType.STRING, visibility.name());
     }
 
     @Override

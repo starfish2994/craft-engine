@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.attribute.base;
-import net.momirealms.craftengine.core.attribute.transform.*;
 
+import net.momirealms.craftengine.core.attribute.transform.ValueTransformer;
+import net.momirealms.craftengine.core.attribute.transform.ValueTransformers;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;

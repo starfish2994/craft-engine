@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.attribute.formula;
-import net.momirealms.craftengine.core.attribute.*;
 
+import net.momirealms.craftengine.core.attribute.Attribute;
+import net.momirealms.craftengine.core.attribute.AttributeSide;
 import net.momirealms.craftengine.core.entity.Entity;
 
 public interface DamageEvent {

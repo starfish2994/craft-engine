@@ -1,7 +1,11 @@
 package net.momirealms.craftengine.core.attribute;
-import net.momirealms.craftengine.core.attribute.formula.*;
-import net.momirealms.craftengine.core.attribute.modifier.*;
 
+import net.momirealms.craftengine.core.attribute.formula.DamageEvent;
+import net.momirealms.craftengine.core.attribute.formula.DamageFormula;
+import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifier;
+import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifierStore;
+import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifiersProvider;
+import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.item.Item;
@@ -12,11 +16,7 @@ import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public interface AttributeManager extends Manageable {
     String META_KEY = "ce:attr";

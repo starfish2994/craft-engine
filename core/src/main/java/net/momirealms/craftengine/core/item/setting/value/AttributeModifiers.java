@@ -2,8 +2,8 @@ package net.momirealms.craftengine.core.item.setting.value;
 
 import net.momirealms.craftengine.core.attribute.Attribute;
 import net.momirealms.craftengine.core.attribute.AttributeOperation;
-import net.momirealms.craftengine.core.attribute.modifier.AttributeModifierConfig;
 import net.momirealms.craftengine.core.attribute.equipment.EquipmentSetSlot;
+import net.momirealms.craftengine.core.attribute.modifier.AttributeModifierConfig;
 import net.momirealms.craftengine.core.attribute.modifier.AttributeModifierScope;
 import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
 import net.momirealms.craftengine.core.plugin.context.Context;

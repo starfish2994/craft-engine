@@ -98,6 +98,7 @@ command.locale.unset.success: <white>Cleared selected locale for <arg:0></white>
 command.display_entity_view_distance_scale.set.success: <white>Display entity view distance scale updated to <arg:0> for <arg:1></white>
 command.entity_culling_distance_scale.set.success: <white>Entity culling distance scale updated to <arg:0> for <arg:1></white>
 command.entity_culling.toggle.success: <white>Entity culling status updated to <arg:0> for <arg:1></white>
+command.damage_visibility.set.success: <white>Damage indicator visibility updated to <arg:0> for <arg:1></white>
 command.place_feature.failed: "<red>Failed to place feature</red>"
 command.place_feature.success: "<white>Placed \"<arg:0>\" at <arg:1>, <arg:2>, <arg:3></white>"
 command.place_feature.invalid: "<red>There is no feature with type \"<arg:0>\"</red>"

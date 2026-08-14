@@ -12,11 +12,7 @@ import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractEntityManager implements EntityManager {
     protected final CraftEngine plugin;

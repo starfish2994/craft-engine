@@ -1,10 +1,9 @@
 package net.momirealms.craftengine.core.attribute;
 
-import net.momirealms.craftengine.core.attribute.base.*;
+import net.momirealms.craftengine.core.attribute.base.BaseValueSource;
 import net.momirealms.craftengine.core.attribute.derived.DerivedValue;
-import net.momirealms.craftengine.core.attribute.format.*;
-import net.momirealms.craftengine.core.attribute.sync.*;
-
+import net.momirealms.craftengine.core.attribute.format.ValueFormatter;
+import net.momirealms.craftengine.core.attribute.sync.SyncTarget;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;

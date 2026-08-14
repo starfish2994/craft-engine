@@ -1,8 +1,7 @@
 package net.momirealms.craftengine.core.attribute.equipment;
-import net.momirealms.craftengine.core.attribute.*;
-import net.momirealms.craftengine.core.attribute.modifier.*;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.momirealms.craftengine.core.attribute.AttributeContainer;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.setting.value.EquipmentSetPart;

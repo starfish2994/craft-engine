@@ -84,6 +84,7 @@ command.locale.unset.success: '<white><arg:0>의 선택된 로케일을 초기�
 command.display_entity_view_distance_scale.set.success: '<white><arg:1>의 엔티티 표시 거리 스케일이 <arg:0>로 업데이트되었습니다.</white>'
 command.entity_culling_distance_scale.set.success: '<white><arg:1>의 엔티티 컬링 거리 스케일이 <arg:0>로 업데이트되었습니다.</white>'
 command.entity_culling.toggle.success: '<white><arg:1>의 엔티티 컬링 상태가 <arg:0>로 업데이트되었습니다.</white>'
+command.damage_visibility.set.success: '<white><arg:1>의 데미지 표시 가시성이 <arg:0>(으)로 업데이트되었습니다.</white>'
 command.place_feature.failed: '<red>특징 배치에 실패했습니다.</red>'
 command.place_feature.success: '<white>특징 "<arg:0>"을(를) <arg:1>, <arg:2>, <arg:3>에 배치했습니다.</white>'
 command.place_feature.invalid: '<red>유형이 "<arg:0>"인 특징이 존재하지 않습니다.</red>'

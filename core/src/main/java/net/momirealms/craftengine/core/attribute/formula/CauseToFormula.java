@@ -1,7 +1,5 @@
 package net.momirealms.craftengine.core.attribute.formula;
 
-import net.momirealms.craftengine.core.attribute.formula.DamageEvent;
-import net.momirealms.craftengine.core.attribute.formula.DamageFormula;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
