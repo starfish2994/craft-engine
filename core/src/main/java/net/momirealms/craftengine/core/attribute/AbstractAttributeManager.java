@@ -119,15 +119,18 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     protected record RegisteredProvider(int priority, ItemAttributeModifiersProvider provider) {
     }
 
+    private record ModifierMergeKey(Key attribute, Key id) {
+    }
+
     @Override
     public List<SlotAttributeModifierConfig> getItemAttributeModifiers(Item item) {
         List<ItemAttributeModifiersProvider> providers = this.sortedItemModifiersProviders;
         if (providers.isEmpty()) return List.of();
-        Map<Key, SlotAttributeModifierConfig> merged = new LinkedHashMap<>();
+        Map<ModifierMergeKey, SlotAttributeModifierConfig> merged = new LinkedHashMap<>();
         for (ItemAttributeModifiersProvider provider : providers) {
             for (SlotAttributeModifierConfig modifier : provider.getModifiers(item)) {
                 if (modifier != null) {
-                    merged.put(modifier.id, modifier);
+                    merged.put(new ModifierMergeKey(modifier.attribute, modifier.id), modifier);
                 }
             }
         }

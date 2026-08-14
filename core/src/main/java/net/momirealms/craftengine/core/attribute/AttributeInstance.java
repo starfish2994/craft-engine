@@ -5,11 +5,14 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.momirealms.craftengine.core.attribute.modifier.AttributeModifier;
 import net.momirealms.craftengine.core.attribute.sync.SyncTarget;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributes;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributes1_21;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.SwapList;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -239,8 +242,26 @@ public class AttributeInstance {
         for (SyncTarget target : targets) {
             VanillaAttributeInstance vanillaAttribute = livingEntity.getVanillaAttribute(target.target());
             if (vanillaAttribute != null) {
-                vanillaAttribute.addOrUpdateTransientModifier(this.attribute.id(), target.operation(), target.evaluate(value, base));
+                if (isMaxHealth(target.target())) {
+                    double oldMaxHealth = vanillaAttribute.getValue();
+                    double health = livingEntity.health();
+                    vanillaAttribute.addOrUpdateTransientModifier(this.attribute.id(), target.operation(), target.evaluate(value, base));
+                    double newMaxHealth = vanillaAttribute.getValue();
+                    if (oldMaxHealth > 0 && newMaxHealth > 0 && newMaxHealth != oldMaxHealth) {
+                        livingEntity.setHealth(health * newMaxHealth / oldMaxHealth);
+                    }
+                } else {
+                    vanillaAttribute.addOrUpdateTransientModifier(this.attribute.id(), target.operation(), target.evaluate(value, base));
+                }
             }
+        }
+    }
+
+    private boolean isMaxHealth(Key id) {
+        if (VersionHelper.isOrAbove1_21) {
+            return VanillaAttributes1_21.MAX_HEALTH.equals(id);
+        } else {
+            return VanillaAttributes.MAX_HEALTH.equals(id);
         }
     }
 
