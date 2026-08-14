@@ -104,6 +104,7 @@ public final class BukkitLootManager extends AbstractLootManager {
         this.registerSourceListener(LootSources.ENTITY_DROP, () -> new EntityDropLootListener(this));
         this.registerSourceListener(LootSources.HARVEST, HarvestBlockLootListener::new);
         this.registerSourceListener(LootSources.SHEAR_BLOCK, ShearBlockLootListener::new);
+        this.registerSourceListener(LootSources.ENTITY_SHEAR, () -> new EntityShearLootListener(this));
         this.registerSourceListener(LootSources.VAULT, VaultLootListener::new);
         this.registerSourceListener(LootSources.ADVANCEMENT, AdvancementLootListener::new);
     }

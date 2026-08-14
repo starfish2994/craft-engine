@@ -21,6 +21,7 @@ public final class LootSources {
     public static final LootSourceType<TargetedLootSource> ENTITY_DROP = register(Key.ce("entity_drop"), TARGETED_FACTORY);
     public static final LootSourceType<TargetedLootSource> HARVEST = register(Key.ce("harvest"), TARGETED_FACTORY);
     public static final LootSourceType<TargetedLootSource> SHEAR_BLOCK = register(Key.ce("shear_block"), TARGETED_FACTORY);
+    public static final LootSourceType<TargetedLootSource> ENTITY_SHEAR = register(Key.ce("entity_shear"), TARGETED_FACTORY);
     public static final LootSourceType<TargetedLootSource> VAULT = register(Key.ce("vault"), TARGETED_FACTORY);
     public static final LootSourceType<TargetedLootSource> ADVANCEMENT = register(Key.ce("advancement"), TARGETED_FACTORY);
 

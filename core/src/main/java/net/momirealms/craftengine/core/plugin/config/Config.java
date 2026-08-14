@@ -195,7 +195,7 @@ public final class Config {
     private boolean damage_indicator$enable;
     private DamageVisibility damage_indicator$default_visibility;
     private boolean damage_indicator$disable_vanilla_particles;
-    private List<DamageIndicator> damage_indicator$schemes = List.of();
+    private LazyReference<List<DamageIndicator>> damage_indicator$schemes = LazyReference.lazyReference(List::of);
 
     private boolean furniture$hide_base_entity;
     private ColliderType furniture$collision_entity_type;
@@ -618,7 +618,7 @@ public final class Config {
         this.damage_indicator$enable = config.getBoolean("damage-indicator.enable", false);
         this.damage_indicator$default_visibility = DamageVisibility.byName(config.getString("damage-indicator.default-visibility", "self"), DamageVisibility.SELF);
         this.damage_indicator$disable_vanilla_particles = config.getBoolean("damage-indicator.disable-vanilla-particles", false);
-        this.damage_indicator$schemes = parseDamageIndicatorSchemes(config);
+        this.damage_indicator$schemes = LazyReference.lazyReference(() -> parseDamageIndicatorSchemes(settings()));
 
         // furniture
         this.furniture$hide_base_entity = config.getBoolean("furniture.hide-base-entity", true);
@@ -1739,7 +1739,7 @@ public final class Config {
     }
 
     public static List<DamageIndicator> damageIndicatorSchemes() {
-        return instance.damage_indicator$schemes;
+        return instance.damage_indicator$schemes.get();
     }
 
     public static boolean enableHealthScaling() {
