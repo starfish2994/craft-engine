@@ -8,6 +8,8 @@ import net.momirealms.craftengine.core.attribute.format.ValueFormatter;
 import net.momirealms.craftengine.core.attribute.format.ValueFormatterType;
 import net.momirealms.craftengine.core.attribute.formula.DamageFormula;
 import net.momirealms.craftengine.core.attribute.formula.DamageFormulaType;
+import net.momirealms.craftengine.core.entity.hologram.DamageIndicator;
+import net.momirealms.craftengine.core.entity.hologram.DamageIndicatorType;
 import net.momirealms.craftengine.core.attribute.sync.SyncValueProvider;
 import net.momirealms.craftengine.core.attribute.sync.SyncValueProviderType;
 import net.momirealms.craftengine.core.attribute.transform.ValueTransformer;
@@ -114,6 +116,7 @@ public final class BuiltInRegistries {
     public static final Registry<PropertyType<? extends Comparable<?>>> PROPERTY_TYPE = createConstantBoundRegistry(Registries.PROPERTY_TYPE, 16);
     public static final Registry<NumberProviderType<? extends NumberProvider>> NUMBER_PROVIDER_TYPE = createConstantBoundRegistry(Registries.NUMBER_PROVIDER_TYPE, 16);
     public static final Registry<DamageFormulaType<? extends DamageFormula>> DAMAGE_FORMULA_TYPE = createConstantBoundRegistry(Registries.DAMAGE_FORMULA_TYPE, 4);
+    public static final Registry<DamageIndicatorType<? extends DamageIndicator>> DAMAGE_INDICATOR_TYPE = createConstantBoundRegistry(Registries.DAMAGE_INDICATOR_TYPE, 8);
     public static final Registry<BaseValueSourceType<? extends BaseValueSource>> BASE_VALUE_SOURCE_TYPE = createConstantBoundRegistry(Registries.BASE_VALUE_SOURCE_TYPE, 8);
     public static final Registry<DerivedValueType<? extends DerivedValue>> DERIVED_VALUE_TYPE = createConstantBoundRegistry(Registries.DERIVED_VALUE_TYPE, 4);
     public static final Registry<SyncValueProviderType<? extends SyncValueProvider>> SYNC_VALUE_PROVIDER_TYPE = createConstantBoundRegistry(Registries.SYNC_VALUE_PROVIDER_TYPE, 8);

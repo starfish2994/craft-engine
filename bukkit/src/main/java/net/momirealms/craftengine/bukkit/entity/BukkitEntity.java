@@ -163,6 +163,7 @@ public class BukkitEntity implements net.momirealms.craftengine.core.entity.Enti
         return LocationUtils.toWorldPosition(this.getEyeLocation());
     }
 
+    @Override
     public Vec3d getEyePos() {
         Object entity = minecraftEntity();
         Object vehicle = EntityProxy.INSTANCE.getVehicle(entity);

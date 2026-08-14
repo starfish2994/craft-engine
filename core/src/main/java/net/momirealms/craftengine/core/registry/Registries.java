@@ -8,6 +8,8 @@ import net.momirealms.craftengine.core.attribute.format.ValueFormatter;
 import net.momirealms.craftengine.core.attribute.format.ValueFormatterType;
 import net.momirealms.craftengine.core.attribute.formula.DamageFormula;
 import net.momirealms.craftengine.core.attribute.formula.DamageFormulaType;
+import net.momirealms.craftengine.core.entity.hologram.DamageIndicator;
+import net.momirealms.craftengine.core.entity.hologram.DamageIndicatorType;
 import net.momirealms.craftengine.core.attribute.sync.SyncValueProvider;
 import net.momirealms.craftengine.core.attribute.sync.SyncValueProviderType;
 import net.momirealms.craftengine.core.attribute.transform.ValueTransformer;
@@ -116,6 +118,7 @@ public final class Registries {
     public static final ResourceKey<Registry<ItemBehaviorType<? extends ItemBehavior>>> ITEM_BEHAVIOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("item_behavior_type"));
     public static final ResourceKey<Registry<NumberProviderType<? extends NumberProvider>>> NUMBER_PROVIDER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("number_provider_type"));
     public static final ResourceKey<Registry<DamageFormulaType<? extends DamageFormula>>> DAMAGE_FORMULA_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("damage_formula_type"));
+    public static final ResourceKey<Registry<DamageIndicatorType<? extends DamageIndicator>>> DAMAGE_INDICATOR_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("damage_indicator_type"));
     public static final ResourceKey<Registry<BaseValueSourceType<? extends BaseValueSource>>> BASE_VALUE_SOURCE_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("base_value_source_type"));
     public static final ResourceKey<Registry<DerivedValueType<? extends DerivedValue>>> DERIVED_VALUE_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("derived_value_type"));
     public static final ResourceKey<Registry<SyncValueProviderType<? extends SyncValueProvider>>> SYNC_VALUE_PROVIDER_TYPE = ResourceKey.create(ROOT_REGISTRY, Key.withCraftEngineNamespace("sync_value_provider_type"));

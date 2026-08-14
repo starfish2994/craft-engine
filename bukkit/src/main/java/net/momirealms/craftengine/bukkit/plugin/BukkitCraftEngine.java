@@ -14,6 +14,7 @@ import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager
 import net.momirealms.craftengine.bukkit.entity.furniture.behavior.BukkitFurnitureBehaviors;
 import net.momirealms.craftengine.bukkit.entity.furniture.element.BukkitFurnitureElementConfigs;
 import net.momirealms.craftengine.bukkit.entity.furniture.hitbox.BukkitFurnitureHitboxTypes;
+import net.momirealms.craftengine.bukkit.entity.hologram.BukkitDamageIndicators;
 import net.momirealms.craftengine.bukkit.entity.hologram.DamageIndicatorListener;
 import net.momirealms.craftengine.bukkit.entity.projectile.BukkitProjectileManager;
 import net.momirealms.craftengine.bukkit.entity.seat.BukkitSeatManager;
@@ -188,6 +189,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         BukkitItemBehaviors.init();
         BukkitFurnitureBehaviors.init();
         BukkitFurnitureHitboxTypes.init();
+        BukkitDamageIndicators.init();
         BukkitBlockEntityElementConfigs.init();
         BukkitFurnitureElementConfigs.init();
         BukkitDataComponentPredicates.init();

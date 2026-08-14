@@ -14,6 +14,8 @@ import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import dev.dejvokep.boostedyaml.utils.format.NodeRole;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.entity.furniture.ColliderType;
+import net.momirealms.craftengine.core.entity.hologram.DamageIndicator;
+import net.momirealms.craftengine.core.entity.hologram.DamageIndicators;
 import net.momirealms.craftengine.core.entity.hologram.DamageVisibility;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.network.encrypt.AESGCM;
@@ -193,17 +195,7 @@ public final class Config {
     private boolean damage_indicator$enable;
     private DamageVisibility damage_indicator$default_visibility;
     private boolean damage_indicator$disable_vanilla_particles;
-    private String damage_indicator$number_format;
-    private String damage_indicator$text;
-    private double damage_indicator$position$angle_spread;
-    private double damage_indicator$position$height_spread;
-    private double damage_indicator$animation$spawn_scale;
-    private double damage_indicator$animation$pop_scale;
-    private double damage_indicator$animation$settle_scale;
-    private long damage_indicator$animation$pop_delay;
-    private long damage_indicator$animation$settle_delay;
-    private long damage_indicator$animation$shrink_delay;
-    private long damage_indicator$animation$remove_delay;
+    private List<DamageIndicator> damage_indicator$schemes = List.of();
 
     private boolean furniture$hide_base_entity;
     private ColliderType furniture$collision_entity_type;
@@ -381,6 +373,7 @@ public final class Config {
                             .addIgnoredRoute(PluginProperties.getValue("config"), "chunk-system.process-invalid-furniture.convert", '.')
                             .addIgnoredRoute(PluginProperties.getValue("config"), "item.custom-model-data-starting-value.overrides", '.')
                             .addIgnoredRoute(PluginProperties.getValue("config"), "item.break-power", '.')
+                            .addIgnoredRoute(PluginProperties.getValue("config"), "damage-indicator.schemes", '.')
                             .addIgnoredRoute(PluginProperties.getValue("config"), "block.deceive-bukkit-material.overrides", '.')
                             .build());
         }
@@ -625,17 +618,7 @@ public final class Config {
         this.damage_indicator$enable = config.getBoolean("damage-indicator.enable", false);
         this.damage_indicator$default_visibility = DamageVisibility.byName(config.getString("damage-indicator.default-visibility", "self"), DamageVisibility.SELF);
         this.damage_indicator$disable_vanilla_particles = config.getBoolean("damage-indicator.disable-vanilla-particles", false);
-        this.damage_indicator$number_format = config.getString("damage-indicator.number-format", "#.#");
-        this.damage_indicator$text = config.getString("damage-indicator.text", "<white><arg:damage></white>");
-        this.damage_indicator$position$angle_spread = config.getDouble("damage-indicator.position.angle-spread", 30d);
-        this.damage_indicator$position$height_spread = config.getDouble("damage-indicator.position.height-spread", 0.15d);
-        this.damage_indicator$animation$spawn_scale = config.getDouble("damage-indicator.animation.spawn-scale", 0.1d);
-        this.damage_indicator$animation$pop_scale = config.getDouble("damage-indicator.animation.pop-scale", 1.25d);
-        this.damage_indicator$animation$settle_scale = config.getDouble("damage-indicator.animation.settle-scale", 1.0d);
-        this.damage_indicator$animation$pop_delay = config.getLong("damage-indicator.animation.pop-delay", 1L);
-        this.damage_indicator$animation$settle_delay = config.getLong("damage-indicator.animation.settle-delay", 5L);
-        this.damage_indicator$animation$shrink_delay = config.getLong("damage-indicator.animation.shrink-delay", 16L);
-        this.damage_indicator$animation$remove_delay = config.getLong("damage-indicator.animation.remove-delay", 19L);
+        this.damage_indicator$schemes = parseDamageIndicatorSchemes(config);
 
         // furniture
         this.furniture$hide_base_entity = config.getBoolean("furniture.hide-base-entity", true);
@@ -1755,48 +1738,8 @@ public final class Config {
         return instance.damage_indicator$default_visibility;
     }
 
-    public static String damageIndicatorNumberFormat() {
-        return instance.damage_indicator$number_format;
-    }
-
-    public static String damageIndicatorText() {
-        return instance.damage_indicator$text;
-    }
-
-    public static double damageIndicatorAngleSpread() {
-        return instance.damage_indicator$position$angle_spread;
-    }
-
-    public static double damageIndicatorHeightSpread() {
-        return instance.damage_indicator$position$height_spread;
-    }
-
-    public static double damageIndicatorSpawnScale() {
-        return instance.damage_indicator$animation$spawn_scale;
-    }
-
-    public static double damageIndicatorPopScale() {
-        return instance.damage_indicator$animation$pop_scale;
-    }
-
-    public static double damageIndicatorSettleScale() {
-        return instance.damage_indicator$animation$settle_scale;
-    }
-
-    public static long damageIndicatorPopDelay() {
-        return instance.damage_indicator$animation$pop_delay;
-    }
-
-    public static long damageIndicatorSettleDelay() {
-        return instance.damage_indicator$animation$settle_delay;
-    }
-
-    public static long damageIndicatorShrinkDelay() {
-        return instance.damage_indicator$animation$shrink_delay;
-    }
-
-    public static long damageIndicatorRemoveDelay() {
-        return instance.damage_indicator$animation$remove_delay;
+    public static List<DamageIndicator> damageIndicatorSchemes() {
+        return instance.damage_indicator$schemes;
     }
 
     public static boolean enableHealthScaling() {
@@ -1813,6 +1756,22 @@ public final class Config {
 
     public static boolean disableVanillaDamageParticles() {
         return instance.damage_indicator$disable_vanilla_particles;
+    }
+
+    private List<DamageIndicator> parseDamageIndicatorSchemes(YamlDocument config) {
+        List<Map<?, ?>> list = config.getMapList("damage-indicator.schemes");
+        if (list == null) return List.of();
+        List<DamageIndicator> schemes = new ArrayList<>(list.size());
+        int index = 0;
+        for (Map<?, ?> element : list) {
+            String path = "damage-indicator.schemes." + index++;
+            try {
+                schemes.add(DamageIndicators.fromConfig(ConfigSection.of(path, element)));
+            } catch (Throwable t) {
+                this.plugin.logger().warn("Failed to load damage indicator scheme at " + path, t);
+            }
+        }
+        return List.copyOf(schemes);
     }
 
     public YamlDocument loadYamlConfig(String filePath, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) {

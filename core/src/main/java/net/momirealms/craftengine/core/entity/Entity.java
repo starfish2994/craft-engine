@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.parameter.EntityParameterProvider;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
 
@@ -69,6 +70,8 @@ public interface Entity extends ChainParameterSource {
     default <T> Optional<T> getParameter(ContextKey<T> key) {
         return EntityParameterProvider.INSTANCE.getOptionalParameter(key, this);
     }
+
+    Vec3d getEyePos();
 
     int fireTicks();
 }

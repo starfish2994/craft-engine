@@ -7,7 +7,6 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.ComponentUtils;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundAddEntityPacketProxy;
@@ -31,14 +30,16 @@ public final class DamageHologram {
 
     private final List<BukkitServerPlayer> viewers;
     private final Component text;
+    private final Animation animation;
     private final int entityId;
     private final double x;
     private final double y;
     private final double z;
 
-    public DamageHologram(List<BukkitServerPlayer> viewers, Component text, double x, double y, double z) {
+    public DamageHologram(List<BukkitServerPlayer> viewers, Component text, Animation animation, double x, double y, double z) {
         this.viewers = viewers;
         this.text = text;
+        this.animation = animation;
         this.entityId = EntityUtils.ENTITY_COUNTER.incrementAndGet();
         this.x = x;
         this.y = y;
@@ -50,7 +51,7 @@ public final class DamageHologram {
         DisplayData.TextDisplayData.Text.addEntityData(ComponentUtils.adventureToMinecraft(this.text), dataValues);
         DisplayData.TextDisplayData.BackgroundColor.addEntityData(0, dataValues);
         DisplayData.BillboardConstraints.addEntityData(BILLBOARD_CENTER, dataValues);
-        DisplayData.Scale.addEntityData(new Vector3f((float) Config.damageIndicatorSpawnScale()), dataValues);
+        DisplayData.Scale.addEntityData(new Vector3f(this.animation.spawnScale()), dataValues);
         Object spawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 this.entityId, UUID.randomUUID(), this.x, this.y, this.z, 0, 0,
                 EntityTypesProxy.TEXT_DISPLAY, 0, Vec3Proxy.ZERO, 0
@@ -61,16 +62,16 @@ public final class DamageHologram {
         }
 
         SchedulerAdapter scheduler = CraftEngine.instance().scheduler();
-        scheduler.asyncLater(() -> sendScaleUpdate(Config.damageIndicatorPopScale(), POP_INTERPOLATION_TICKS),
-                Config.damageIndicatorPopDelay() * 50, TimeUnit.MILLISECONDS);
-        scheduler.asyncLater(() -> sendScaleUpdate(Config.damageIndicatorSettleScale(), SETTLE_INTERPOLATION_TICKS),
-                Config.damageIndicatorSettleDelay() * 50, TimeUnit.MILLISECONDS);
+        scheduler.asyncLater(() -> sendScaleUpdate(this.animation.popScale(), POP_INTERPOLATION_TICKS),
+                this.animation.popDelay() * 50, TimeUnit.MILLISECONDS);
+        scheduler.asyncLater(() -> sendScaleUpdate(this.animation.settleScale(), SETTLE_INTERPOLATION_TICKS),
+                this.animation.settleDelay() * 50, TimeUnit.MILLISECONDS);
         scheduler.asyncLater(() -> sendScaleUpdate(SHRINK_SCALE, SHRINK_INTERPOLATION_TICKS),
-                Config.damageIndicatorShrinkDelay() * 50, TimeUnit.MILLISECONDS);
-        scheduler.asyncLater(this::remove, Config.damageIndicatorRemoveDelay() * 50, TimeUnit.MILLISECONDS);
+                this.animation.shrinkDelay() * 50, TimeUnit.MILLISECONDS);
+        scheduler.asyncLater(this::remove, this.animation.removeDelay() * 50, TimeUnit.MILLISECONDS);
     }
 
-    private void sendScaleUpdate(double scale, int interpolationTicks) {
+    private void sendScaleUpdate(float scale, int interpolationTicks) {
         List<Object> dataValues = new ArrayList<>(4);
         DisplayData.TransformationInterpolationDelay.addEntityData(0, dataValues);
         if (VersionHelper.isOrAbove1_20_2) {
@@ -79,7 +80,7 @@ public final class DamageHologram {
         } else {
             DisplayData.InterpolationDuration.addEntityData(interpolationTicks, dataValues);
         }
-        DisplayData.Scale.addEntityData(new Vector3f((float) scale), dataValues);
+        DisplayData.Scale.addEntityData(new Vector3f(scale), dataValues);
         Object packet = ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, dataValues);
         for (BukkitServerPlayer viewer : this.viewers) {
             viewer.sendPacket(packet, false);
@@ -91,5 +92,9 @@ public final class DamageHologram {
         for (BukkitServerPlayer viewer : this.viewers) {
             viewer.sendPacket(packet, false);
         }
+    }
+
+    public record Animation(float spawnScale, float popScale, float settleScale,
+                            long popDelay, long settleDelay, long shrinkDelay, long removeDelay) {
     }
 }

@@ -587,30 +587,33 @@ damage-indicator:
   default-visibility: self
   # Cancel vanilla damage indicator particles (vanilla spawns them scaled by damage; custom damage formulas with big numbers would flood the screen)
   disable-vanilla-particles: false
-  # DecimalFormat pattern for the damage number
-  number-format: "#.#"
-  # Displayed text in MiniMessage format. <arg:damage> is replaced with the final damage value
-  text: "<white><arg:damage></white>"
-  # The indicator spawns near the first intersection of the attacker's view ray with the victim's bounding cylinder
-  # (radius = distance from the bounding box bottom center to a bottom corner: sqrt(width² + depth²) / 2)
-  position:
-    # Random angular spread around the intersection point (degrees)
-    angle-spread: 30
-    # Random vertical spread, as a fraction of the victim's bounding box height
-    height-spread: 0.15
-  # Scale pop animation
-  animation:
-    # Initial scale when the indicator spawns
-    spawn-scale: 0.1
-    # The scale it pops up to
-    pop-scale: 1.25
-    # The scale it settles at
-    settle-scale: 1.0
-    # Tick timing of each animation stage
-    pop-delay: 1
-    settle-delay: 5
-    shrink-delay: 16
-    remove-delay: 19
+  # Display schemes triggered on damage
+  schemes:
+    - type: text
+      # DecimalFormat pattern for the damage number
+      number-format: "#.#"
+      # Displayed text in MiniMessage format. <arg:damage> is replaced with the final damage value
+      text: "<white><arg:damage></white>"
+      # The indicator spawns near the first intersection of the attacker's view ray with the victim's bounding cylinder
+      # (radius = distance from the bounding box bottom center to a bottom corner: sqrt(width² + depth²) / 2)
+      position:
+        # Random angular spread around the intersection point (degrees)
+        angle-spread: 30
+        # Random vertical spread, as a fraction of the victim's bounding box height
+        height-spread: 0.15
+      # Scale pop animation
+      animation:
+        # Initial scale when the indicator spawns
+        spawn-scale: 0.1
+        # The scale it pops up to
+        pop-scale: 1.25
+        # The scale it settles at
+        settle-scale: 1.0
+        # Tick timing of each animation stage
+        pop-delay: 1
+        settle-delay: 5
+        shrink-delay: 16
+        remove-delay: 19
 
 gui:
   browser:
