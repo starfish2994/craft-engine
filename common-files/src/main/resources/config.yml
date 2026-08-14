@@ -590,21 +590,8 @@ damage-indicator:
   # Display schemes triggered on damage
   schemes:
     - type: text
-      # DecimalFormat pattern for the damage number
-      number-format: "#.#"
       # Displayed text in MiniMessage format. <arg:damage> is replaced with the final damage value
-      text: "<white><arg:damage></white>"
-      # Optional extra arguments computed per hit, usable as <arg:name> in the text above
-      # Values are damage formulas, same syntax as attribute damage rules
-      # (attacker_xxx / victim_xxx attribute variables, damage, is_critical)
-      # Note: parts recorded by a 'composition' damage formula are already exposed as
-      # <arg:part_id> automatically - no need to redeclare them here
-      # args:
-      #   fire: "attacker_ce_fire_attack * (1 - victim_ce_fire_resistance)"
-      # Optional conditions gating this scheme, e.g. hide an element that dealt no damage:
-      # conditions:
-      #   - type: expression
-      #     expression: "<arg:fire> > 0"
+      text: "<white><expr:#.#:'<arg:damage>'></white>"
       # The indicator spawns near the first intersection of the attacker's view ray with the victim's bounding cylinder
       # (radius = distance from the bounding box bottom center to a bottom corner: sqrt(width² + depth²) / 2)
       position:

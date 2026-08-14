@@ -34,8 +34,9 @@ public final class EntityDamageListener extends AbstractListener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent event) {
-        BukkitDamageEvent damageEvent = new BukkitDamageEvent(this.manager, event);
+        BukkitDamageEvent damageEvent = null;
         if (Config.enableAttributeSystem()) {
+            damageEvent = new BukkitDamageEvent(this.manager, event);
             this.manager.processDamageEvent(damageEvent);
         }
         if (Config.enableDamageIndicator()
@@ -65,8 +66,10 @@ public final class EntityDamageListener extends AbstractListener {
             ContextHolder.Builder contextBuilder = ContextHolder.builder()
                     .withParameter(DirectContextParameters.ORIGINAL_DAMAGE, event.getDamage())
                     .withParameter(DirectContextParameters.DAMAGE, event.getFinalDamage());
-            for (Map.Entry<String, Double> part : damageEvent.damageParts().entrySet()) {
-                contextBuilder.withParameter(ContextKey.direct(part.getKey()), part.getValue());
+            if (damageEvent != null) {
+                for (Map.Entry<String, Double> part : damageEvent.damageParts().entrySet()) {
+                    contextBuilder.withParameter(ContextKey.direct(part.getKey()), part.getValue());
+                }
             }
             PlayerOptionalContext context = PlayerOptionalContext.of(attackerUser, contextBuilder);
             net.momirealms.craftengine.core.entity.Entity coreVictim = BukkitAdaptor.adapt(victim);
