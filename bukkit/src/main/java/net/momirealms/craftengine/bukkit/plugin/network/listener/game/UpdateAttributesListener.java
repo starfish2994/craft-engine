@@ -30,9 +30,6 @@ public final class UpdateAttributesListener implements ByteBufferPacketListener 
         if (!VersionHelper.isOrAbove1_20_5) return;
         boolean changed = false;
         Player player = (Player) user;
-        if (player.clientSideCanBreak()) {
-            return;
-        }
         BukkitServerPlayer serverPlayer = (BukkitServerPlayer) user;
 
         FriendlyByteBuf buf = event.getBuffer();
@@ -49,7 +46,7 @@ public final class UpdateAttributesListener implements ByteBufferPacketListener 
 
             int modifierCount = buf.readVarInt();
             List<AttributeModifier> modifiers;
-            if (attributeId == BLOCK_BREAK_SPEED) {
+            if (attributeId == BLOCK_BREAK_SPEED && !player.clientSideCanBreak()) {
                 modifiers = List.of(VersionHelper.isOrAbove1_21 ?
                         new AttributeModifier1_21(Key.ce("custom_hardness"), -999d, (byte) 0) :
                         new AttributeModifier1_20_5(CUSTOM_HARDNESS_UUID, -999d, (byte) 0)
