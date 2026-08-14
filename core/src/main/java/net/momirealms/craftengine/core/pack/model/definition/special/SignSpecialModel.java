@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.model.definition.special;
 import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
@@ -62,7 +63,7 @@ public final class SignSpecialModel implements SpecialModel {
     }
 
     private static class Factory implements SpecialModelFactory<SignSpecialModel> {
-        private static final String[] WOOD_TYPES = new String[] {"wood_type", "wood-type"};
+        private static final String[] WOOD_TYPES = ConfigKeys.of("wood_type");
 
         @Override
         public SignSpecialModel create(ConfigSection section) {

@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.entity.furniture.tick.TickingFurniture;
 import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
@@ -176,7 +177,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
     protected abstract FurnitureHitBoxConfig<?> defaultHitBox();
 
     private final class FurnitureParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] { "furniture" };
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("furniture");
 
         @Override
         public Key type() {
@@ -208,16 +209,16 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
             return List.of(LoadingStages.ITEM);
         }
 
-        private static final String[] VARIANT = new String[] {"variant", "variants", "placement"};
-        private static final String[] LOOT_SPAWN_OFFSET = new String[] {"loot_spawn_offset", "loot-spawn-offset"};
-        private static final String[] BLUEPRINT = new String[] {"blueprint", "better-model", "model-engine"};
-        private static final String[] ENTITY_CULLING = new String[] {"entity_culling", "entity-culling"};
-        private static final String[] EVENT = new String[] {"events", "event"};
-        private static final String[] LOOT = new String[] {"loots", "loot"};
-        private static final String[] BEHAVIORS = new String[] {"behaviors", "behavior"};
-        private static final String[] VIEW_DISTANCE = new String[] {"view_distance", "view-distance"};
-        private static final String[] AABB_EXPANSION = new String[] {"aabb_expansion", "aabb-expansion"};
-        private static final String[] RAY_TRACING = new String[] {"ray_tracing", "ray-tracing"};
+        private static final String[] VARIANT = ConfigKeys.of("variant(s)|placement");
+        private static final String[] LOOT_SPAWN_OFFSET = ConfigKeys.of("loot_spawn_offset");
+        private static final String[] BLUEPRINT = ConfigKeys.of("blueprint|better_model|model_engine");
+        private static final String[] ENTITY_CULLING = ConfigKeys.of("entity_culling");
+        private static final String[] EVENT = ConfigKeys.of("event(s)");
+        private static final String[] LOOT = ConfigKeys.of("loot(s)");
+        private static final String[] BEHAVIORS = ConfigKeys.of("behavior(s)");
+        private static final String[] VIEW_DISTANCE = ConfigKeys.of("view_distance");
+        private static final String[] AABB_EXPANSION = ConfigKeys.of("aabb_expansion");
+        private static final String[] RAY_TRACING = ConfigKeys.of("ray_tracing");
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {

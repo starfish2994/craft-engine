@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.plugin.context.function;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.*;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
@@ -48,9 +49,9 @@ public final class ToastFunction<CTX extends Context> extends AbstractConditiona
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, ToastFunction<CTX>> {
-        private static final String[] ITEM = new String[] {"item", "icon"};
-        private static final String[] TOAST = new String[] {"toast", "message"};
-        private static final String[] ADVANCEMENT_TYPE = new String[] {"advancement_type", "advancement-type"};
+        private static final String[] ITEM = ConfigKeys.of("item|icon");
+        private static final String[] TOAST = ConfigKeys.of("toast|message");
+        private static final String[] ADVANCEMENT_TYPE = ConfigKeys.of("advancement_type");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

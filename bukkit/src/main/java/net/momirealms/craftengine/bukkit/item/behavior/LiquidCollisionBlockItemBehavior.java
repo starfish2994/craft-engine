@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.PendingConfigSection;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -74,7 +75,7 @@ public final class LiquidCollisionBlockItemBehavior extends BlockItemBehavior {
     }
 
     private static class Factory implements ItemBehaviorFactory<LiquidCollisionBlockItemBehavior> {
-        private static final String[] Y_OFFSET = new String[]{"y_offset", "y-offset"};
+        private static final String[] Y_OFFSET = ConfigKeys.of("y_offset");
 
         @Override
         public LiquidCollisionBlockItemBehavior create(Pack pack, Path path, Key key, ConfigSection section) {

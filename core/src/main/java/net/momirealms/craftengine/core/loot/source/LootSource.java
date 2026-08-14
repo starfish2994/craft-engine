@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.loot.source;
 
 import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.loot.LootContext;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -16,10 +17,10 @@ import java.util.Locale;
 import java.util.function.Predicate;
 
 public class LootSource {
-    protected static final String[] OVERWRITE = new String[]{"overwrite"};
-    protected static final String[] LEGACY_OVERRIDE = new String[]{"override"};
-    protected static final String[] LOOT = new String[]{"loot", "loots"};
-    protected static final String[] TARGET = new String[]{"target", "targets"};
+    protected static final String[] OVERWRITE = ConfigKeys.of("overwrite");
+    protected static final String[] LEGACY_OVERRIDE = ConfigKeys.of("override");
+    protected static final String[] LOOT = ConfigKeys.of("loot(s)");
+    protected static final String[] TARGET = ConfigKeys.of("target(s)");
 
     private final LootSourceType<?> type;
     private final Predicate<LootContext> condition;
@@ -43,7 +44,7 @@ public class LootSource {
     }
 
     protected static Predicate<LootContext> parseConditions(ConfigSection section) {
-        return MiscUtils.allOf(section.getList("conditions", CommonConditions::fromConfig));
+        return MiscUtils.allOf(section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig));
     }
 
     protected static Loot parseLoot(ConfigSection section) {

@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
@@ -234,7 +235,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     private static class Factory implements BlockBehaviorFactory<PressurePlateBlockBehavior> {
-        private static final String[] PRESSED_TIME = new String[] {"pressed_time", "pressed-time"};
+        private static final String[] PRESSED_TIME = ConfigKeys.of("pressed_time");
 
         @Override
         public PressurePlateBlockBehavior create(BlockDefinition block, ConfigSection section) {

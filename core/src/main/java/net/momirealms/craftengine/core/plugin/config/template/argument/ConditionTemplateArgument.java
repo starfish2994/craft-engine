@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.config.template.argument;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 
 import java.util.Map;
@@ -26,8 +27,8 @@ public final class ConditionTemplateArgument implements TemplateArgument {
     }
 
     private static class Factory extends NestedTemplateArgumentFactory<ConditionTemplateArgument> {
-        private static final String[] ON_TRUE = new String[]{"on_true", "on-true"};
-        private static final String[] ON_FALSE = new String[]{"on_false", "on-false"};
+        private static final String[] ON_TRUE = ConfigKeys.of("on_true");
+        private static final String[] ON_FALSE = ConfigKeys.of("on_false");
 
         @Override
         public ConditionTemplateArgument create(ConfigSection section) {

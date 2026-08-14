@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.host.impl;
 import io.github.bucket4j.Bandwidth;
 import net.momirealms.craftengine.core.pack.host.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -65,14 +66,14 @@ public final class SelfHost implements ResourcePackHost {
     }
 
     private static class Factory implements ResourcePackHostFactory<SelfHost> {
-        private static final String[] ONE_TIME_TOKEN = new String[]{"one_time_token", "one-time-token"};
-        private static final String[] DENY_NON_MINECRAFT_REQUEST = new String[]{"deny_non_minecraft_request", "deny-non-minecraft-request"};
-        private static final String[] STRICT_VALIDATION = new String[]{"strict_validation", "strict-validation"};
-        private static final String[] RATE_LIMITING = new String[]{"rate_limiting", "rate-limiting"};
-        private static final String[] QPS_PER_IP = new String[]{"qps_per_ip", "qps-per-ip"};
-        private static final String[] MAX_BANDWIDTH_PER_SECOND = new String[]{"max_bandwidth_per_second", "max-bandwidth-per-second"};
-        private static final String[] MIN_DOWNLOAD_SPEED_PER_PLAYER = new String[]{"min_download_speed_per_player", "min-download-speed-per-player"};
-        private static final String[] FORWARD_SECRET = new String[]{"forward_secret", "forward-secret"};
+        private static final String[] ONE_TIME_TOKEN = ConfigKeys.of("one_time_token");
+        private static final String[] DENY_NON_MINECRAFT_REQUEST = ConfigKeys.of("deny_non_minecraft_request");
+        private static final String[] STRICT_VALIDATION = ConfigKeys.of("strict_validation");
+        private static final String[] RATE_LIMITING = ConfigKeys.of("rate_limiting");
+        private static final String[] QPS_PER_IP = ConfigKeys.of("qps_per_ip");
+        private static final String[] MAX_BANDWIDTH_PER_SECOND = ConfigKeys.of("max_bandwidth_per_second");
+        private static final String[] MIN_DOWNLOAD_SPEED_PER_PLAYER = ConfigKeys.of("min_download_speed_per_player");
+        private static final String[] FORWARD_SECRET = ConfigKeys.of("forward_secret");
 
         @Override
         public SelfHost create(ConfigSection section) {

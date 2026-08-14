@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.model.definition.special;
 import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -56,7 +57,7 @@ public final class ChestSpecialModel implements SpecialModel {
     }
 
     private static class Factory implements SpecialModelFactory<ChestSpecialModel> {
-        private static final String[] CHEST_TYPE = new String[]{"chest_type", "chest-type"};
+        private static final String[] CHEST_TYPE = ConfigKeys.of("chest_type");
 
         @Override
         public ChestSpecialModel create(ConfigSection section) {

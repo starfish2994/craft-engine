@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.LootContext;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
@@ -75,8 +76,8 @@ public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
     }
 
     private static class Factory implements BlockBehaviorFactory<DropExperienceBlockBehavior> {
-        private static final String[] AMOUNT = new String[] {"amount", "count"};
-        private static final String[] CONDITIONS = new String[] {"conditions", "condition"};
+        private static final String[] AMOUNT = ConfigKeys.of("amount|count");
+        private static final String[] CONDITIONS = ConfigKeys.of("condition(s)");
 
         @Override
         public DropExperienceBlockBehavior create(BlockDefinition block, ConfigSection section) {

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.*;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
@@ -48,7 +49,7 @@ public final class MessageFunction<CTX extends Context> extends AbstractConditio
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, MessageFunction<CTX>> {
-        private static final String[] MESSAGES = new String[] {"messages", "message"};
+        private static final String[] MESSAGES = ConfigKeys.of("message(s)");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

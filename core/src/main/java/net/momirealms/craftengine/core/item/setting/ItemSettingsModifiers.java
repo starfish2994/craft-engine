@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainder;
 import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainders;
 import net.momirealms.craftengine.core.item.setting.value.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -135,8 +136,8 @@ public final class ItemSettingsModifiers {
     }));
     public static final ItemSettingsModifierType<ItemSettingsModifier> EQUIPMENT = register(Key.ce("equipment"), (value -> {
         ConfigSection section = value.getAsSection();
-        Tristate clientBoundModel = section.getValue(new String[]{"client_bound_model", "client-bound-model"}, it -> Tristate.of(it.getAsBoolean()), Tristate.UNDEFINED);
-        Key assetId = section.getNonNullIdentifier(new String[]{"asset_id", "asset-id"});
+        Tristate clientBoundModel = section.getValue(ConfigKeys.of("client_bound_model"), it -> Tristate.of(it.getAsBoolean()), Tristate.UNDEFINED);
+        Key assetId = section.getNonNullIdentifier(ConfigKeys.of("asset_id"));
         Optional<Equipment> optionalEquipment = CraftEngine.instance().itemManager().getEquipment(assetId);
         if (optionalEquipment.isEmpty()) {
             throw new KnownResourceException("resource.item.settings.equipment.invalid_asset_id", value.assemblePath("asset_id"), assetId.asString());

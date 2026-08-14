@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
 import com.mojang.datafixers.util.Either;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -40,8 +41,8 @@ public final class SetVariableFunction<CTX extends Context> extends AbstractCond
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, SetVariableFunction<CTX>> {
-        private static final String[] AS_INT = new String[]{"as_int", "as-int"};
-        private static final String[] NAME = new String[]{"name", "var"};
+        private static final String[] AS_INT = ConfigKeys.of("as_int");
+        private static final String[] NAME = ConfigKeys.of("name|var");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxCo
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
@@ -80,7 +81,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
     }
 
     private static class Factory implements FurnitureBehaviorFactory<SimpleStorageFurnitureBehaviorTemplate> {
-        private static final String[] DATA_KEY = new String[]{"data_key", "data-key"};
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
 
         @SuppressWarnings("DuplicatedCode")
         @Override

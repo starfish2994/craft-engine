@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.item.processor.OverwritableEquippableAssetIdProcessor;
 import net.momirealms.craftengine.core.item.processor.TrimProcessor;
 import net.momirealms.craftengine.core.pack.AbstractPackManager;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Key;
@@ -52,8 +53,8 @@ public final class TrimBasedEquipment extends AbstractEquipment {
     }
 
     private static class Factory implements EquipmentFactory<TrimBasedEquipment> {
-        private static final String[] HUMANOID = new String[] {"humanoid", "layer0"};
-        private static final String[] HUMANOID_LEGGINGS = new String[] {"humanoid_leggings", "humanoid-leggings", "layer1"};
+        private static final String[] HUMANOID = ConfigKeys.of("humanoid|layer0");
+        private static final String[] HUMANOID_LEGGINGS = ConfigKeys.of("humanoid_leggings|layer1");
 
         @Override
         public TrimBasedEquipment create(Key id, ConfigSection section) {

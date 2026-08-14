@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.condition;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -37,7 +38,7 @@ public final class RandomCondition<CTX extends Context> implements Condition<CTX
     }
 
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, RandomCondition<CTX>> {
-        private static final String[] USE_LAST = new String[] {"use-last", "use_last"};
+        private static final String[] USE_LAST = ConfigKeys.of("use_last");
 
         @Override
         public RandomCondition<CTX> create(ConfigSection section) {

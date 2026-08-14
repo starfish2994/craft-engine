@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.item.recipe.remainder;
 
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
@@ -28,7 +29,7 @@ public final class FixedCraftRemainder implements CraftRemainder {
     }
 
     private static class Factory implements CraftRemainderFactory<FixedCraftRemainder> {
-        private static final String[] COUNT = new String[] {"count", "amount"};
+        private static final String[] COUNT = ConfigKeys.of("count|amount");
 
         @Override
         public FixedCraftRemainder create(ConfigSection section) {

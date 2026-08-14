@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.updater.ItemUpdater;
 import net.momirealms.craftengine.core.item.updater.ItemUpdaterFactory;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
@@ -47,8 +48,8 @@ public final class ResetOperation implements ItemUpdater {
     }
 
     private static class Factory implements ItemUpdaterFactory<ResetOperation> {
-        private static final String[] KEEP_COMPONENTS = new String[] {"keep_components", "keep-components"};
-        private static final String[] KEEP_TAGS = new String[] {"keep_tags", "keep-tags"};
+        private static final String[] KEEP_COMPONENTS = ConfigKeys.of("keep_components");
+        private static final String[] KEEP_TAGS = ConfigKeys.of("keep_tags");
 
         @Override
         public ResetOperation create(Key item, ConfigSection section) {

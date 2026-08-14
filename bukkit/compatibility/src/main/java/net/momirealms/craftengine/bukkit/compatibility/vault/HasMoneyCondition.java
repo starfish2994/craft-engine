@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.compatibility.vault;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -30,7 +31,7 @@ public final class HasMoneyCondition<CTX extends Context> implements Condition<C
     }
 
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, HasMoneyCondition<CTX>> {
-        private static final String[] AMOUNT = new String[] {"amount", "value"};
+        private static final String[] AMOUNT = ConfigKeys.of("amount|value");
 
         @Override
         public HasMoneyCondition<CTX> create(ConfigSection section) {

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -40,7 +41,7 @@ public final class SetCountFunction<CTX extends Context> extends AbstractConditi
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, SetCountFunction<CTX>> {
-        private static final String[] COUNT = new String[] {"count", "amount"};
+        private static final String[] COUNT = ConfigKeys.of("count|amount");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.pack.model.definition.RangeDispatchItemMo
 import net.momirealms.craftengine.core.pack.model.definition.condition.UsingItemConditionProperty;
 import net.momirealms.craftengine.core.pack.model.definition.rangedisptach.UseDurationRangeDispatchProperty;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.Map2;
@@ -25,7 +26,7 @@ public final class BowItemModelReader implements SimplifiedItemModelReader {
             Key.of("item/bow_pulling_1"),
             Key.of("item/bow_pulling_2")
     };
-    private static final String[] AUTO_SUFFIXES = new String[] {"", "_pulling_0", "_pulling_1", "_pulling_2"};
+    private static final String[] AUTO_SUFFIXES = new String[]{"", "_pulling_0", "_pulling_1", "_pulling_2"};
 
     private BowItemModelReader() {}
 

@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.model.bbmodel.BBModelConverter;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -43,7 +44,7 @@ public final class LegacyItemModel {
         return this.path;
     }
 
-    private static final String[] PATH = new String[] {"path", "model"};
+    private static final String[] PATH = ConfigKeys.of("path|model");
 
     public static LegacyItemModel fromConfig(Pack pack, Path path, ConfigSection section, int customModelData) {
         Pair<Key, ModelGeneration> baseModel = parseModelPath(pack, path, section);

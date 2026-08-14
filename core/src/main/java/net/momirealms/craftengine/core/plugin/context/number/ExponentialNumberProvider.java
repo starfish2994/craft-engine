@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.number;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -51,7 +52,7 @@ public record ExponentialNumberProvider(
     }
 
     private static class Factory implements NumberProviderFactory<ExponentialNumberProvider> {
-        private static final String[] MAX_ATTEMPTS = new String[] {"max_attempts", "max-attempts"};
+        private static final String[] MAX_ATTEMPTS = ConfigKeys.of("max_attempts");
 
         @Override
         public ExponentialNumberProvider create(ConfigSection section) {

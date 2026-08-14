@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -46,7 +47,7 @@ public final class SetLevelFunction<CTX extends Context> extends AbstractConditi
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, SetLevelFunction<CTX>> {
         private static final BiConsumer<Player, Integer> ADD_LEVELS = Player::giveExperienceLevels;
         private static final BiConsumer<Player, Integer> SET_LEVELS = Player::setExperienceLevels;
-        private static final String[] LEVEL = new String[]{"level", "count"};
+        private static final String[] LEVEL = ConfigKeys.of("level|count");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

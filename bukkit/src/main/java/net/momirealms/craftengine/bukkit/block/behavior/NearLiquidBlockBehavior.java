@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -42,7 +43,7 @@ public final class NearLiquidBlockBehavior extends AbstractCanSurviveBlockBehavi
     }
 
     private static class Factory implements BlockBehaviorFactory<NearLiquidBlockBehavior> {
-        private static final String[] LIQUID_TYPE = new String[] {"liquid_type", "liquid-type"};
+        private static final String[] LIQUID_TYPE = ConfigKeys.of("liquid_type");
 
         @Override
         public NearLiquidBlockBehavior create(BlockDefinition block, ConfigSection section) {

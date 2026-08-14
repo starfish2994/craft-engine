@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.number;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -97,8 +98,8 @@ public record LogNormalNumberProvider(
     }
 
     private static class Factory implements NumberProviderFactory<LogNormalNumberProvider> {
-        private static final String[] STD_DEV = new String[] {"std_dev", "std-dev"};
-        private static final String[] MAX_ATTEMPTS = new String[] {"max_attempts", "max-attempts"};
+        private static final String[] STD_DEV = ConfigKeys.of("std_dev");
+        private static final String[] MAX_ATTEMPTS = ConfigKeys.of("max_attempts");
 
         @Override
         public LogNormalNumberProvider create(ConfigSection section) {

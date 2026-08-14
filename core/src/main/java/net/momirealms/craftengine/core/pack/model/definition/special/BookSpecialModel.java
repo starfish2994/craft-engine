@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.model.definition.special;
 import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -50,7 +51,7 @@ public final class BookSpecialModel implements SpecialModel {
     }
 
     private static class Factory implements SpecialModelFactory<BookSpecialModel> {
-        private static final String[] OPEN_ANGLE = {"open_angle", "open-angle"};
+        private static final String[] OPEN_ANGLE = ConfigKeys.of("open_angle");
 
         @Override
         public BookSpecialModel create(ConfigSection section) {

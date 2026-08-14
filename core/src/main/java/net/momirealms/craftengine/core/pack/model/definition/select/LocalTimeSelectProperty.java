@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.pack.model.definition.select;
 
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +46,7 @@ public final class LocalTimeSelectProperty implements SelectProperty {
     }
 
     private static class Factory implements SelectPropertyFactory<LocalTimeSelectProperty> {
-        private static final String[] TIME_ZONE = new String[] {"time-zone", "time_zone"};
+        private static final String[] TIME_ZONE = ConfigKeys.of("time_zone");
 
         @Override
         public LocalTimeSelectProperty create(ConfigSection section) {

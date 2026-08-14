@@ -4,6 +4,7 @@ import com.ezylang.evalex.EvaluationException;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.parser.ParseException;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -34,7 +35,7 @@ public final class ExpressionCondition<CTX extends Context> implements Condition
     }
 
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, ExpressionCondition<CTX>> {
-        private static final String[] EXPR = new String[] {"expression", "expr"};
+        private static final String[] EXPR = ConfigKeys.of("expression|expr");
 
         @Override
         public ExpressionCondition<CTX> create(ConfigSection section) {

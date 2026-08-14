@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -142,9 +143,9 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     }
 
     private static class Factory implements BlockBehaviorFactory<DisplayItemBlockBehavior> {
-        private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
-        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
-        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
+        private static final String[] HAS_SIGNAL = ConfigKeys.of("has_signal");
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
+        private static final String[] TINT_SOURCE = ConfigKeys.of("tint_source");
 
         @Override
         public DisplayItemBlockBehavior create(BlockDefinition block, ConfigSection section) {

@@ -18,6 +18,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -242,16 +243,16 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
     }
 
     private static class Factory implements BlockBehaviorFactory<DrawerBlockBehavior> {
-        private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
-        private static final String[] ITEM_POSITION = new String[] {"item_position", "item-position"};
-        private static final String[] TEXT_POSITION = new String[] {"text_position", "text-position"};
-        private static final String[] ITEM_SCALE = new String[] {"item_scale", "item-scale"};
-        private static final String[] TEXT_SCALE = new String[] {"text_scale", "text-scale"};
-        private static final String[] MAX_STACKS = new String[] {"max_stacks", "max-stacks"};
-        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
-        private static final String[] ALLOW_INPUT = new String[]{"allow_input", "allow-input"};
-        private static final String[] ALLOW_OUTPUT = new String[]{"allow_output", "allow-output"};
-        private static final String[] COMPATIBLE_MODE = new String[] {"compatible_mode", "compatible-mode"};
+        private static final String[] HAS_SIGNAL = ConfigKeys.of("has_signal");
+        private static final String[] ITEM_POSITION = ConfigKeys.of("item_position");
+        private static final String[] TEXT_POSITION = ConfigKeys.of("text_position");
+        private static final String[] ITEM_SCALE = ConfigKeys.of("item_scale");
+        private static final String[] TEXT_SCALE = ConfigKeys.of("text_scale");
+        private static final String[] MAX_STACKS = ConfigKeys.of("max_stacks");
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
+        private static final String[] ALLOW_INPUT = ConfigKeys.of("allow_input");
+        private static final String[] ALLOW_OUTPUT = ConfigKeys.of("allow_output");
+        private static final String[] COMPATIBLE_MODE = ConfigKeys.of("compatible_mode");
 
         @Override
         public DrawerBlockBehavior create(BlockDefinition block, ConfigSection section) {

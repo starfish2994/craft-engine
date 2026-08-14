@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.config.template.argument;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 
 import java.util.Map;
@@ -61,7 +62,7 @@ public final class SelfIncreaseIntTemplateArgument implements TemplateArgument {
     }
 
     private static class Factory implements TemplateArgumentFactory<SelfIncreaseIntTemplateArgument> {
-        private static final String[] STEP_INTERVAL = new String[]{"step_interval", "step-interval"};
+        private static final String[] STEP_INTERVAL = ConfigKeys.of("step_interval");
 
         @Override
         public SelfIncreaseIntTemplateArgument create(ConfigSection section) {

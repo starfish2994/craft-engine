@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.item.processor.ComponentsProcessor;
 import net.momirealms.craftengine.core.item.processor.TagsProcessor;
 import net.momirealms.craftengine.core.item.trade.MerchantOffer;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -62,10 +63,10 @@ public final class MerchantTradeFunction<CTX extends Context> extends AbstractCo
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, MerchantTradeFunction<CTX>> {
-        private static final String[] OFFERS = new String[] {"offers", "offer"};
-        private static final String[] COST_1 = new String[] {"cost_1", "cost-1"};
-        private static final String[] COST_2 = new String[] {"cost_2", "cost-2"};
-        private static final String[] EXP = new String[] {"exp", "experience"};
+        private static final String[] OFFERS = ConfigKeys.of("offer(s)");
+        private static final String[] COST_1 = ConfigKeys.of("cost_1");
+        private static final String[] COST_2 = ConfigKeys.of("cost_2");
+        private static final String[] EXP = ConfigKeys.of("exp|experience");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);
@@ -98,10 +99,10 @@ public final class MerchantTradeFunction<CTX extends Context> extends AbstractCo
                     });
         }
 
-        private static final String[] ITEM = new String[] {"item", "id"};
-        private static final String[] COUNT = new String[] {"count", "amount"};
-        private static final String[] COMPONENT = new String[] {"components", "component"};
-        private static final String[] NBT = new String[] {"nbt", "tags"};
+        private static final String[] ITEM = ConfigKeys.of("item|id");
+        private static final String[] COUNT = ConfigKeys.of("count|amount");
+        private static final String[] COMPONENT = ConfigKeys.of("component(s)");
+        private static final String[] NBT = ConfigKeys.of("nbt|tags");
 
         private TempItem parseTempItem(ConfigValue value) {
             if (value.is(Map.class)) {

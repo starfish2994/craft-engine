@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.config.template.argument;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public final class ListTemplateArgument implements TemplateArgument {
     }
 
     private static class Factory implements TemplateArgumentFactory<ListTemplateArgument> {
-        private static final String[] LIST = new String[] {"list", "value"};
+        private static final String[] LIST = ConfigKeys.of("list|value");
 
         @Override
         public ListTemplateArgument create(ConfigSection section) {

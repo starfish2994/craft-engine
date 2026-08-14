@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.ItemUtils;
@@ -63,7 +64,7 @@ public final class StackableBlockBehavior extends BukkitBlockBehavior {
     }
 
     private static class Factory implements BlockBehaviorFactory<StackableBlockBehavior> {
-        private static final String[] ITEMS = new String[] {"items", "item"};
+        private static final String[] ITEMS = ConfigKeys.of("item(s)");
 
         @Override
         public StackableBlockBehavior create(BlockDefinition block, ConfigSection section) {

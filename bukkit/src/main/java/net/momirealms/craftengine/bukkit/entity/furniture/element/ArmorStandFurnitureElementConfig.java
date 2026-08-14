@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
@@ -125,13 +126,13 @@ public final class ArmorStandFurnitureElementConfig implements FurnitureElementC
     }
 
     private static class Factory implements FurnitureElementConfigFactory<ArmorStandFurnitureElement> {
-        private static final String[] APPLY_DYED_COLOR = new String[]{"apply_dyed_color", "apply-dyed-color"};
-        private static final String[] GLOW_COLOR = new String[]{"glow_color", "glow-color"};
-        private static final String[] TINT_SOURCE = new String[]{"tint_source", "tint-source"};
+        private static final String[] APPLY_DYED_COLOR = ConfigKeys.of("apply_dyed_color");
+        private static final String[] GLOW_COLOR = ConfigKeys.of("glow_color");
+        private static final String[] TINT_SOURCE = ConfigKeys.of("tint_source");
 
         @Override
         public ArmorStandFurnitureElementConfig create(ConfigSection section) {
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             boolean legacyTintSource = section.getBoolean(APPLY_DYED_COLOR, false);
             return new ArmorStandFurnitureElementConfig(
                     section.getNonNullIdentifier("item"),

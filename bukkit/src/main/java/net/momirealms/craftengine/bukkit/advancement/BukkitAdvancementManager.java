@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.pack.Pack;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -145,7 +146,7 @@ public final class BukkitAdvancementManager extends AbstractAdvancementManager {
     }
 
     private final class AdvancementParser extends IdSectionConfigParser {
-        private static final String[] CONFIG_SECTION_NAME = new String[]{"advancements", "advancement"};
+        private static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("advancement(s)");
 
         @Override
         public Key type() {

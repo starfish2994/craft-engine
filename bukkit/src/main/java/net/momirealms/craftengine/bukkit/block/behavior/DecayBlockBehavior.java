@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -121,8 +122,8 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
     }
 
     private static class Factory implements BlockBehaviorFactory<DecayBlockBehavior> {
-        private static final String[] REQUIRED_LIGHT = new String[]{"required_light", "required-light"};
-        private static final String[] DECAY_INTO = new String[]{"decay_into", "decay-into"};
+        private static final String[] REQUIRED_LIGHT = ConfigKeys.of("required_light");
+        private static final String[] DECAY_INTO = ConfigKeys.of("decay_into");
 
         @Override
         public DecayBlockBehavior create(BlockDefinition block, ConfigSection section) {

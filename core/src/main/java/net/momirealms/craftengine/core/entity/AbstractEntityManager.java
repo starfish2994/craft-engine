@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.entity;
 
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -43,7 +44,7 @@ public abstract class AbstractEntityManager implements EntityManager {
     }
 
     private final class EntityParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[]{"entities", "entity"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("entit(y|ies)");
 
         @Override
         public Key type() {

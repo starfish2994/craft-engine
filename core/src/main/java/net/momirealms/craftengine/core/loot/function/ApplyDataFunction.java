@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.item.processor.ItemProcessors;
 import net.momirealms.craftengine.core.loot.LootContext;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -37,7 +38,7 @@ public final class ApplyDataFunction extends AbstractLootConditionalFunction {
             List<ItemProcessor> modifiers = new ArrayList<>();
             ItemProcessors.collectProcessors(section.getNonNullSection("data"), modifiers::add);
             return new ApplyDataFunction(
-                    section.getList("conditions", CommonConditions::fromConfig),
+                    section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig),
                     modifiers.toArray(new ItemProcessor[0])
             );
         }

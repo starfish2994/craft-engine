@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.condition;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -30,7 +31,7 @@ public final class BiomeCondition<CTX extends Context> implements Condition<CTX>
     }
 
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, BiomeCondition<CTX>> {
-        private static final String[] BIOME = new String[] {"biome", "biomes"};
+        private static final String[] BIOME = ConfigKeys.of("biome(s)");
 
         @Override
         public BiomeCondition<CTX> create(ConfigSection section) {

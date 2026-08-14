@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -95,7 +96,7 @@ public final class SpecialItemModel implements ItemModel {
     }
 
     private static class Factory implements ItemModelFactory<SpecialItemModel> {
-        private static final String[] BASE = new String[] {"base", "path"};
+        private static final String[] BASE = ConfigKeys.of("base|path");
 
         @Override
         public SpecialItemModel create(Pack pack, Path path, ConfigSection section) {

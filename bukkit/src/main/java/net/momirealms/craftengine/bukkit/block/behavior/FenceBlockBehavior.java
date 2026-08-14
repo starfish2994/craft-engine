@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
@@ -165,8 +166,8 @@ public final class FenceBlockBehavior extends BukkitBlockBehavior implements Pat
     }
 
     private static class Factory implements BlockBehaviorFactory<FenceBlockBehavior> {
-        private static final String[] CAN_LEASH = new String[]{"can_leash", "can-leash"};
-        private static final String[] CONNECTABLE_BLOCK_TAG = new String[]{"connectable_block_tag", "connectable-block-tag"};
+        private static final String[] CAN_LEASH = ConfigKeys.of("can_leash");
+        private static final String[] CONNECTABLE_BLOCK_TAG = ConfigKeys.of("connectable_block_tag");
 
         @Override
         public FenceBlockBehavior create(BlockDefinition block, ConfigSection section) {

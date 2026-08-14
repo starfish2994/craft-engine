@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -55,8 +56,8 @@ public final class EquipmentCondition<CTX extends Context> implements Condition<
     }
 
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, EquipmentCondition<CTX>> {
-        private static final String[] ID = new String[] {"id", "item", "items"};
-        private static final String[] TAG = new String[] {"tag", "tags"};
+        private static final String[] ID = ConfigKeys.of("id|item(s)");
+        private static final String[] TAG = ConfigKeys.of("tag(s)");
 
         @Override
         public EquipmentCondition<CTX> create(ConfigSection section) {

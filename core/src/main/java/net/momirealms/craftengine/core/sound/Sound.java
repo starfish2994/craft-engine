@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.sound;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 
 import java.util.Locale;
@@ -48,7 +49,7 @@ public interface Sound extends Supplier<JsonElement> {
             this.type = type;
         }
 
-        private static final String[] ATTENUATION_DISTANCE = new String[] {"attenuation_distance", "attenuation-distance"};
+        private static final String[] ATTENUATION_DISTANCE = ConfigKeys.of("attenuation_distance");
 
         public static SoundFile fromConfig(ConfigSection section) {
             return new SoundFile.Builder(section.getNonEmptyString("name"))

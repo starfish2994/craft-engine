@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
@@ -51,7 +52,7 @@ public final class HangingBlockBehavior extends BushBlockBehavior {
     }
 
     private static class Factory implements BlockBehaviorFactory<HangingBlockBehavior> {
-        private static final String[] MAX_HEIGHT = new String[] {"max_height", "max-height"};
+        private static final String[] MAX_HEIGHT = ConfigKeys.of("max_height");
 
         @Override
         public HangingBlockBehavior create(BlockDefinition block, ConfigSection section) {

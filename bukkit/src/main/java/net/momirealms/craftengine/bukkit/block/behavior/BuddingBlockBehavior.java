@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.BooleanProperty;
 import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Direction;
@@ -103,7 +104,7 @@ public final class BuddingBlockBehavior extends BukkitBlockBehavior implements R
     }
 
     private static class Factory implements BlockBehaviorFactory<BuddingBlockBehavior> {
-        private static final String[] GROWTH_CHANCE = new String[] {"growth_chance", "growth-chance"};
+        private static final String[] GROWTH_CHANCE = ConfigKeys.of("growth_chance");
 
         @Override
         public BuddingBlockBehavior create(BlockDefinition block, ConfigSection section) {

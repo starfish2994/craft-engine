@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -43,7 +44,7 @@ public final class SetExpFunction<CTX extends Context> extends AbstractCondition
                 player.setExperiencePoints(experience);
             }
         };
-        private static final String[] EXP = new String[] {"exp", "count", "value"};
+        private static final String[] EXP = ConfigKeys.of("exp|count|value");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

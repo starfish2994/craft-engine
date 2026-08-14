@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.block.behavior;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -35,7 +36,7 @@ public final class ChimeBlockBehavior extends BukkitBlockBehavior {
     }
 
     private static class Factory implements BlockBehaviorFactory<ChimeBlockBehavior> {
-        private static final String[] CHIME = new String[] {"chime", "projectile_hit", "projectile-hit"};
+        private static final String[] CHIME = ConfigKeys.of("chime|projectile_hit");
 
         @Override
         public ChimeBlockBehavior create(BlockDefinition block, ConfigSection section) {

@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -32,7 +33,7 @@ public abstract class AbstractConditionalFunction<CTX extends Context> implement
     protected abstract void runInternal(CTX ctx);
 
     public static abstract class AbstractFactory<CTX extends Context, T extends Function<CTX>> implements FunctionFactory<CTX, T> {
-        protected static final String[] CONDITION = new String[]{"condition", "conditions"};
+        protected static final String[] CONDITION = ConfigKeys.of("condition(s)");
         protected final java.util.function.Function<ConfigSection, Condition<CTX>> conditionFactory;
 
         public AbstractFactory(java.util.function.Function<ConfigSection, Condition<CTX>> conditionFactory) {

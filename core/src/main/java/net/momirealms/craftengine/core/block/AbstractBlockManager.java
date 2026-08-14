@@ -29,6 +29,7 @@ import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
 import net.momirealms.craftengine.core.pack.model.simplified.block.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
@@ -290,7 +291,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                                          @Nullable Loot loot);
 
     private final class BlockStateMappingParser extends SectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[]{"block-state-mappings", "block-state-mapping", "block_state_mappings", "block_state_mapping"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("block_state_mapping(s)");
         private int count;
 
         @Override
@@ -361,7 +362,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
     }
 
     private final class BlockParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[]{"blocks", "block"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("block(s)");
 
         @Override
         public Key type() {
@@ -455,7 +456,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             }
         }
 
-        private static final String[] CLIENT_BOUND_TAGS = new String[]{"client_bound_tags", "client-bound-tags"};
+        private static final String[] CLIENT_BOUND_TAGS = ConfigKeys.of("client_bound_tags");
 
         private void parseVanillaBlock(Key id, ConfigSection section) {
             ConfigSection settingsSection = section.getSection("settings");
@@ -468,19 +469,19 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             }
         }
 
-        private static final String[] STATE = new String[]{"state", "states"};
-        private static final String[] EVENTS = new String[]{"events", "event"};
-        private static final String[] AUTO_STATE = new String[]{"auto_state", "auto-state"};
-        private static final String[] MODELS = new String[]{"model", "models"};
-        private static final String[] ENTITY_RENDERER = new String[]{"entity_renderer", "entity-renderer", "entity_render", "entity-render"};
-        private static final String[] ENTITY_CULLING = new String[]{"entity_culling", "entity-culling"};
-        private static final String[] BEHAVIOR = new String[]{"behavior", "behaviors"};
-        private static final String[] VIEW_DISTANCE = new String[]{"view_distance", "view-distance"};
-        private static final String[] AABB_EXPANSION = new String[]{"aabb_expansion", "aabb-expansion"};
-        private static final String[] RAY_TRACING = new String[]{"ray_tracing", "ray-tracing"};
-        private static final String[] APPEARANCE = new String[]{"appearance", "appearances"};
-        private static final String[] PATH = new String[] {"path", "model"};
-        private static final String[] TEXTURE = new String[]{"texture", "textures"};
+        private static final String[] STATE = ConfigKeys.of("state(s)");
+        private static final String[] EVENTS = ConfigKeys.of("event(s)");
+        private static final String[] AUTO_STATE = ConfigKeys.of("auto_state");
+        private static final String[] MODELS = ConfigKeys.of("model(s)");
+        private static final String[] ENTITY_RENDERER = ConfigKeys.of("entity_render(er)");
+        private static final String[] ENTITY_CULLING = ConfigKeys.of("entity_culling");
+        private static final String[] BEHAVIOR = ConfigKeys.of("behavior(s)");
+        private static final String[] VIEW_DISTANCE = ConfigKeys.of("view_distance");
+        private static final String[] AABB_EXPANSION = ConfigKeys.of("aabb_expansion");
+        private static final String[] RAY_TRACING = ConfigKeys.of("ray_tracing");
+        private static final String[] APPEARANCE = ConfigKeys.of("appearance(s)");
+        private static final String[] PATH = ConfigKeys.of("path|model");
+        private static final String[] TEXTURE = ConfigKeys.of("texture(s)");
 
         private void parseCustomBlock(Pack pack, Path path, Key id, ConfigSection section) {
             // 获取共享方块设置 （可异常）

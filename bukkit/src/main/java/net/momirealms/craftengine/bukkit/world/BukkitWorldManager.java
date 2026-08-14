@@ -25,6 +25,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
@@ -780,7 +781,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     private final class ConfiguredFeatureParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"configured-feature", "configured-features", "configured_feature", "configured_features"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("configured_feature(s)");
 
         @Override
         public Key type() {
@@ -844,7 +845,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     }
 
     private final class PlacedFeatureParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"placed-feature", "placed-features", "placed_feature", "placed_features"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("placed_feature(s)");
         private final AtomicInteger id = new AtomicInteger();
         private List<ConditionalFeature> tempFeatures = null;
 
@@ -880,10 +881,10 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             return List.of(LoadingStages.CONFIGURED_FEATURE);
         }
 
-        private static final String[] BIOME = new String[] {"biome", "biomes"};
-        private static final String[] WORLD = new String[] {"world", "worlds"};
-        private static final String[] DIMENSION = new String[] {"dimension", "dimensions"};
-        private static final String[] ENVIRONMENT = new String[] {"environment", "environments", "dimension-type", "dimension-types", "dimension_type", "dimension_types"};
+        private static final String[] BIOME = ConfigKeys.of("biome(s)");
+        private static final String[] WORLD = ConfigKeys.of("world(s)");
+        private static final String[] DIMENSION = ConfigKeys.of("dimension(s)");
+        private static final String[] ENVIRONMENT = ConfigKeys.of("environment(s)|dimension_type(s)");
 
         @Override
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection rawSection) {

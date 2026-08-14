@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.*;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
@@ -52,7 +53,7 @@ public final class OpenWindowFunction<CTX extends Context> extends AbstractCondi
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, OpenWindowFunction<CTX>> {
-        private static final String[] GUI_TYPE = new String[] {"gui_type", "gui-type"};
+        private static final String[] GUI_TYPE = ConfigKeys.of("gui_type");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

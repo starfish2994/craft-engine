@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.attribute.modifier;
 
 import net.momirealms.craftengine.core.attribute.equipment.EquipmentSlotGroup;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -30,7 +31,7 @@ public final class SlotAttributeModifierConfig extends AttributeModifierConfig {
         Key operation = section.getNonNullIdentifier("operation");
 
         NumberProvider amount = section.getNonNullNumber("amount");
-        List<Predicate<Context>> conditionsList = section.getList("conditions", CommonConditions::fromConfig);
+        List<Predicate<Context>> conditionsList = section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
         Predicate<Context> conditions = MiscUtils.allOf(conditionsList);
 
         boolean dynamic = !amount.isConstant() || !conditionsList.isEmpty();

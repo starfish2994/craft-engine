@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.PendingConfigSection;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -263,8 +264,8 @@ public class FurnitureItemBehavior extends ItemBehavior implements FurnitureItem
     }
 
     private static class Factory implements ItemBehaviorFactory<FurnitureItemBehavior> {
-        private static final String[] IGNORE_PLACER = new String[]{"ignore_placer", "ignore-placer"};
-        private static final String[] IGNORE_ENTITIES = new String[]{"ignore_entities", "ignore-entities"};
+        private static final String[] IGNORE_PLACER = ConfigKeys.of("ignore_placer");
+        private static final String[] IGNORE_ENTITIES = ConfigKeys.of("ignore_entities");
 
         @SuppressWarnings("DuplicatedCode")
         @Override
@@ -319,8 +320,8 @@ public class FurnitureItemBehavior extends ItemBehavior implements FurnitureItem
         }
     }
 
-    private static final String[] AGAINST_PREFIXES = new String[]{"against_blocks", "against-blocks"};
-    private static final String[] AGAINST_TAG_PREFIXES = new String[]{"against_block_tags", "against-block-tags"};
+    private static final String[] AGAINST_PREFIXES = ConfigKeys.of("against_blocks");
+    private static final String[] AGAINST_TAG_PREFIXES = ConfigKeys.of("against_block_tags");
 
     static TagsAndState readAgainstBlockConfig(ConfigSection section) {
         List<Object> mcTags = new ArrayList<>();

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.condition;
 
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -29,7 +30,7 @@ public final class MatchFurnitureVariantCondition<CTX extends Context> implement
     }
 
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, MatchFurnitureVariantCondition<CTX>> {
-        private static final String[] VARIANTS = new String[] {"variant", "variants"};
+        private static final String[] VARIANTS = ConfigKeys.of("variant(s)");
 
         @Override
         public MatchFurnitureVariantCondition<CTX> create(ConfigSection section) {

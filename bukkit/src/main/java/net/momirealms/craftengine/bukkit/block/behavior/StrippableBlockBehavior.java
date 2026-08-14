@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.ItemTags;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.ItemUtils;
@@ -155,8 +156,8 @@ public final class StrippableBlockBehavior extends BukkitBlockBehavior {
     }
 
     private static class Factory implements BlockBehaviorFactory<StrippableBlockBehavior> {
-        private static final String[] EXCLUDED_PROPERTIES = new String[]{"excluded_properties", "excluded-properties"};
-        private static final String[] TOOLS = new String[]{"tools", "tool"};
+        private static final String[] EXCLUDED_PROPERTIES = ConfigKeys.of("excluded_properties");
+        private static final String[] TOOLS = ConfigKeys.of("tool(s)");
 
         @Override
         public StrippableBlockBehavior create(BlockDefinition block, ConfigSection section) {

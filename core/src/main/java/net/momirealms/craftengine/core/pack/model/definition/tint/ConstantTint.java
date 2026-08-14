@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.pack.model.definition.tint;
 
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Either;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public final class ConstantTint implements Tint {
     }
 
     private static class Factory implements TintFactory<ConstantTint> {
-        private static final String[] VALUE = new String[] {"value", "default"};
+        private static final String[] VALUE = ConfigKeys.of("value|default");
 
         @Override
         public ConstantTint create(ConfigSection section) {

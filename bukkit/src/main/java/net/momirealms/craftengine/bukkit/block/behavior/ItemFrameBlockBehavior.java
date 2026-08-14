@@ -18,6 +18,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -171,8 +172,8 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     }
 
     private static class Factory implements BlockBehaviorFactory<ItemFrameBlockBehavior> {
-        private static final String[] RENDER_MAP_ITEM = new String[]{"render_map_item", "render-map-item"};
-        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
+        private static final String[] RENDER_MAP_ITEM = ConfigKeys.of("render_map_item");
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
 
         @Override
         public ItemFrameBlockBehavior create(BlockDefinition block, ConfigSection section) {

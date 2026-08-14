@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.pack.model.definition.condition;
 
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +35,7 @@ public final class HasComponentConditionProperty implements ConditionProperty {
     }
 
     private static class Factory implements ConditionPropertyFactory<HasComponentConditionProperty> {
-        private static final String[] IGNORE_DEFAULT = new String[]{"ignore_default", "ignore-default"};
+        private static final String[] IGNORE_DEFAULT = ConfigKeys.of("ignore_default");
 
         @Override
         public HasComponentConditionProperty create(ConfigSection section) {

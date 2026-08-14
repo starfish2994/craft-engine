@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.pack.model.definition.condition.UsingItem
 import net.momirealms.craftengine.core.pack.model.definition.rangedisptach.CrossBowPullingRangeDispatchProperty;
 import net.momirealms.craftengine.core.pack.model.definition.select.ChargeTypeSelectProperty;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.Map2;
@@ -26,7 +27,7 @@ public final class CrossbowItemModelReader implements SimplifiedItemModelReader 
             Key.of("item/crossbow_arrow"),
             Key.of("item/crossbow_firework")
     };
-    private static final String[] AUTO_SUFFIXES = new String[] {"", "_pulling_0", "_pulling_1", "_pulling_2", "_arrow", "_firework"};
+    private static final String[] AUTO_SUFFIXES = new String[]{"", "_pulling_0", "_pulling_1", "_pulling_2", "_arrow", "_firework"};
 
     private CrossbowItemModelReader() {}
 

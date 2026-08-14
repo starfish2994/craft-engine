@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.block.entity.render.tint.BlockEntityTintS
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
@@ -160,12 +161,12 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
     }
 
     private static class Factory implements BlockEntityElementConfigFactory<ArmorStandBlockEntityElement> {
-        private static final String[] GLOW_COLOR = new String[] {"glow_color", "glow-color"};
-        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
+        private static final String[] GLOW_COLOR = ConfigKeys.of("glow_color");
+        private static final String[] TINT_SOURCE = ConfigKeys.of("tint_source");
 
         @Override
         public ArmorStandBlockEntityElementConfig create(ConfigSection section) {
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             return new ArmorStandBlockEntityElementConfig(
                     section.getNonNullIdentifier("item"),
                     section.getFloat("scale", 1f),

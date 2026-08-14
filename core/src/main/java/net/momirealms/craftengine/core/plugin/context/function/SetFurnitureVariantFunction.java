@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -30,7 +31,7 @@ public final class SetFurnitureVariantFunction<CTX extends Context> extends Abst
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, SetFurnitureVariantFunction<CTX>> {
-        private static final String[] VARIANT = new String[] {"variant", "anchor_type", "anchor-type"};
+        private static final String[] VARIANT = ConfigKeys.of("variant|anchor_type");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

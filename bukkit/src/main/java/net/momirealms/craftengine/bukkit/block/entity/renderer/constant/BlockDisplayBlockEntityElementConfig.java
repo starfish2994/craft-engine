@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityEl
 import net.momirealms.craftengine.core.entity.display.Billboard;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -177,17 +178,17 @@ public final class BlockDisplayBlockEntityElementConfig implements BlockEntityEl
     }
 
     private static class Factory implements BlockEntityElementConfigFactory<BlockDisplayBlockEntityElement> {
-        private static final String[] SHADOW_RADIUS = new String[]{"shadow_radius", "shadow-radius"};
-        private static final String[] SHADOW_STRENGTH = new String[]{"shadow_strength", "shadow-strength"};
-        private static final String[] GLOW_COLOR = new String[]{"glow_color", "glow-color"};
-        private static final String[] BLOCK_LIGHT = new String[]{"block_light", "block-light"};
-        private static final String[] SKY_LIGHT = new String[]{"sky_light", "sky-light"};
-        private static final String[] VIEW_RANGE = new String[]{"view_range", "view-range"};
+        private static final String[] SHADOW_RADIUS = ConfigKeys.of("shadow_radius");
+        private static final String[] SHADOW_STRENGTH = ConfigKeys.of("shadow_strength");
+        private static final String[] GLOW_COLOR = ConfigKeys.of("glow_color");
+        private static final String[] BLOCK_LIGHT = ConfigKeys.of("block_light");
+        private static final String[] SKY_LIGHT = ConfigKeys.of("sky_light");
+        private static final String[] VIEW_RANGE = ConfigKeys.of("view_range");
 
         @Override
         public BlockDisplayBlockEntityElementConfig create(ConfigSection section) {
             ConfigSection brightness = section.getSection("brightness");
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             return new BlockDisplayBlockEntityElementConfig(
                     section.getNonNullValue("block", ConfigConstants.ARGUMENT_BLOCK_STATE, v -> {
                         String blockState = v.getAsString();

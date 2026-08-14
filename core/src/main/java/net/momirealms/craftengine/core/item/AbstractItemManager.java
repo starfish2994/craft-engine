@@ -26,6 +26,7 @@ import net.momirealms.craftengine.core.pack.model.legacy.LegacyModelPredicate;
 import net.momirealms.craftengine.core.pack.model.legacy.LegacyOverridesModel;
 import net.momirealms.craftengine.core.pack.model.simplified.item.SimplifiedItemModelReader;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
@@ -268,7 +269,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     }
 
     private final class EquipmentParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"equipments", "equipment"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("equipment(s)");
 
         @Override
         public Key type() {
@@ -323,7 +324,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     }
 
     private final class ItemParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"items", "item"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("item(s)");
         private final Map<Key, IdAllocator> idAllocators = new HashMap<>();
         private final List<CompletableFuture<?>> futures = Collections.synchronizedList(new ArrayList<>());
         private final Map<Key, List<Key>> tempCategories = new ConcurrentHashMap<>();
@@ -484,22 +485,22 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
             });
         }
 
-        private static final String[] MODEL_KEYS = new String[] {"model", "models", "texture", "textures", "blueprint", "legacy-model", "legacy_model"};
-        private static final String[] CLIENT_BOUND_MATERIAL = new String[] {"client_bound_material", "client-bound-material"};
-        private static final String[] CUSTOM_MODEL_DATA = new String[] {"custom_model_data", "custom-model-data"};
-        private static final String[] ITEM_MODEL = new String[] {"item_model", "item-model"};
-        private static final String[] CLIENT_BOUND_MODEL = new String[] {"client_bound_model", "client-bound-model"};
-        private static final String[] CLIENT_BOUND_DATA = new String[] {"client_bound_data", "client-bound-data"};
-        private static final String[] MODEL = new String[] {"model", "models"};
-        private static final String[] TEXTURES = new String[] {"texture", "textures"};
-        private static final String[] EVENTS = new String[] {"events", "event"};
-        private static final String[] BEHAVIORS = new String[] {"behaviors", "behavior"};
-        private static final String[] LEGACY_MODEL = new String[] {"legacy_model", "legacy-model"};
-        private static final String[] OVERSIZED_IN_GUI = new String[] {"oversized_in_gui", "oversized-in-gui"};
-        private static final String[] HAND_ANIMATION_ON_SWAP = new String[] {"hand_animation_on_swap", "hand-animation-on-swap"};
-        private static final String[] SWAP_ANIMATION_SCALE = new String[] {"swap_animation_scale", "swap-animation-scale"};
-        private static final String[] CATEGORIES = new String[] {"category", "categories"};
-        private static final String[] SKIP_OBFUSCATION = new String[] {"skip_obfuscation", "skip-obfuscation"};
+        private static final String[] MODEL_KEYS = ConfigKeys.of("model(s)|texture(s)|blueprint|legacy_model");
+        private static final String[] CLIENT_BOUND_MATERIAL = ConfigKeys.of("client_bound_material");
+        private static final String[] CUSTOM_MODEL_DATA = ConfigKeys.of("custom_model_data");
+        private static final String[] ITEM_MODEL = ConfigKeys.of("item_model");
+        private static final String[] CLIENT_BOUND_MODEL = ConfigKeys.of("client_bound_model");
+        private static final String[] CLIENT_BOUND_DATA = ConfigKeys.of("client_bound_data");
+        private static final String[] MODEL = ConfigKeys.of("model(s)");
+        private static final String[] TEXTURES = ConfigKeys.of("texture(s)");
+        private static final String[] EVENTS = ConfigKeys.of("event(s)");
+        private static final String[] BEHAVIORS = ConfigKeys.of("behavior(s)");
+        private static final String[] LEGACY_MODEL = ConfigKeys.of("legacy_model");
+        private static final String[] OVERSIZED_IN_GUI = ConfigKeys.of("oversized_in_gui");
+        private static final String[] HAND_ANIMATION_ON_SWAP = ConfigKeys.of("hand_animation_on_swap");
+        private static final String[] SWAP_ANIMATION_SCALE = ConfigKeys.of("swap_animation_scale");
+        private static final String[] CATEGORIES = ConfigKeys.of("category|categor(y|ies)");
+        private static final String[] SKIP_OBFUSCATION = ConfigKeys.of("skip_obfuscation");
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
@@ -758,7 +759,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                         modernModel = simplifiedModelReader.read(textureValue, Optional.ofNullable(modelValue).map(it -> {
                             if (it.is(Map.class)) {
                                 ConfigSection modelSection = it.getAsSection();
-                                return modelSection.getValue(new String[] {"path", "model"});
+                                return modelSection.getValue(ConfigKeys.of("path|model"));
                             }
                             return it;
                         }), id);

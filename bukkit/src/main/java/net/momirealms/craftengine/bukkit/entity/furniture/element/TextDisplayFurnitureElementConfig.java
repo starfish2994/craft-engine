@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.entity.display.TextDisplayAlignment;
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfig;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfigFactory;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -164,23 +165,23 @@ public final class TextDisplayFurnitureElementConfig implements FurnitureElement
     }
 
     private static class Factory implements FurnitureElementConfigFactory<TextDisplayFurnitureElement> {
-        private static final String[] SHADOW_RADIUS = new String[] {"shadow_radius", "shadow-radius"};
-        private static final String[] SHADOW_STRENGTH = new String[] {"shadow_strength", "shadow-strength"};
-        private static final String[] GLOW_COLOR = new String[] {"glow_color", "glow-color"};
-        private static final String[] BLOCK_LIGHT = new String[] {"block_light", "block-light"};
-        private static final String[] SKY_LIGHT = new String[] {"sky_light", "sky-light"};
-        private static final String[] VIEW_RANGE = new String[] {"view_range", "view-range"};
-        private static final String[] LINE_WIDTH = new String[] {"line_width", "line-width"};
-        private static final String[] BACKGROUND_COLOR = new String[] {"background_color", "background-color"};
-        private static final String[] TEXT_OPACITY = new String[] {"text_opacity", "text-opacity"};
-        private static final String[] HAS_SHADOW = new String[] {"has_shadow", "has-shadow"};
-        private static final String[] IS_SEE_THROUGH = new String[] {"is_see_through", "is-see-through"};
-        private static final String[] USE_DEFAULT_BACKGROUND_COLOR = new String[] {"use_default_background_color", "use-default-background-color"};
+        private static final String[] SHADOW_RADIUS = ConfigKeys.of("shadow_radius");
+        private static final String[] SHADOW_STRENGTH = ConfigKeys.of("shadow_strength");
+        private static final String[] GLOW_COLOR = ConfigKeys.of("glow_color");
+        private static final String[] BLOCK_LIGHT = ConfigKeys.of("block_light");
+        private static final String[] SKY_LIGHT = ConfigKeys.of("sky_light");
+        private static final String[] VIEW_RANGE = ConfigKeys.of("view_range");
+        private static final String[] LINE_WIDTH = ConfigKeys.of("line_width");
+        private static final String[] BACKGROUND_COLOR = ConfigKeys.of("background_color");
+        private static final String[] TEXT_OPACITY = ConfigKeys.of("text_opacity");
+        private static final String[] HAS_SHADOW = ConfigKeys.of("has_shadow");
+        private static final String[] IS_SEE_THROUGH = ConfigKeys.of("is_see_through");
+        private static final String[] USE_DEFAULT_BACKGROUND_COLOR = ConfigKeys.of("use_default_background_color");
 
         @Override
         public TextDisplayFurnitureElementConfig create(ConfigSection section) {
             ConfigSection brightness = section.getSection("brightness");
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             return new TextDisplayFurnitureElementConfig(
                     section.getNonNullString("text"),
                     section.getVector3f("scale", ConfigConstants.NORMAL_SCALE),

@@ -36,6 +36,7 @@ import net.momirealms.craftengine.core.pack.model.simplified.item.*;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingPyramid;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
@@ -3631,9 +3632,9 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     public final class ConfigFactoryParser extends SectionConfigParser {
-        private static final String[] SECTION_ID = new String[] {"config-factory", "config_factory", "config-factories", "config_factories"};
-        private static final String[] BLUEPRINT = new String[] {"blueprint", "prototype", "schema"};
-        private static final String[] INSTANCES = new String[] {"instances", "instance", "inputs", "input"};
+        private static final String[] SECTION_ID = ConfigKeys.of("config_factor(y|ies)");
+        private static final String[] BLUEPRINT = ConfigKeys.of("blueprint|prototype|schema");
+        private static final String[] INSTANCES = ConfigKeys.of("instance(s)|input(s)");
         private int count = 0;
 
         @Override
@@ -3686,7 +3687,7 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     public static final class SkipOptimizationParser extends SectionConfigParser {
-        private static final String[] SECTION_ID = new String[] {"skip-optimization", "skip_optimization"};
+        private static final String[] SECTION_ID = ConfigKeys.of("skip_optimization");
         private final Set<String> excludeTexture = new HashSet<>();
         private final Set<String> excludeJson = new HashSet<>();
 
@@ -3753,8 +3754,8 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     public static final class AtlasConfigParser extends IdSectionConfigParser {
-        private static final String[] SECTION_ID = new String[] {"atlases", "atlas"};
-        private static final String[] SOURCES = new String[] {"sources", "source"};
+        private static final String[] SECTION_ID = ConfigKeys.of("atlas(es)");
+        private static final String[] SOURCES = ConfigKeys.of("source(s)");
         private final Map<Key, List<SpriteSource>> atlases = new HashMap<>();
 
         @Override

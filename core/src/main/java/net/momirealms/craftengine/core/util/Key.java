@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.util;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;
@@ -62,7 +63,7 @@ public final class Key {
     }
 
     public String[] decompose() {
-        return new String[] { this.namespace, this.value };
+        return new String[]{ this.namespace, this.value };
     }
 
     public Key transform(UnaryOperator<String> transformer) {

@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.loot.function.LootFunction;
 import net.momirealms.craftengine.core.loot.function.LootFunctions;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -34,13 +35,13 @@ public class SingleItemLootEntryContainer extends AbstractSingleLootEntryContain
     }
 
     private static class Factory implements LootEntryContainerFactory<SingleItemLootEntryContainer> {
-        private static final String[] ITEM = new String[]{"item", "id"};
+        private static final String[] ITEM = ConfigKeys.of("item|id");
 
         @Override
         public SingleItemLootEntryContainer create(ConfigSection section) {
             return new SingleItemLootEntryContainer(
                     section.getNonNullIdentifier(ITEM),
-                    section.getList("conditions", CommonConditions::fromConfig),
+                    section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig),
                     section.getList("functions", LootFunctions::fromConfig),
                     section.getInt("weight", 1),
                     section.getInt("quality")

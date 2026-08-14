@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
@@ -170,10 +171,10 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
     }
 
     private static class Factory implements BlockBehaviorFactory<SimpleStorageBlockBehavior> {
-        private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
-        private static final String[] ALLOW_INPUT = new String[]{"allow_input", "allow-input"};
-        private static final String[] ALLOW_OUTPUT = new String[]{"allow_output", "allow-output"};
-        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
+        private static final String[] HAS_SIGNAL = ConfigKeys.of("has_signal");
+        private static final String[] ALLOW_INPUT = ConfigKeys.of("allow_input");
+        private static final String[] ALLOW_OUTPUT = ConfigKeys.of("allow_output");
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
 
 
         @Override

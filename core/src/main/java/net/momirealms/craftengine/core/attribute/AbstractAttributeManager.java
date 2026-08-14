@@ -23,6 +23,7 @@ import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.setting.value.AttributeModifiers;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
@@ -209,10 +210,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     public abstract double vanillaAttributeDefaultBaseValue(Key entityType, Key attribute, double fallback);
 
     private final class DamageFormulaParser extends SectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[]{
-                "damage_rule", "damage-rule",
-                "damage_rules", "damage-rules",
-        };
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("damage_rule(s)");
 
         @Override
         public Key type() {
@@ -269,7 +267,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     private final class AttributeParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[]{"attributes", "attribute"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("attribute(s)");
 
         @Override
         public Key type() {
@@ -384,10 +382,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     private final class OperationParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[]{
-                "attribute_operation", "attribute-operation",
-                "attribute_operations", "attribute-operations"
-        };
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("attribute_operation(s)");
 
         @Override
         public Key type() {

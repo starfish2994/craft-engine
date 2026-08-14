@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -35,7 +36,7 @@ public final class WhenFunction<CTX extends Context> extends AbstractConditional
     }
 
     private static class Factory<CTX extends Context> extends AbstractFunctionalFactory<CTX, WhenFunction<CTX>> {
-        private static final String[] CASES = new String[]{"cases", "case"};
+        private static final String[] CASES = ConfigKeys.of("case(s)");
 
         public Factory(java.util.function.Function<ConfigSection, Function<CTX>> functionFactory, java.util.function.Function<ConfigSection, Condition<CTX>> conditionFactory) {
             super(functionFactory, conditionFactory);

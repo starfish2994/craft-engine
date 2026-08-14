@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.plugin.config.template.argument;
 
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.data.EvaluationValue;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.template.ArgumentString;
 
@@ -52,7 +53,7 @@ public final class ExpressionTemplateArgument implements TemplateArgument {
     }
 
     private static class Factory implements TemplateArgumentFactory<ExpressionTemplateArgument> {
-        private static final String[] VALUE_TYPE = new String[] {"value_type", "value-type"};
+        private static final String[] VALUE_TYPE = ConfigKeys.of("value_type");
 
         @Override
         public ExpressionTemplateArgument create(ConfigSection section) {

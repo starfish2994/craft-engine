@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
@@ -94,8 +95,8 @@ public final class VerticalCropBlockBehavior extends BukkitBlockBehavior impleme
     }
 
     private static class Factory implements BlockBehaviorFactory<VerticalCropBlockBehavior> {
-        private static final String[] MAX_HEIGHT = new String[] {"max_height", "max-height"};
-        private static final String[] GROW_SPEED = new String[] {"grow_speed", "grow-speed"};
+        private static final String[] MAX_HEIGHT = ConfigKeys.of("max_height");
+        private static final String[] GROW_SPEED = ConfigKeys.of("grow_speed");
 
         @Override
         public VerticalCropBlockBehavior create(BlockDefinition block, ConfigSection section) {

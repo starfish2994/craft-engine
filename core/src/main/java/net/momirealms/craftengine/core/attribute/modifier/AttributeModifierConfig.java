@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.attribute.modifier;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class AttributeModifierConfig {
-    protected static final String[] UPDATE_INTERVAL = new String[]{"update_interval", "update-interval"};
+    protected static final String[] UPDATE_INTERVAL = ConfigKeys.of("update_interval");
     public final Key attribute;
     public final Key id;
     public final NumberProvider amount;
@@ -51,7 +52,7 @@ public class AttributeModifierConfig {
         Key operation = section.getNonNullIdentifier("operation");
 
         NumberProvider amount = section.getNonNullNumber("amount");
-        List<Predicate<Context>> conditionsList = section.getList("conditions", CommonConditions::fromConfig);
+        List<Predicate<Context>> conditionsList = section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
         Predicate<Context> conditions = MiscUtils.allOf(conditionsList);
 
         boolean dynamic = !amount.isConstant() || !conditionsList.isEmpty();

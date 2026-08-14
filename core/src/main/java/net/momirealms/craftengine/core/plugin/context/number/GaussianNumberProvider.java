@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.number;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -27,8 +28,8 @@ public record GaussianNumberProvider(double min, double max, double mean, double
     }
 
     private static class Factory implements NumberProviderFactory<GaussianNumberProvider> {
-        private static final String[] STD_DEV = new String[] {"std_dev", "std-dev"};
-        private static final String[] MAX_ATTEMPTS = new String[] {"max_attempts", "max-attempts"};
+        private static final String[] STD_DEV = ConfigKeys.of("std_dev");
+        private static final String[] MAX_ATTEMPTS = ConfigKeys.of("max_attempts");
 
         @Override
         public GaussianNumberProvider create(ConfigSection section) {

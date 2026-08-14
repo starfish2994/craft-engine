@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.loot.function.formula;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
 
@@ -24,7 +25,7 @@ public final class CropDrops implements Formula {
     }
 
     private static class Factory implements FormulaFactory<CropDrops> {
-        private static final String[] PROBABILITY = new String[] {"probability", "chance"};
+        private static final String[] PROBABILITY = ConfigKeys.of("probability|chance");
 
         @Override
         public CropDrops create(ConfigSection section) {

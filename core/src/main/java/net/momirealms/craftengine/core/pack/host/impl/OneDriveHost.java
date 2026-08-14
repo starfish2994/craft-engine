@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import net.momirealms.craftengine.core.pack.host.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.GsonHelper;
@@ -244,12 +245,12 @@ public final class OneDriveHost implements ResourcePackHost {
     }
 
     private static class Factory implements ResourcePackHostFactory<OneDriveHost> {
-        private static final String[] USE_ENVIRONMENT_VARIABLES = new String[] {"use_environment_variables", "use-environment-variables"};
-        private static final String[] CLIENT_ID = new String[] {"client_id", "client-id"};
-        private static final String[] CLIENT_SECRET = new String[] {"client_secret", "client-secret"};
-        private static final String[] REFRESH_TOKEN = new String[] {"refresh_token", "refresh-token"};
-        private static final String[] UPLOAD_PATH = new String[] {"upload_path", "upload-path"};
-        private static final String[] CACHE_FILE_NAME = new String[] {"cache_file_name", "cache-file-name"};
+        private static final String[] USE_ENVIRONMENT_VARIABLES = ConfigKeys.of("use_environment_variables");
+        private static final String[] CLIENT_ID = ConfigKeys.of("client_id");
+        private static final String[] CLIENT_SECRET = ConfigKeys.of("client_secret");
+        private static final String[] REFRESH_TOKEN = ConfigKeys.of("refresh_token");
+        private static final String[] UPLOAD_PATH = ConfigKeys.of("upload_path");
+        private static final String[] CACHE_FILE_NAME = ConfigKeys.of("cache_file_name");
 
         @Override
         public OneDriveHost create(ConfigSection section) {

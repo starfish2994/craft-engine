@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.model.generation;
 import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.pack.model.generation.display.DisplayMeta;
 import net.momirealms.craftengine.core.pack.model.generation.display.DisplayPosition;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -67,8 +68,8 @@ public final class ModelGeneration implements Supplier<JsonObject> {
         return this.rawTextures != null ? this.rawTextures : Map.of();
     }
 
-    private static final String[] GUI_LIGHT = new String[]{"gui_light", "gui-light"};
-    private static final String[] AMBIENT_OCCLUSION = new String[]{"ambientocclusion", "ambient-occlusion", "ambient_occlusion"};
+    private static final String[] GUI_LIGHT = ConfigKeys.of("gui_light");
+    private static final String[] AMBIENT_OCCLUSION = ConfigKeys.of("ambientocclusion|ambient_occlusion");
 
     public static ModelGeneration of(ConfigSection section) {
         return builder()

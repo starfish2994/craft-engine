@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -165,20 +166,20 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
     }
 
     private static class Factory implements FurnitureElementConfigFactory<ItemDisplayFurnitureElement> {
-        private static final String[] DISPLAY_CONTEXT = new String[] {"display_context", "display_transform", "display-context", "display-transform"};
-        private static final String[] SHADOW_RADIUS = new String[] {"shadow_radius", "shadow-radius"};
-        private static final String[] SHADOW_STRENGTH = new String[] {"shadow_strength", "shadow-strength"};
-        private static final String[] APPLY_DYED_COLOR = new String[] {"apply_dyed_color", "apply-dyed-color"};
-        private static final String[] GLOW_COLOR = new String[] {"glow_color", "glow-color"};
-        private static final String[] BLOCK_LIGHT = new String[] {"block_light", "block-light"};
-        private static final String[] SKY_LIGHT = new String[] {"sky_light", "sky-light"};
-        private static final String[] VIEW_RANGE = new String[] {"view_range", "view-range"};
-        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
+        private static final String[] DISPLAY_CONTEXT = ConfigKeys.of("display_(context|transform)");
+        private static final String[] SHADOW_RADIUS = ConfigKeys.of("shadow_radius");
+        private static final String[] SHADOW_STRENGTH = ConfigKeys.of("shadow_strength");
+        private static final String[] APPLY_DYED_COLOR = ConfigKeys.of("apply_dyed_color");
+        private static final String[] GLOW_COLOR = ConfigKeys.of("glow_color");
+        private static final String[] BLOCK_LIGHT = ConfigKeys.of("block_light");
+        private static final String[] SKY_LIGHT = ConfigKeys.of("sky_light");
+        private static final String[] VIEW_RANGE = ConfigKeys.of("view_range");
+        private static final String[] TINT_SOURCE = ConfigKeys.of("tint_source");
 
         @Override
         public ItemDisplayFurnitureElementConfig create(ConfigSection section) {
             ConfigSection brightness = section.getSection("brightness");
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             boolean legacyTintSource = section.getBoolean(APPLY_DYED_COLOR, false);
             return new ItemDisplayFurnitureElementConfig(
                     section.getNonNullIdentifier("item"),

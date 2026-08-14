@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.loot.LootTableReference;
 import net.momirealms.craftengine.core.loot.function.LootFunction;
 import net.momirealms.craftengine.core.loot.function.LootFunctions;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -47,12 +48,12 @@ public final class LootTableLootEntryContainer extends AbstractSingleLootEntryCo
     }
 
     private static class Factory implements LootEntryContainerFactory<LootTableLootEntryContainer> {
-        private static final String[] ID = new String[] {"id", "table", "name"};
+        private static final String[] ID = ConfigKeys.of("id|table|name");
 
         @Override
         public LootTableLootEntryContainer create(ConfigSection section) {
             return new LootTableLootEntryContainer(
-                    section.getList("conditions", CommonConditions::fromConfig),
+                    section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig),
                     section.getList("functions", LootFunctions::fromConfig),
                     section.getInt("weight", 1),
                     section.getInt("quality"),

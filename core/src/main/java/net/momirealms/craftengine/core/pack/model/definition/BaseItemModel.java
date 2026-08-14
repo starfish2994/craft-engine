@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
@@ -118,7 +119,7 @@ public final class BaseItemModel implements ItemModel {
     }
 
     private static class Factory implements ItemModelFactory<BaseItemModel> {
-        private static final String[] PATH = new String[] {"path", "model"};
+        private static final String[] PATH = ConfigKeys.of("path|model");
 
         @Override
         public BaseItemModel create(Pack pack, Path path, ConfigSection section) {

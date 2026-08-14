@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.atlas;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
@@ -12,9 +13,9 @@ import java.util.List;
 
 public record UnstitchSource(Key resource, double divisorX, double divisorY,
                              List<Region> regions) implements SpriteSource {
-    private static final String[] DIVISOR_X = new String[]{"divisor-x", "divisor_x"};
-    private static final String[] DIVISOR_Y = new String[]{"divisor-y", "divisor_y"};
-    private static final String[] REGIONS = new String[]{"regions", "region"};
+    private static final String[] DIVISOR_X = ConfigKeys.of("divisor_x");
+    private static final String[] DIVISOR_Y = ConfigKeys.of("divisor_y");
+    private static final String[] REGIONS = ConfigKeys.of("region(s)");
 
     public UnstitchSource {
         regions = List.copyOf(regions);

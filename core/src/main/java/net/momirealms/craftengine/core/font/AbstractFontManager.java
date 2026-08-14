@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.pack.Identifier;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.allocator.IdAllocator;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
@@ -365,7 +366,7 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     private final class EmojiParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"emojis", "emoji"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("emoji(s)");
 
         @Override
         public Key type() {
@@ -392,9 +393,9 @@ public abstract class AbstractFontManager implements FontManager {
             return List.of(LoadingStages.IMAGE);
         }
 
-        private static final String[] CONTENT = new String[] {"content", "format"};
-        private static final String[] CHAT_COMPLETION = new String[] {"chat_completion", "chat-completion"};
-        private static final String[] CONTENT_OVERRIDES = new String[] {"content_overrides", "content-overrides"};
+        private static final String[] CONTENT = ConfigKeys.of("content|format");
+        private static final String[] CHAT_COMPLETION = ConfigKeys.of("chat_completion");
+        private static final String[] CONTENT_OVERRIDES = ConfigKeys.of("content_overrides");
 
         @Override
         public boolean async() {
@@ -457,7 +458,7 @@ public abstract class AbstractFontManager implements FontManager {
     }
 
     private final class ImageParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"images", "image"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("image(s)");
         private final Map<Key, IdAllocator> idAllocators = new ConcurrentHashMap<>();
 
         @Override
@@ -522,10 +523,10 @@ public abstract class AbstractFontManager implements FontManager {
             });
         }
 
-        private static final String[] CHAR = new String[] {"char", "chars", "unicode"};
-        private static final String[] HEIGHT = new String[] {"height", "scale", "scale_ratio"};
-        private static final String[] ASCENT = new String[] {"ascent", "y_position"};
-        private static final String[] GRID_SIZE = new String[] {"grid_size", "grid-size"};
+        private static final String[] CHAR = ConfigKeys.of("char(s)|unicode");
+        private static final String[] HEIGHT = ConfigKeys.of("height|scale|scale_ratio");
+        private static final String[] ASCENT = ConfigKeys.of("ascent|y_position");
+        private static final String[] GRID_SIZE = ConfigKeys.of("grid_size");
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {

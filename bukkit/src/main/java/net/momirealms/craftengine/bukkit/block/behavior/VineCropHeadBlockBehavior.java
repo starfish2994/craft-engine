@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.BooleanProperty;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
@@ -275,10 +276,10 @@ public final class VineCropHeadBlockBehavior extends AbstractCanSurviveBlockBeha
     }
 
     private static class Factory implements BlockBehaviorFactory<VineCropHeadBlockBehavior> {
-        private static final String[] MAX_HEIGHT = new String[] {"max_height", "max-height"};
-        private static final String[] GROW_SPEED = new String[] {"grow_speed", "grow-speed"};
-        private static final String[] BONE_MEAL = new String[] {"bone_meal", "bone-meal"};
-        private static final String[] GROW_BLOCKS = new String[] {"grow_blocks", "grow-blocks"};
+        private static final String[] MAX_HEIGHT = ConfigKeys.of("max_height");
+        private static final String[] GROW_SPEED = ConfigKeys.of("grow_speed");
+        private static final String[] BONE_MEAL = ConfigKeys.of("bone_meal");
+        private static final String[] GROW_BLOCKS = ConfigKeys.of("grow_blocks");
 
         @Override
         public VineCropHeadBlockBehavior create(BlockDefinition block, ConfigSection section) {

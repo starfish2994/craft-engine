@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.item.setting.value;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Tristate;
 
@@ -8,10 +9,10 @@ public record Repairable(Tristate craftingTable, Tristate anvilRepair, Tristate 
     public static final Repairable TRUE = new Repairable(Tristate.TRUE, Tristate.TRUE, Tristate.TRUE, Tristate.TRUE);
     public static final Repairable FALSE = new Repairable(Tristate.FALSE, Tristate.FALSE, Tristate.FALSE, Tristate.FALSE);
 
-    private static final String[] CRAFTING_TABLE = new String[] {"crafting_table", "crafting-table"};
-    private static final String[] ANVIL_REPAIR = new String[] {"anvil_repair", "anvil-repair"};
-    private static final String[] ANVIL_COMBINE = new String[] {"anvil_combine", "anvil-combine"};
-    private static final String[] GRINDSTONE_REPAIR = new String[] {"grindstone_repair", "grindstone-repair"};
+    private static final String[] CRAFTING_TABLE = ConfigKeys.of("crafting_table");
+    private static final String[] ANVIL_REPAIR = ConfigKeys.of("anvil_repair");
+    private static final String[] ANVIL_COMBINE = ConfigKeys.of("anvil_combine");
+    private static final String[] GRINDSTONE_REPAIR = ConfigKeys.of("grindstone_repair");
 
     public static Repairable fromConfig(ConfigSection section) {
         Tristate craftingTable = section.getValue(CRAFTING_TABLE, it -> Tristate.of(it.getAsBoolean()), Tristate.UNDEFINED);

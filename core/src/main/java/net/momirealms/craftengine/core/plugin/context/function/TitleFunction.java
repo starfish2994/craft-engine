@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.*;
@@ -61,8 +62,8 @@ public final class TitleFunction<CTX extends Context> extends AbstractConditiona
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, TitleFunction<CTX>> {
-        private static final String[] FADE_IN = new String[] {"fade_in", "fade-in"};
-        private static final String[] FADE_OUT = new String[] {"fade_out", "fade-out"};
+        private static final String[] FADE_IN = ConfigKeys.of("fade_in");
+        private static final String[] FADE_OUT = ConfigKeys.of("fade_out");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

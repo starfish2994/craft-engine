@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.loot.source.LootSource;
 import net.momirealms.craftengine.core.loot.source.LootSourceType;
 import net.momirealms.craftengine.core.loot.source.LootSources;
 import net.momirealms.craftengine.core.pack.Pack;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
@@ -52,7 +53,7 @@ public abstract class AbstractLootManager implements LootManager {
     public abstract void resetEntityProviders();
 
     protected final class LootParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"loot", "loots"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("loot(s)");
         private int count;
 
         @Override
@@ -89,12 +90,7 @@ public abstract class AbstractLootManager implements LootManager {
     }
 
     protected final class LootSourceParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {
-                "loot-source", "loot_source",
-                "loot-sources", "loot_sources",
-                "vanilla-loots", "vanilla-loot",
-                "vanilla_loots", "vanilla_loot"
-        };
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("loot_source(s)|vanilla_loot(s)");
         private int count;
 
         @Override

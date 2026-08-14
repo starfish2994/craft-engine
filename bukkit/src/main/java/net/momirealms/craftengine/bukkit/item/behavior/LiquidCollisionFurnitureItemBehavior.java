@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.PendingConfigSection;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -146,9 +147,9 @@ public final class LiquidCollisionFurnitureItemBehavior extends FurnitureItemBeh
             );
         }
 
-        private static final String[] IGNORE_PLACER = new String[]{"ignore_placer", "ignore-placer"};
-        private static final String[] IGNORE_ENTITIES = new String[]{"ignore_entities", "ignore-entities"};
-        private static final String[] SOURCE_ONLY = new String[]{"source_only", "source-only"};
-        private static final String[] LIQUID_TYPE = new String[]{"liquid_type", "liquid-type"};
+        private static final String[] IGNORE_PLACER = ConfigKeys.of("ignore_placer");
+        private static final String[] IGNORE_ENTITIES = ConfigKeys.of("ignore_entities");
+        private static final String[] SOURCE_ONLY = ConfigKeys.of("source_only");
+        private static final String[] LIQUID_TYPE = ConfigKeys.of("liquid_type");
     }
 }

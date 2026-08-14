@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.compatibility.vault;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -39,7 +40,7 @@ public final class GiveMoneyFunction<CTX extends Context> extends AbstractCondit
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, GiveMoneyFunction<CTX>> {
-        private static final String[] AMOUNT = new String[] {"amount", "value"};
+        private static final String[] AMOUNT = ConfigKeys.of("amount|value");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

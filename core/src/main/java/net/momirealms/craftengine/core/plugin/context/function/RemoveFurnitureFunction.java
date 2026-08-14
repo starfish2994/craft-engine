@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.Loot;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -69,8 +70,8 @@ public final class RemoveFurnitureFunction<CTX extends Context> extends Abstract
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, RemoveFurnitureFunction<CTX>> {
-        private static final String[] PLAY_SOUND = new String[] {"play_sound", "play-sound"};
-        private static final String[] DROP_LOOT = new String[] {"drop_loot", "drop-loot"};
+        private static final String[] PLAY_SOUND = ConfigKeys.of("play_sound");
+        private static final String[] DROP_LOOT = ConfigKeys.of("drop_loot");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

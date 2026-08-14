@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.loot.entry;
 
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.LootContext;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -24,7 +25,7 @@ public final class EmptyLootEntryContainer extends AbstractSingleLootEntryContai
         @Override
         public EmptyLootEntryContainer create(ConfigSection section) {
             return new EmptyLootEntryContainer(
-                    section.getList("conditions", CommonConditions::fromConfig),
+                    section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig),
                     section.getInt("weight", 1),
                     section.getInt("quality")
             );

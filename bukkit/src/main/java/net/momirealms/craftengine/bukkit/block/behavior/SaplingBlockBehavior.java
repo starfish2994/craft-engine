@@ -20,6 +20,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Key;
@@ -299,11 +300,11 @@ public final class SaplingBlockBehavior extends BukkitBlockBehavior implements B
     }
 
     private static class Factory implements BlockBehaviorFactory<SaplingBlockBehavior> {
-        private static final String[] FEATURE = new String[]{"feature", "configured_feature", "configured-feature"};
-        private static final String[] SUCCESS_CHANCE = new String[]{"bone_meal_success_chance", "bone-meal-success-chance"};
-        private static final String[] GROW_SPEED = new String[]{"grow_speed", "grow-speed"};
-        private static final String[] LIGHT_REQUIREMENT = new String[]{"light_requirement", "light-requirement"};
-        private static final String[] MAX_LIGHT_REQUIREMENT = new String[]{"max_light_requirement", "max-light-requirement"};
+        private static final String[] FEATURE = ConfigKeys.of("feature|configured_feature");
+        private static final String[] SUCCESS_CHANCE = ConfigKeys.of("bone_meal_success_chance");
+        private static final String[] GROW_SPEED = ConfigKeys.of("grow_speed");
+        private static final String[] LIGHT_REQUIREMENT = ConfigKeys.of("light_requirement");
+        private static final String[] MAX_LIGHT_REQUIREMENT = ConfigKeys.of("max_light_requirement");
 
         @Override
         public SaplingBlockBehavior create(BlockDefinition block, ConfigSection section) {

@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.parser.BlockStateParser;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.LazyReference;
@@ -124,7 +125,7 @@ public final class ConcretePowderBlockBehavior extends BukkitBlockBehavior imple
     }
 
     private static class Factory implements BlockBehaviorFactory<ConcretePowderBlockBehavior> {
-        private static final String[] SOLID_BLOCK = new String[] {"solid_block", "solid-block"};
+        private static final String[] SOLID_BLOCK = ConfigKeys.of("solid_block");
 
         @Override
         public ConcretePowderBlockBehavior create(BlockDefinition block, ConfigSection section) {

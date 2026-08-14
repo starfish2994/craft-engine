@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.Vec3iProxy;
@@ -31,7 +32,7 @@ public final class OnLiquidBlockBehavior extends AbstractCanSurviveBlockBehavior
     }
 
     private static class Factory implements BlockBehaviorFactory<OnLiquidBlockBehavior> {
-        private static final String[] LIQUID_TYPE = new String[] {"liquid_type", "liquid-type"};
+        private static final String[] LIQUID_TYPE = ConfigKeys.of("liquid_type");
 
         @Override
         public OnLiquidBlockBehavior create(BlockDefinition block, ConfigSection section) {

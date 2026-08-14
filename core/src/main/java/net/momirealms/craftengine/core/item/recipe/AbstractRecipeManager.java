@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
@@ -173,7 +174,7 @@ public abstract class AbstractRecipeManager implements RecipeManager {
     }
 
     private final class RecipeParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"recipes", "recipe"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("recipe(s)");
         private final AtomicInteger count = new AtomicInteger(0);
         private static final Key DYES = Key.of("dyes");
 
@@ -285,8 +286,8 @@ public abstract class AbstractRecipeManager implements RecipeManager {
             return List.of(LoadingStages.ITEM);
         }
 
-        private static final String[] UNLOCK_ON_INGREDIENT_OBTAINED = new String[] {"unlock_on_ingredient_obtained", "unlock-on-ingredient-obtained"};
-        private static final String[] UNLOCK_ON_JOIN = new String[] {"unlock_on_join", "unlock-on-join"};
+        private static final String[] UNLOCK_ON_INGREDIENT_OBTAINED = ConfigKeys.of("unlock_on_ingredient_obtained");
+        private static final String[] UNLOCK_ON_JOIN = ConfigKeys.of("unlock_on_join");
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {

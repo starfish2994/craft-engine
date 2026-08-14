@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.atlas;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
@@ -16,9 +17,9 @@ public record PalettedPermutationsSource(List<Key> textures, String separator, K
                                          Map<String, Key> permutations) implements SpriteSource {
 
     public static final String DEFAULT_SEPARATOR = "_";
-    private static final String[] TEXTURES = new String[]{"textures", "texture"};
-    private static final String[] PALETTE_KEY = new String[]{"palette-key", "palette_key"};
-    private static final String[] PERMUTATIONS = new String[]{"permutations", "permutation"};
+    private static final String[] TEXTURES = ConfigKeys.of("texture(s)");
+    private static final String[] PALETTE_KEY = ConfigKeys.of("palette_key");
+    private static final String[] PERMUTATIONS = ConfigKeys.of("permutation(s)");
 
     public PalettedPermutationsSource {
         textures = List.copyOf(textures);

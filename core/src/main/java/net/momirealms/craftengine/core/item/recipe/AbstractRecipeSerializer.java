@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessor;
 import net.momirealms.craftengine.core.item.recipe.result.PostProcessors;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -29,15 +30,15 @@ public abstract class AbstractRecipeSerializer<R extends Recipe> implements Reci
             VersionHelper.isOrAbove1_20_5 ?
             new VanillaRecipeReader1_20_5() :
             new VanillaRecipeReader1_20();
-    protected static final String[] SHOW_NOTIFICATIONS = new String[] {"show_notification", "show-notification"};
-    protected static final String[] INGREDIENTS = new String[] {"ingredients", "ingredient"};
-    protected static final String[] EXP = new String[] {"exp", "experience"};
-    protected static final String[] ITEMS = new String[] {"items", "item"};
-    protected static final String[] TRANSFORM_PROCESSOR = new String[] {"transform_processors", "transform-processors", "post_processors", "post-processors"};
-    protected static final String[] VISUAL_RESULT = new String[] {"visual_result", "visual-result"};
-    protected static final String[] FUNCTIONS = new String[] {"functions", "function"};
-    protected static final String[] CONDITIONS = new String[] {"conditions", "condition"};
-    protected static final String[] ALWAYS_REBUILD_RESULT = new String[] {"always_rebuild_result", "always-rebuild-result"};
+    protected static final String[] SHOW_NOTIFICATIONS = ConfigKeys.of("show_notification");
+    protected static final String[] INGREDIENTS = ConfigKeys.of("ingredient(s)");
+    protected static final String[] EXP = ConfigKeys.of("exp|experience");
+    protected static final String[] ITEMS = ConfigKeys.of("item(s)");
+    protected static final String[] TRANSFORM_PROCESSOR = ConfigKeys.of("transform_processors|post_processors");
+    protected static final String[] VISUAL_RESULT = ConfigKeys.of("visual_result");
+    protected static final String[] FUNCTIONS = ConfigKeys.of("function(s)");
+    protected static final String[] CONDITIONS = ConfigKeys.of("condition(s)");
+    protected static final String[] ALWAYS_REBUILD_RESULT = ConfigKeys.of("always_rebuild_result");
 
     protected CustomRecipeResult parseResult(DatapackRecipeResult recipeResult) {
         Item result = CraftEngine.instance().itemManager().build(recipeResult);

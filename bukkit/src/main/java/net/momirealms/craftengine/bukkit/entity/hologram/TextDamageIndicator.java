@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.entity.hologram.DamageIndicator;
 import net.momirealms.craftengine.core.entity.hologram.DamageIndicatorFactory;
 import net.momirealms.craftengine.core.entity.hologram.ViewPointSelector;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
@@ -24,16 +25,16 @@ import java.util.List;
 
 public final class TextDamageIndicator implements DamageIndicator {
     public static final DamageIndicatorFactory<TextDamageIndicator> FACTORY = TextDamageIndicator::new;
-    private static final String[] NUMBER_FORMAT = {"number-format", "number_format"};
-    private static final String[] ANGLE_SPREAD = {"angle-spread", "angle_spread"};
-    private static final String[] HEIGHT_SPREAD = {"height-spread", "height_spread"};
-    private static final String[] SPAWN_SCALE = {"spawn-scale", "spawn_scale"};
-    private static final String[] POP_SCALE = {"pop-scale", "pop_scale"};
-    private static final String[] SETTLE_SCALE = {"settle-scale", "settle_scale"};
-    private static final String[] POP_DELAY = {"pop-delay", "pop_delay"};
-    private static final String[] SETTLE_DELAY = {"settle-delay", "settle_delay"};
-    private static final String[] SHRINK_DELAY = {"shrink-delay", "shrink_delay"};
-    private static final String[] REMOVE_DELAY = {"remove-delay", "remove_delay"};
+    private static final String[] NUMBER_FORMAT = ConfigKeys.of("number_format");
+    private static final String[] ANGLE_SPREAD = ConfigKeys.of("angle_spread");
+    private static final String[] HEIGHT_SPREAD = ConfigKeys.of("height_spread");
+    private static final String[] SPAWN_SCALE = ConfigKeys.of("spawn_scale");
+    private static final String[] POP_SCALE = ConfigKeys.of("pop_scale");
+    private static final String[] SETTLE_SCALE = ConfigKeys.of("settle_scale");
+    private static final String[] POP_DELAY = ConfigKeys.of("pop_delay");
+    private static final String[] SETTLE_DELAY = ConfigKeys.of("settle_delay");
+    private static final String[] SHRINK_DELAY = ConfigKeys.of("shrink_delay");
+    private static final String[] REMOVE_DELAY = ConfigKeys.of("remove_delay");
 
     private final String numberFormat;
     private final String text;

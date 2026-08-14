@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.Plugin;
 import net.momirealms.craftengine.core.plugin.PluginProperties;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
@@ -412,7 +413,7 @@ public final class TranslationManagerImpl implements TranslationManager {
     }
 
     private final class TranslationParser extends SectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"translations", "translation", "l10n", "localization", "i18n", "internationalization"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("translation(s)|l10n|localization|i18n|internationalization");
         private final Map<Locale, List<Map<String, String>>> withoutCountry = new HashMap<>();
         private final Map<Locale, List<Map<String, String>>> withCountry = new HashMap<>();
         private int count;
@@ -483,7 +484,7 @@ public final class TranslationManagerImpl implements TranslationManager {
     }
 
     private final class LangParser extends SectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"lang", "language", "languages"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("lang|language(s)");
         private static final Function<String, String> LANG_FORMATTER = s -> {
             Component deserialize = AdventureHelper.miniMessage().deserialize(AdventureHelper.legacyToMiniMessage(s), ShiftTag.INSTANCE, ImageTag.INSTANCE);
             return AdventureHelper.getLegacy().serialize(deserialize);

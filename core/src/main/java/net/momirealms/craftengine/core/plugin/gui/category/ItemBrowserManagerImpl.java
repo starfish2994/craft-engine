@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.recipe.*;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
@@ -103,7 +104,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
     }
 
     private final class CategoryParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"categories", "category"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("categor(y|ies)");
 
         @Override
         public Key type() {
@@ -130,7 +131,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
             return List.of(LoadingStages.ITEM);
         }
 
-        private static final String[] ALL_ITEMS = new String[] {"all_items", "all-items"};
+        private static final String[] ALL_ITEMS = ConfigKeys.of("all_items");
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
@@ -146,7 +147,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
             int priority = section.getInt("priority");
             List<String> lore = section.getStringList("lore");
             boolean hidden = section.getBoolean("hidden");
-            List<Condition<Context>> conditionList = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<Context>> conditionList = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             Category category = new Category(id, name, lore, icon, new ArrayList<>(members), priority, hidden, MiscUtils.allOf(conditionList));
             ItemBrowserManagerImpl.this.byId.put(id, category);
         }
