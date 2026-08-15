@@ -29,7 +29,6 @@ public final class ValueFormatters {
         if (value.value() instanceof Map<?, ?>) {
             return fromConfig(value.getAsSection());
         }
-        // 标量按 decimal pattern 处理: format: "#.0"
         return DecimalValueFormatter.ofPattern(value.getAsString());
     }
 

@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.plugin.context.number.PrecompiledExpression;
 import net.momirealms.craftengine.core.util.AdventureHelper;
+import net.momirealms.craftengine.core.util.FastDecimalFormat;
 import net.momirealms.sparrow.message.Context;
 import net.momirealms.sparrow.message.ParsingException;
 import net.momirealms.sparrow.message.tag.Tag;
@@ -13,15 +14,16 @@ import net.momirealms.sparrow.message.tag.resolver.StaticTagResolver;
 import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public final class ExpressionTag extends StaticTagResolver {
     public static final TagResolver INSTANCE = new ExpressionTag();
     private static final Cache<String, PrecompiledExpression> CACHE = Caffeine.newBuilder()
-            .maximumSize(512)
+            .maximumSize(256)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .build();
+    private static final Cache<String, FastDecimalFormat> FORMAT_CACHE = Caffeine.newBuilder()
+            .maximumSize(64)
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
 
@@ -41,13 +43,12 @@ public final class ExpressionTag extends StaticTagResolver {
         } catch (final RuntimeException e) {
             throw ctx.newException("Invalid expression: " + expr, e, arguments);
         }
-        final DecimalFormat df;
+        final FastDecimalFormat df;
         try {
-            df = new DecimalFormat(format);
+            df = FORMAT_CACHE.get(format, FastDecimalFormat::new);
         } catch (final IllegalArgumentException e) {
             throw ctx.newException("Invalid number format: " + format, arguments);
         }
-        df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.US));
-        return Tag.selfClosingInserting(Component.text(df.format(numberValue)));
+        return Tag.selfClosingInserting(Component.text(df.format(numberValue.doubleValue())));
     }
 }
