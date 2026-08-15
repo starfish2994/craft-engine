@@ -43,6 +43,9 @@ public final class ExpressionTag extends StaticTagResolver {
         } catch (final RuntimeException e) {
             throw ctx.newException("Invalid expression: " + expr, e, arguments);
         }
+        if (format.equals("bool")) {
+            return Tag.selfClosingInserting(Component.text(Boolean.toString(numberValue.doubleValue() != 0)));
+        }
         final FastDecimalFormat df;
         try {
             df = FORMAT_CACHE.get(format, FastDecimalFormat::new);
