@@ -7,7 +7,6 @@ import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
-import net.momirealms.craftengine.core.util.random.RandomSource;
 
 public record ItemBoundNumberProvider(NumberProvider base, Item item) implements NumberProvider {
 
@@ -19,16 +18,6 @@ public record ItemBoundNumberProvider(NumberProvider base, Item item) implements
     @Override
     public float getFloat(Context context) {
         return this.base.getFloat(bind(context, this.item));
-    }
-
-    @Override
-    public double getDouble(RandomSource random) {
-        return this.base.getDouble(random);
-    }
-
-    @Override
-    public float getFloat(RandomSource random) {
-        return this.base.getFloat(random);
     }
 
     @Override

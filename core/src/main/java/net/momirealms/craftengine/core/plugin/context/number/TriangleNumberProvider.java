@@ -2,7 +2,8 @@ package net.momirealms.craftengine.core.plugin.context.number;
 
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
-import net.momirealms.craftengine.core.util.random.RandomSource;
+import net.momirealms.craftengine.core.plugin.context.Context;
+
 
 /**
  * 三角形分布提供器
@@ -18,18 +19,18 @@ public record TriangleNumberProvider(
     public static final NumberProviderFactory<TriangleNumberProvider> FACTORY = new Factory();
 
     @Override
-    public int getInt(RandomSource random) {
-        return (int) Math.round(getDouble(random));
+    public int getInt(Context context) {
+        return (int) Math.round(getDouble(context));
     }
 
     @Override
-    public float getFloat(RandomSource random) {
-        return (float) getDouble(random);
+    public float getFloat(Context context) {
+        return (float) getDouble(context);
     }
 
     @Override
-    public double getDouble(RandomSource random) {
-        double u = random.nextDouble();
+    public double getDouble(Context context) {
+        double u = context.random().nextDouble();
         
         // 逆变换采样法 (Inverse Transform Sampling)
         // 概率转折点：F(mode) = (mode - min) / (max - min)

@@ -1,9 +1,9 @@
 package net.momirealms.craftengine.core.plugin.text.minimessage;
 
-import com.ezylang.evalex.EvaluationException;
-import com.ezylang.evalex.Expression;
-import com.ezylang.evalex.parser.ParseException;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import net.kyori.adventure.text.Component;
+import net.momirealms.craftengine.core.plugin.context.number.PrecompiledExpression;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.sparrow.message.Context;
 import net.momirealms.sparrow.message.ParsingException;
@@ -16,32 +16,38 @@ import org.jetbrains.annotations.NotNull;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public final class ExpressionTag extends StaticTagResolver {
     public static final TagResolver INSTANCE = new ExpressionTag();
+    private static final Cache<String, PrecompiledExpression> CACHE = Caffeine.newBuilder()
+            .maximumSize(512)
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .build();
 
-    private ExpressionTag() { super("expr"); }
+    private ExpressionTag() {
+        super("expr");
+    }
 
     @Override
     public Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
         String format = arguments.popOr("No format provided").toString();
         String expr = arguments.popOr("No expression provided").toString();
 
-        Component resultComponent = ctx.deserialize(expr);
-        String resultString = AdventureHelper.plainTextContent(resultComponent);
-        Expression expression = new Expression(resultString);
-
+        PrecompiledExpression compiled = CACHE.get(expr, PrecompiledExpression::new);
+        final Number numberValue;
         try {
-            Number numberValue = expression.evaluate().getNumberValue();
-            DecimalFormat df = new DecimalFormat(format);
-            DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
-            df.setDecimalFormatSymbols(symbols);
-            String formatted = df.format(numberValue);
-            return Tag.selfClosingInserting(Component.text(formatted));
-        } catch (IllegalArgumentException e) {
-            throw ctx.newException("Invalid number format: " + format, arguments);
-        } catch (EvaluationException | ParseException e) {
-            throw ctx.newException("Invalid expression: " + e.getMessage(), arguments);
+            numberValue = compiled.evaluate(snippet -> AdventureHelper.plainTextContent(ctx.deserialize(snippet))).getNumberValue();
+        } catch (final RuntimeException e) {
+            throw ctx.newException("Invalid expression: " + expr, e, arguments);
         }
+        final DecimalFormat df;
+        try {
+            df = new DecimalFormat(format);
+        } catch (final IllegalArgumentException e) {
+            throw ctx.newException("Invalid number format: " + format, arguments);
+        }
+        df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.US));
+        return Tag.selfClosingInserting(Component.text(df.format(numberValue)));
     }
 }

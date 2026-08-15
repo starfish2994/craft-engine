@@ -18,7 +18,7 @@ public final class TagTextProvider implements TextProvider {
 
     @Override
     public String get(Context context) {
-        Component resultComponent = AdventureHelper.deserialize(this.text, context);
+        Component resultComponent = AdventureHelper.expressionMiniMessage().deserialize(this.text);
         return AdventureHelper.serializeMiniMessage(resultComponent);
     }
 

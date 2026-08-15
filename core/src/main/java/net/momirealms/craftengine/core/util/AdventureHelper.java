@@ -37,8 +37,9 @@ public final class AdventureHelper {
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
     private final MiniMessage miniMessageForSerialize;
+    private final MiniMessage miniMessageForExpression;
     private volatile MiniMessage miniMessage;
-    private volatile MiniMessage miniMessageCustom;
+    private volatile MiniMessage customMiniMessage;
     private final GsonComponentSerializer gsonComponentSerializer;
     private final NBTComponentSerializer nbtComponentSerializer;
     private final LegacyComponentSerializer legacyComponentSerializer;
@@ -50,6 +51,7 @@ public final class AdventureHelper {
 
     private AdventureHelper() {
         this.miniMessageForSerialize = MiniMessage.builder().strict(true).build();
+        this.miniMessageForExpression = MiniMessage.builder().tags(TagResolver.resolver(CraftEngineTags.EXPRESSION)).build();
         rebuildMiniMessages();
         GsonComponentSerializer.Builder gsonBuilder = GsonComponentSerializer.builder();
         if (!VersionHelper.isOrAbove1_20_5) {
@@ -93,7 +95,11 @@ public final class AdventureHelper {
     }
 
     public static MiniMessage customMiniMessage() {
-        return getInstance().miniMessageCustom;
+        return getInstance().customMiniMessage;
+    }
+
+    public static MiniMessage expressionMiniMessage() {
+        return getInstance().miniMessageForExpression;
     }
 
     public static Component deserialize(String input, Context context) {
@@ -102,10 +108,6 @@ public final class AdventureHelper {
 
     public static Component deserialize(String input, Context context, TagResolver... additional) {
         return miniMessage().deserialize(input, context, additional);
-    }
-
-    public static Component deserializeCustom(String input, Context context) {
-        return customMiniMessage().deserialize(input, context);
     }
 
     public static void refreshExternalTagResolvers() {
@@ -117,7 +119,7 @@ public final class AdventureHelper {
         // standard tags + CraftEngine tags + external plugin tags
         this.miniMessage = MiniMessage.builder().tags(TagResolver.resolver(ArrayUtils.merge(ArrayUtils.merge(CraftEngineTags.INTERNAL, CraftEngineTags.STANDARD), externals))).build();
         // CraftEngine + external tags only, no standard formatting tags
-        this.miniMessageCustom = MiniMessage.builder().tags(TagResolver.resolver(ArrayUtils.merge(ArrayUtils.merge(CraftEngineTags.INTERNAL, externals), CraftEngineTags.SPECIAL_STANDARD))).build();
+        this.customMiniMessage = MiniMessage.builder().tags(TagResolver.resolver(ArrayUtils.merge(ArrayUtils.merge(CraftEngineTags.INTERNAL, externals), CraftEngineTags.SPECIAL_STANDARD))).build();
     }
 
     private static TagResolver[] externalTagResolvers() {

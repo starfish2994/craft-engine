@@ -3,22 +3,23 @@ package net.momirealms.craftengine.core.plugin.context.number;
 import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.MiscUtils;
-import net.momirealms.craftengine.core.util.random.RandomSource;
+
 
 public record GaussianNumberProvider(double min, double max, double mean, double stdDev, int maxAttempts) implements NumberProvider {
     public static final NumberProviderFactory<GaussianNumberProvider> FACTORY = new Factory();
 
     @Override
-    public float getFloat(RandomSource random) {
-        return (float) getDouble(random);
+    public float getFloat(Context context) {
+        return (float) getDouble(context);
     }
 
     @Override
-    public double getDouble(RandomSource random) {
+    public double getDouble(Context context) {
         int attempts = 0;
         while (attempts < this.maxAttempts) {
-            double value = random.nextGaussian() * this.stdDev + this.mean;
+            double value = context.random().nextGaussian() * this.stdDev + this.mean;
             if (value >= this.min && value <= this.max) {
                 return value;
             }

@@ -21,7 +21,6 @@ import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
-import net.momirealms.craftengine.core.util.random.ThreadLocalRandomSource;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.event.CraftEventFactoryProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
@@ -256,7 +255,7 @@ public final class VineCropHeadBlockBehavior extends AbstractCanSurviveBlockBeha
     // 计算骨粉催熟后生长高度
     private int getBlocksToGrowWhenBoneMealed() {
         if (this.boneMealGrowBlocks != null) {
-            this.boneMealGrowBlocks.getInt(ThreadLocalRandomSource.INSTANCE);
+            this.boneMealGrowBlocks.getInt();
         }
         return 1;
     }

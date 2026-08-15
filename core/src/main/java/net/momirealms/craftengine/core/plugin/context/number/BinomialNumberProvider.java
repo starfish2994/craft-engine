@@ -1,26 +1,26 @@
 package net.momirealms.craftengine.core.plugin.context.number;
 
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.random.RandomSource;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
 
 public record BinomialNumberProvider(NumberProvider trials, NumberProvider successProbability) implements NumberProvider {
     public static final NumberProviderFactory<BinomialNumberProvider> FACTORY = new Factory();
 
     @Override
-    public float getFloat(RandomSource random) {
-        return getInt(random);
+    public float getFloat(Context context) {
+        return getInt(context);
     }
 
     @Override
-    public double getDouble(RandomSource random) {
-        return getInt(random);
+    public double getDouble(Context context) {
+        return getInt(context);
     }
 
     @Override
-    public int getInt(RandomSource random) {
-        int trialCount = this.trials.getInt(random);
-        float probability = this.successProbability.getFloat(random);
+    public int getInt(Context context) {
+        int trialCount = this.trials.getInt(context);
+        float probability = this.successProbability.getFloat(context);
         int successCount = 0;
 
         for (int i = 0; i < trialCount; i++) {

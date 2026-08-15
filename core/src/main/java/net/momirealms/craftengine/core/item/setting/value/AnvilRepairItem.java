@@ -2,7 +2,6 @@ package net.momirealms.craftengine.core.item.setting.value;
 
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
-import net.momirealms.craftengine.core.util.random.ThreadLocalRandomSource;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -13,6 +12,6 @@ public record AnvilRepairItem(List<String> targets, NumberProvider amount, Numbe
         if (context != null) {
             return (int) (this.amount.getInt(context) + this.percent.getDouble(context) * maxDamage);
         }
-        return (int) (this.amount.getInt(ThreadLocalRandomSource.INSTANCE) + this.percent.getDouble(ThreadLocalRandomSource.INSTANCE) * maxDamage);
+        return (int) (this.amount.getInt() + this.percent.getDouble() * maxDamage);
     }
 }

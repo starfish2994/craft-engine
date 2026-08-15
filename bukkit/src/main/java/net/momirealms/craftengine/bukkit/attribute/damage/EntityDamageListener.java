@@ -64,8 +64,10 @@ public final class EntityDamageListener extends AbstractListener {
             if (viewers.isEmpty()) return;
 
             ContextHolder.Builder contextBuilder = ContextHolder.builder()
-                    .withParameter(DirectContextParameters.ORIGINAL_DAMAGE, event.getDamage())
-                    .withParameter(DirectContextParameters.DAMAGE, event.getFinalDamage());
+                    .withParameter(DirectContextParameters.ORIGINAL_DAMAGE, e.getDamage())
+                    .withParameter(DirectContextParameters.DAMAGE, e.getFinalDamage())
+                    .withParameter(DirectContextParameters.IS_CRITICAL, e.isCritical())
+                    .withParameter(DirectContextParameters.IS_SWEEP, e.getCause() == EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK);
             if (damageEvent != null) {
                 for (Map.Entry<String, Double> part : damageEvent.damageParts().entrySet()) {
                     contextBuilder.withParameter(ContextKey.direct(part.getKey()), part.getValue());

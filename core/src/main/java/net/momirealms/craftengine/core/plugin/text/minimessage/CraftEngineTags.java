@@ -3,18 +3,21 @@ package net.momirealms.craftengine.core.plugin.text.minimessage;
 import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 import net.momirealms.sparrow.message.tag.standard.*;
 
-/**
- * All CraftEngine custom tags as stateless singleton resolvers, compiled once at class
- * init into a single dispatch table. Contextual data is read from the parse target
- * (the CraftEngine {@link net.momirealms.craftengine.core.plugin.context.Context} passed
- * as {@code Pointered} to {@code deserialize}), so no per-parse resolver allocation is needed.
- */
 public final class CraftEngineTags {
     public static final TagResolver[] INTERNAL = new TagResolver[] {
             ShiftTag.INSTANCE,
             ImageTag.INSTANCE,
             I18NTag.INSTANCE,
             L10NTag.INSTANCE,
+            ExpressionTag.INSTANCE,
+            GlobalVariableTag.INSTANCE,
+            NamedArgumentTag.INSTANCE,
+            ViewerNamedArgumentTag.INSTANCE,
+            PlaceholderTag.INSTANCE,
+            ViewerPlaceholderTag.INSTANCE,
+            RelationalPlaceholderTag.INSTANCE,
+    };
+    public static final TagResolver[] EXPRESSION = new TagResolver[] {
             ExpressionTag.INSTANCE,
             GlobalVariableTag.INSTANCE,
             NamedArgumentTag.INSTANCE,
