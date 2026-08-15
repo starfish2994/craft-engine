@@ -9,8 +9,6 @@ import net.momirealms.craftengine.core.util.AdventureHelper;
 
 import java.util.function.Function;
 
-import static net.momirealms.craftengine.core.plugin.text.minimessage.FormattedLine.CUSTOM_RESOLVERS;
-
 public sealed interface ComponentProvider extends Function<Context, Component>
         permits ComponentProvider.Constant, ComponentProvider.L10N, ComponentProvider.MiniMessage {
 
@@ -19,7 +17,7 @@ public sealed interface ComponentProvider extends Function<Context, Component>
     }
 
     static ComponentProvider miniMessageOrConstant(String line) {
-        if (line.equals(AdventureHelper.customMiniMessage().stripTags(line, CUSTOM_RESOLVERS))) {
+        if (line.equals(AdventureHelper.customMiniMessage().stripTags(line))) {
             return constant(AdventureHelper.miniMessage().deserialize(line));
         } else {
             return new MiniMessage(line);
@@ -56,7 +54,7 @@ public sealed interface ComponentProvider extends Function<Context, Component>
 
         @Override
         public Component apply(Context context) {
-            return AdventureHelper.miniMessage().deserialize(this.value, context.tagResolvers());
+            return AdventureHelper.deserialize(this.value, context);
         }
     }
 
@@ -76,7 +74,7 @@ public sealed interface ComponentProvider extends Function<Context, Component>
                     if (content == null) {
                         return Component.text(this.key);
                     }
-                    return AdventureHelper.miniMessage().deserialize(content, context.tagResolvers());
+                    return AdventureHelper.deserialize(content, context);
                 }
             }
             return Component.text(this.key);

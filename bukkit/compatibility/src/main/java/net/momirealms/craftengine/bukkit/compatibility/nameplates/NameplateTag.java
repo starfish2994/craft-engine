@@ -1,30 +1,27 @@
 package net.momirealms.craftengine.bukkit.compatibility.nameplates;
 
-import net.kyori.adventure.text.minimessage.Context;
-import net.kyori.adventure.text.minimessage.ParsingException;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.customnameplates.api.CustomNameplatesAPI;
 import net.momirealms.customnameplates.api.feature.nameplate.Nameplate;
+import net.momirealms.sparrow.message.Context;
+import net.momirealms.sparrow.message.ParsingException;
+import net.momirealms.sparrow.message.tag.Tag;
+import net.momirealms.sparrow.message.tag.resolver.ArgumentQueue;
+import net.momirealms.sparrow.message.tag.resolver.StaticTagResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public final class NameplateTag implements TagResolver {
-    private final net.momirealms.craftengine.core.plugin.context.Context context;
+public final class NameplateTag extends StaticTagResolver {
+    public static final NameplateTag INSTANCE = new NameplateTag();
 
-    public NameplateTag(net.momirealms.craftengine.core.plugin.context.Context context) {
-        this.context = context;
+    private NameplateTag() {
+        super("nameplate");
     }
 
     @Override
     public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
-        if (!this.has(name)) {
-            return null;
-        }
         String id = arguments.popOr("No nameplate id provided").toString();
         Optional<Nameplate> nameplate = CustomNameplatesAPI.getInstance().getNameplate(id);
         if (nameplate.isEmpty()) {
@@ -33,12 +30,8 @@ public final class NameplateTag implements TagResolver {
         double left = arguments.popOr("No argument left provided").asDouble().orElseThrow(() -> ctx.newException("Invalid argument number", arguments));
         double right = arguments.popOr("No argument right provided").asDouble().orElseThrow(() -> ctx.newException("Invalid argument number", arguments));
         String content = arguments.popOr("No argument content provided").toString();
-        String textWithImage = CustomNameplatesAPI.getInstance().createTextWithImage(AdventureHelper.strictMiniMessage().serialize(AdventureHelper.miniMessage().deserialize(content, this.context.tagResolvers())), nameplate.get(), (float) left, (float) right);
-        return Tag.selfClosingInserting(AdventureHelper.miniMessage().deserialize(textWithImage, this.context.tagResolvers()));
+        String textWithImage = CustomNameplatesAPI.getInstance().createTextWithImage(AdventureHelper.serializeMiniMessage(ctx.deserialize(content)), nameplate.get(), (float) left, (float) right);
+        return Tag.selfClosingInserting(ctx.deserialize(textWithImage));
     }
 
-    @Override
-    public boolean has(@NotNull String name) {
-        return "nameplate".equals(name);
-    }
 }

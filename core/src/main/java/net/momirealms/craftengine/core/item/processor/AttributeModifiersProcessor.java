@@ -149,7 +149,7 @@ public final class AttributeModifiersProcessor implements SimpleNetworkItemProce
         public record PreDisplay(VanillaAttributeModifier.Display.Type type, String value) {
 
             public VanillaAttributeModifier.Display toDisplay(ItemBuildContext context) {
-                return new VanillaAttributeModifier.Display(type, AdventureHelper.miniMessage().deserialize(value, context.tagResolvers()));
+                return new VanillaAttributeModifier.Display(type, AdventureHelper.deserialize(value, context));
             }
         }
     }

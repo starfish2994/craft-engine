@@ -27,12 +27,12 @@ public final class ActionBarFunction<CTX extends Context> extends AbstractCondit
     public void runInternal(CTX ctx) {
         if (this.selector == null) {
             ctx.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(it -> {
-                it.sendActionBar(AdventureHelper.miniMessage().deserialize(this.message, ctx.tagResolvers()));
+                it.sendActionBar(AdventureHelper.deserialize(this.message, ctx));
             });
         } else {
             for (Player viewer : this.selector.get(ctx)) {
                 RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
-                viewer.sendActionBar(AdventureHelper.miniMessage().deserialize(this.message, relationalContext.tagResolvers()));
+                viewer.sendActionBar(AdventureHelper.deserialize(this.message, relationalContext));
             }
         }
     }

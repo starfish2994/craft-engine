@@ -10,9 +10,9 @@ import net.momirealms.craftengine.core.entity.EntityManager;
 import net.momirealms.craftengine.core.entity.culling.EntityCullingManager;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureManager;
 import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureSettingsModifiers;
-import net.momirealms.craftengine.core.entity.setting.EntitySettingsModifiers;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
 import net.momirealms.craftengine.core.entity.seat.SeatManager;
+import net.momirealms.craftengine.core.entity.setting.EntitySettingsModifiers;
 import net.momirealms.craftengine.core.font.FontManager;
 import net.momirealms.craftengine.core.item.AbstractItemManager;
 import net.momirealms.craftengine.core.item.ItemManager;
@@ -660,7 +660,6 @@ public abstract class CraftEngine implements Plugin {
                 Dependencies.BOOSTED_YAML,
                 Dependencies.OPTION,
                 Dependencies.ADVENTURE_KEY, Dependencies.ADVENTURE_API, Dependencies.ADVENTURE_NBT,
-                Dependencies.MINIMESSAGE,
                 Dependencies.TEXT_SERIALIZER_COMMONS, Dependencies.TEXT_SERIALIZER_LEGACY, Dependencies.TEXT_SERIALIZER_GSON, Dependencies.TEXT_SERIALIZER_GSON_LEGACY, Dependencies.TEXT_SERIALIZER_JSON,
                 Dependencies.AHO_CORASICK,
                 Dependencies.LZ4,

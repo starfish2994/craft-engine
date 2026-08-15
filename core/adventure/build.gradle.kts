@@ -4,6 +4,11 @@ plugins {
     id("craft-engine-publish")
 }
 
+repositories {
+    mavenCentral()
+    maven("https://repo.momirealms.net/releases/")
+}
+
 dependencies {
     adventure(project, JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 }

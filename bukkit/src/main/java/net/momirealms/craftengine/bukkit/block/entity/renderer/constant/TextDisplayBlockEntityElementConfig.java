@@ -165,7 +165,7 @@ public final class TextDisplayBlockEntityElementConfig implements BlockEntityEle
     }
 
     public Component text(Player player) {
-        return AdventureHelper.miniMessage().deserialize(this.text, NetworkTextReplaceContext.of(player).tagResolvers());
+        return AdventureHelper.deserialize(this.text, NetworkTextReplaceContext.of(player));
     }
 
     public Vector3f scale() {

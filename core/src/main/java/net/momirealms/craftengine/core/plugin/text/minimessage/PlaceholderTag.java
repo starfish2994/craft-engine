@@ -1,33 +1,39 @@
 package net.momirealms.craftengine.core.plugin.text.minimessage;
 
-import net.kyori.adventure.text.minimessage.Context;
-import net.kyori.adventure.text.minimessage.ParsingException;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.util.AdventureHelper;
+import net.momirealms.sparrow.message.ParsingException;
+import net.momirealms.sparrow.message.tag.Tag;
+import net.momirealms.sparrow.message.tag.resolver.ArgumentQueue;
+import net.momirealms.sparrow.message.tag.resolver.StaticTagResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PlaceholderTag implements TagResolver {
-    private final net.momirealms.craftengine.core.plugin.context.Context context;
+public class PlaceholderTag extends StaticTagResolver {
+    public static final PlaceholderTag INSTANCE = new PlaceholderTag("papi");
 
-    public PlaceholderTag(@NotNull net.momirealms.craftengine.core.plugin.context.Context context) {
-        this.context = context;
+    protected PlaceholderTag(String name) {
+        super(name);
     }
 
     @Override
-    public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
-        if (!this.has(name) || !CraftEngine.instance().compatibilityManager().hasPlaceholderAPI()) {
+    public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull net.momirealms.sparrow.message.Context ctx) throws ParsingException {
+        if (!CraftEngine.instance().compatibilityManager().hasPlaceholderAPI()) {
+            return null;
+        }
+        if (!(ctx.target() instanceof net.momirealms.craftengine.core.plugin.context.Context context)) {
             return null;
         }
         String rawArgument = arguments.popOr("No argument relational placeholder provided").toString();
-        if (rawArgument.contains("<")) rawArgument = AdventureHelper.resolvePlainStringTags(rawArgument, this.context.tagResolvers());
+        if (rawArgument.contains("<")) {
+            rawArgument = AdventureHelper.plainTextContent(ctx.deserialize(rawArgument));
+        }
         String placeholder = "%" + rawArgument + "%";
-        String parsed = (this.context instanceof PlayerContext playerContext)
-                ? CraftEngine.instance().compatibilityManager().parse(playerContext.player(), placeholder)
+        Player player = playerFor(context);
+        String parsed = player != null
+                ? CraftEngine.instance().compatibilityManager().parse(player, placeholder)
                 : CraftEngine.instance().compatibilityManager().parse(null, placeholder);
         if (parsed.equals(placeholder)) {
             parsed = arguments.popOr("No default papi value provided").toString();
@@ -35,8 +41,8 @@ public class PlaceholderTag implements TagResolver {
         return Tag.selfClosingInserting(ctx.deserialize(parsed));
     }
 
-    @Override
-    public boolean has(@NotNull String name) {
-        return "papi".equals(name);
+    protected @Nullable Player playerFor(net.momirealms.craftengine.core.plugin.context.Context context) {
+        return context instanceof PlayerContext playerContext ? playerContext.player() : null;
     }
+
 }

@@ -72,10 +72,10 @@ fun DependencyHandlerScope.asm(project: Project, configuration: String = JavaPlu
 
 fun DependencyHandlerScope.adventure(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
     configuration("net.kyori:adventure-api:${project.ver("adventure_bundle_version")}")
-    configuration("net.kyori:adventure-text-minimessage:${project.ver("adventure_bundle_version")}")
     configuration("net.kyori:adventure-text-serializer-json-legacy-impl:${project.ver("adventure_bundle_version")}")
     configuration("net.kyori:adventure-text-serializer-legacy:${project.ver("adventure_bundle_version")}")
     configuration("net.kyori:adventure-text-serializer-gson:${project.ver("adventure_bundle_version")}").apply {
         (this as? ExternalModuleDependency)?.exclude("com.google.code.gson", "gson")
     }
+    configuration("net.momirealms:sparrow-minimessage:${project.ver("sparrow_minimessage_version")}")
 }

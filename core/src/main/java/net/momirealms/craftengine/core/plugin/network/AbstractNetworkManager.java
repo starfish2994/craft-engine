@@ -1,7 +1,5 @@
 package net.momirealms.craftengine.core.plugin.network;
 
-import net.kyori.adventure.text.minimessage.internal.parser.Token;
-import net.kyori.adventure.text.minimessage.internal.parser.TokenParser;
 import net.momirealms.craftengine.core.font.BitmapImage;
 import net.momirealms.craftengine.core.font.Image;
 import net.momirealms.craftengine.core.font.OffsetFont;
@@ -11,6 +9,8 @@ import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
 import net.momirealms.craftengine.core.util.CharacterUtils;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MiscUtils;
+import net.momirealms.sparrow.message.internal.parser.Token;
+import net.momirealms.sparrow.message.internal.parser.TokenParser;
 
 import java.util.*;
 

@@ -5,14 +5,16 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.*;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.json.JSONOptions;
 import net.kyori.adventure.text.serializer.json.legacyimpl.NBTLegacyHoverEventSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
+import net.momirealms.craftengine.core.plugin.text.minimessage.CraftEngineTags;
+import net.momirealms.sparrow.message.MiniMessage;
+import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 import net.momirealms.sparrow.nbt.Tag;
 import net.momirealms.sparrow.nbt.adventure.NBTComponentSerializer;
 import net.momirealms.sparrow.nbt.adventure.NBTSerializerOptions;
@@ -34,9 +36,9 @@ public final class AdventureHelper {
     private static final Cache<String, Pattern> PATTERN_CACHE = Caffeine.newBuilder()
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
-    private final MiniMessage miniMessage;
-    private final MiniMessage miniMessageStrict;
-    private final MiniMessage miniMessageCustom;
+    private final MiniMessage miniMessageForSerialize;
+    private volatile MiniMessage miniMessage;
+    private volatile MiniMessage miniMessageCustom;
     private final GsonComponentSerializer gsonComponentSerializer;
     private final NBTComponentSerializer nbtComponentSerializer;
     private final LegacyComponentSerializer legacyComponentSerializer;
@@ -47,9 +49,8 @@ public final class AdventureHelper {
     }
 
     private AdventureHelper() {
-        this.miniMessage = MiniMessage.builder().build();
-        this.miniMessageStrict = MiniMessage.builder().strict(true).build();
-        this.miniMessageCustom = MiniMessage.builder().tags(TagResolver.empty()).build();
+        this.miniMessageForSerialize = MiniMessage.builder().strict(true).build();
+        rebuildMiniMessages();
         GsonComponentSerializer.Builder gsonBuilder = GsonComponentSerializer.builder();
         if (!VersionHelper.isOrAbove1_20_5) {
             gsonBuilder.legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get());
@@ -95,12 +96,50 @@ public final class AdventureHelper {
         return getInstance().miniMessageCustom;
     }
 
+    public static Component deserialize(String input, Context context) {
+        return miniMessage().deserialize(input, context);
+    }
+
+    public static Component deserialize(String input, Context context, TagResolver... additional) {
+        return miniMessage().deserialize(input, context, additional);
+    }
+
+    public static Component deserializeCustom(String input, Context context) {
+        return customMiniMessage().deserialize(input, context);
+    }
+
+    public static void refreshExternalTagResolvers() {
+        getInstance().rebuildMiniMessages();
+    }
+
+    private void rebuildMiniMessages() {
+        final TagResolver[] externals = externalTagResolvers();
+        // standard tags + CraftEngine tags + external plugin tags, compiled once per rebuild
+        this.miniMessage = MiniMessage.builder().tags(TagResolver.resolver(ArrayUtils.merge(ArrayUtils.merge(CraftEngineTags.INTERNAL, CraftEngineTags.STANDARD), externals))).build();
+        // CraftEngine + external tags only, no standard formatting tags (plain-text resolution, stripTags detection)
+        this.miniMessageCustom = MiniMessage.builder().tags(TagResolver.resolver(ArrayUtils.merge(CraftEngineTags.INTERNAL, externals))).build();
+    }
+
+    private static TagResolver[] externalTagResolvers() {
+        try {
+            CraftEngine engine = CraftEngine.instance();
+            if (engine == null || engine.compatibilityManager() == null) {
+                return new TagResolver[0];
+            }
+            TagResolver[] resolvers = engine.compatibilityManager().createExternalTagResolvers();
+            return resolvers == null ? new TagResolver[0] : resolvers;
+        } catch (Throwable ignored) {
+            // too early in bootstrap — external tags will be compiled on the first registration
+            return new TagResolver[0];
+        }
+    }
+
     public static LegacyComponentSerializer getLegacy() {
         return getInstance().legacyComponentSerializer;
     }
 
-    public static MiniMessage strictMiniMessage() {
-        return getInstance().miniMessageStrict;
+    public static String serializeMiniMessage(Component component) {
+        return getInstance().miniMessageForSerialize.serialize(component);
     }
 
     public static GsonComponentSerializer getGson() {
@@ -118,11 +157,11 @@ public final class AdventureHelper {
      * @return the MiniMessage string representation
      */
     public static String jsonToMiniMessage(String json) {
-        return getInstance().miniMessageStrict.serialize(getInstance().gsonComponentSerializer.deserialize(json));
+        return getInstance().miniMessageForSerialize.serialize(getInstance().gsonComponentSerializer.deserialize(json));
     }
 
     public static String componentToMiniMessage(Component component) {
-        return getInstance().miniMessageStrict.serialize(component);
+        return getInstance().miniMessageForSerialize.serialize(component);
     }
 
     /**

@@ -118,7 +118,7 @@ public final class TextDisplayFurnitureElementConfig implements FurnitureElement
             DisplayData.TextDisplayData.Translation.addEntityData(this.translation, dataValues, force);
             DisplayData.TextDisplayData.ShadowRadius.addEntityData(this.shadowRadius, dataValues, force);
             DisplayData.TextDisplayData.ShadowStrength.addEntityData(this.shadowStrength, dataValues, force);
-            DisplayData.TextDisplayData.Text.addEntityData(ComponentUtils.adventureToMinecraft(AdventureHelper.miniMessage().deserialize(this.text, NetworkTextReplaceContext.of(player).tagResolvers())), dataValues);
+            DisplayData.TextDisplayData.Text.addEntityData(ComponentUtils.adventureToMinecraft(AdventureHelper.deserialize(this.text, NetworkTextReplaceContext.of(player))), dataValues);
             DisplayData.TextDisplayData.LineWidth.addEntityData(this.lineWidth, dataValues, force);
             DisplayData.TextDisplayData.BackgroundColor.addEntityData(this.backgroundColor, dataValues, force);
             DisplayData.TextDisplayData.TextOpacity.addEntityData(this.opacity, dataValues, force);

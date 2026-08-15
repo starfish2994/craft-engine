@@ -24,6 +24,7 @@ dependencies {
     asm(project)
     paperServer(project)
     cloud(project)
+    adventure(project)
     // Anti Grief
     implementation("net.momirealms:antigrieflib:${rootProject.properties["anti_grief_version"]}")
     // Reflection

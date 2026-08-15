@@ -100,7 +100,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         if (blockEntity == null) return InteractionResult.FAIL;
         blockEntity.controller.let(SimpleStorageBlockEntityController.class, this.controllerId, c -> {
             c.onPlayerOpen(player);
-            new BukkitInventory(c.inventory()).open(player, AdventureHelper.miniMessage().deserialize(this.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
+            new BukkitInventory(c.inventory()).open(player, AdventureHelper.deserialize(this.containerTitle, PlayerOptionalContext.of(player)));
         });
         return InteractionResult.SUCCESS_AND_CANCEL;
     }

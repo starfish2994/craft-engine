@@ -48,12 +48,12 @@ public final class MerchantTradeFunction<CTX extends Context> extends AbstractCo
     public void runInternal(CTX ctx) {
         if (this.selector == null) {
             ctx.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(it -> {
-                CraftEngine.instance().guiManager().openMerchant(it, this.title == null ? null : AdventureHelper.miniMessage().deserialize(this.title, ctx.tagResolvers()), this.offers.apply(it, ctx));
+                CraftEngine.instance().guiManager().openMerchant(it, this.title == null ? null : AdventureHelper.deserialize(this.title, ctx), this.offers.apply(it, ctx));
             });
         } else {
             for (Player viewer : this.selector.get(ctx)) {
                 RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
-                CraftEngine.instance().guiManager().openMerchant(viewer, this.title == null ? null : AdventureHelper.miniMessage().deserialize(this.title, relationalContext.tagResolvers()), this.offers.apply(viewer, relationalContext));
+                CraftEngine.instance().guiManager().openMerchant(viewer, this.title == null ? null : AdventureHelper.deserialize(this.title, relationalContext), this.offers.apply(viewer, relationalContext));
             }
         }
     }

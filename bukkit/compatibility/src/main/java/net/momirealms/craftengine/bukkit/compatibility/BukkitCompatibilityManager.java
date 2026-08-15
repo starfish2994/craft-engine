@@ -5,7 +5,6 @@ import cn.gtemc.itembridge.core.BukkitItemBridge;
 import cn.gtemc.levelerbridge.core.BukkitLevelerBridge;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.constant.BukkitBlockEntityElementConfigs;
 import net.momirealms.craftengine.bukkit.compatibility.axiom.AxiomCraftEngineDisplay;
 import net.momirealms.craftengine.bukkit.compatibility.bedrock.FloodgateUtils;
@@ -52,15 +51,15 @@ import net.momirealms.craftengine.core.plugin.compatibility.*;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
-import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.condition.AlwaysFalseCondition;
 import net.momirealms.craftengine.core.plugin.context.function.DummyFunction;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
-import net.momirealms.craftengine.core.plugin.text.minimessage.FormattedLine;
+import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -328,7 +327,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     public void registerTagResolverProvider(TagResolverProvider provider) {
         this.tagResolverProviders.put(provider.name(), provider);
         this.tagResolverProviderArray = this.tagResolverProviders.values().toArray(new TagResolverProvider[0]);
-        FormattedLine.Companion.resetWithCustomResolvers(new ArrayList<>(this.tagResolverProviders.keySet()));
+        AdventureHelper.refreshExternalTagResolvers();
     }
 
     private void logHook(String plugin) {
@@ -474,12 +473,12 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     }
 
     @Override
-    public TagResolver[] createExternalTagResolvers(Context context) {
+    public TagResolver[] createExternalTagResolvers() {
         if (this.tagResolverProviderArray == null) return null;
         int length = this.tagResolverProviderArray.length;
         TagResolver[] resolvers = new TagResolver[length];
         for (int i = 0; i < length; i++) {
-            resolvers[i] = this.tagResolverProviderArray[i].getTagResolver(context);
+            resolvers[i] = this.tagResolverProviderArray[i].getTagResolver();
         }
         return resolvers;
     }

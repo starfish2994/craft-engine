@@ -1,12 +1,11 @@
 package net.momirealms.craftengine.core.plugin.compatibility;
 
 import com.google.gson.JsonElement;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.furniture.ExternalModel;
 import net.momirealms.craftengine.core.entity.player.Player;
-import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
+import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 
 import java.util.function.BiConsumer;
 
@@ -36,7 +35,7 @@ public interface CompatibilityManager {
 
     int getViaVersionProtocolVersion(NetWorkUser user);
 
-    TagResolver[] createExternalTagResolvers(Context context);
+    TagResolver[] createExternalTagResolvers();
 
     boolean isBedrockPlayer(Player player);
 

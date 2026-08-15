@@ -57,7 +57,7 @@ public final class TextDamageIndicator implements DamageIndicator {
     @Override
     public void display(Player attacker, Entity victim, List<Player> viewers, Context context) {
         if (!this.conditions.test(context)) return;
-        Component text = AdventureHelper.miniMessage().deserialize(this.text, context.tagResolvers());
+        Component text = AdventureHelper.deserialize(this.text, context);
         Object aabb = EntityProxy.INSTANCE.getBoundingBox(victim.minecraftEntity());
         double width = AABBProxy.INSTANCE.getMaxX(aabb) - AABBProxy.INSTANCE.getMinX(aabb);
         double depth = AABBProxy.INSTANCE.getMaxZ(aabb) - AABBProxy.INSTANCE.getMinZ(aabb);

@@ -1,14 +1,12 @@
 package net.momirealms.craftengine.core.plugin.context;
 
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.pointer.Pointered;
 
 import java.util.Optional;
 
-public interface Context {
+public interface Context extends Pointered {
 
     ContextHolder contexts();
-
-    TagResolver[] tagResolvers();
 
     <T> Optional<T> getOptionalParameter(ContextKey<T> parameter);
 

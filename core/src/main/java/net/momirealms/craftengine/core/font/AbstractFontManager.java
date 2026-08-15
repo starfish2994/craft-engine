@@ -175,12 +175,12 @@ public abstract class AbstractFontManager implements FontManager {
             Emoji emoji = this.emojiMapper.get(fragment);
             if (emoji == null || (player != null && emoji.permission() != null && !player.hasPermission(emoji.permission())))
                 continue;
-            Component content = AdventureHelper.miniMessage().deserialize(
+            Component content = AdventureHelper.deserialize(
                     emoji.content(useCase),
                     PlayerOptionalContext.of(player, ContextHolder.builder()
                             .withOptionalParameter(EmojiParameters.EMOJI, emoji.emojiImage())
                             .withParameter(EmojiParameters.KEYWORD, emoji.keywords().get(0))
-                    ).tagResolvers()
+                    )
             );
             replacements.put(fragment, AdventureHelper.componentToMiniMessage(content));
         }
@@ -221,12 +221,12 @@ public abstract class AbstractFontManager implements FontManager {
             Emoji emoji = this.emojiMapper.get(fragment);
             if (emoji == null || (player != null && emoji.permission() != null && !player.hasPermission(emoji.permission())))
                 continue;
-            emojis.put(fragment, AdventureHelper.miniMessage().deserialize(
+            emojis.put(fragment, AdventureHelper.deserialize(
                     emoji.content(useCase),
                     PlayerOptionalContext.of(player, ContextHolder.builder()
                             .withOptionalParameter(EmojiParameters.EMOJI, emoji.emojiImage())
                             .withParameter(EmojiParameters.KEYWORD, emoji.keywords().getFirst())
-                    ).tagResolvers())
+                    ))
             );
             if (emojis.size() >= maxTimes) break;
         }
@@ -253,12 +253,12 @@ public abstract class AbstractFontManager implements FontManager {
             Emoji emoji = this.emojiMapper.get(token.getFragment());
             if (emoji == null || (player != null && emoji.permission() != null && !player.hasPermission(Objects.requireNonNull(emoji.permission()))))
                 continue;
-            emojis.put(fragment, AdventureHelper.miniMessage().deserialize(
+            emojis.put(fragment, AdventureHelper.deserialize(
                     emoji.content(useCase),
                     PlayerOptionalContext.of(player, ContextHolder.builder()
                             .withOptionalParameter(EmojiParameters.EMOJI, emoji.emojiImage())
                             .withParameter(EmojiParameters.KEYWORD, emoji.keywords().getFirst())
-                    ).tagResolvers()
+                    )
             ));
             if (emojis.size() >= maxTimes) break;
         }

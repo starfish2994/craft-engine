@@ -180,15 +180,6 @@ public final class Dependencies {
             .visibility(DependencyVisibility.PUBLIC)
             .build();
 
-    public static final Dependency MINIMESSAGE = Dependency.of("adventure-text-minimessage", "net{}kyori", "adventure-text-minimessage")
-            .versionKey("adventure-api")
-            .relocations(
-                    Relocation.of("option", "net{}kyori{}option"),
-                    Relocation.of("adventure", "net{}kyori{}adventure")
-            )
-            .visibility(DependencyVisibility.PUBLIC)
-            .build();
-
     public static final Dependency TEXT_SERIALIZER_COMMONS = Dependency.of("adventure-text-serializer-commons", "net{}kyori", "adventure-text-serializer-commons")
             .versionKey("adventure-api")
             .relocations(

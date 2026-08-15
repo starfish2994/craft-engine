@@ -1,16 +1,21 @@
 package net.momirealms.craftengine.core.plugin.text.minimessage;
 
-import net.momirealms.craftengine.core.plugin.context.Context;
-import org.jetbrains.annotations.NotNull;
+import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.context.ViewerContext;
+import org.jetbrains.annotations.Nullable;
 
 public final class ViewerPlaceholderTag extends PlaceholderTag {
+    public static final ViewerPlaceholderTag INSTANCE = new ViewerPlaceholderTag();
 
-    public ViewerPlaceholderTag(@NotNull Context player) {
-        super(player);
+    private ViewerPlaceholderTag() {
+        super("viewer_papi");
     }
 
     @Override
-    public boolean has(@NotNull String name) {
-        return "viewer_papi".equals(name);
+    protected @Nullable Player playerFor(net.momirealms.craftengine.core.plugin.context.Context context) {
+        if (context instanceof ViewerContext viewerContext) {
+            return viewerContext.viewer().player();
+        }
+        return null;
     }
 }

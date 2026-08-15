@@ -17,8 +17,11 @@ import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.plugin.network.EntityPacketHandler;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
-import net.momirealms.craftengine.core.plugin.text.minimessage.CustomTagResolver;
-import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.plugin.text.minimessage.DropDisplayNameTag;
+import net.momirealms.craftengine.core.util.AdventureHelper;
+import net.momirealms.craftengine.core.util.FriendlyByteBuf;
+import net.momirealms.craftengine.core.util.LegacyChatFormatter;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.score.TeamManagerImpl;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacketProxy;
@@ -72,8 +75,6 @@ public final class ItemPacketHandler implements EntityPacketHandler {
 
                 // 如果设定了自定义展示名
                 if (showName != null) {
-                    PlayerOptionalContext context = NetworkTextReplaceContext.of(user, ContextHolder.builder()
-                            .withParameter(DirectContextParameters.COUNT, itemStack.getAmount()));
                     Optional<Component> optionalHoverComponent = wrappedItem.hoverNameComponent();
                     Component hoverComponent;
                     if (optionalHoverComponent.isPresent()) {
@@ -81,16 +82,16 @@ public final class ItemPacketHandler implements EntityPacketHandler {
                     } else {
                         hoverComponent = Component.translatable(ItemStackUtils.getDescriptionId(itemStack));
                     }
+                    PlayerOptionalContext context = NetworkTextReplaceContext.of(user, ContextHolder.builder()
+                            .withParameter(DirectContextParameters.COUNT, itemStack.getAmount())
+                            .withParameter(DirectContextParameters.HOVER_COMPONENT, hoverComponent));
                     // 展示名称为空，则显示其hover name
                     if (showName.isEmpty()) {
                         nameToShow = hoverComponent;
                     }
                     // 显示自定义格式的名字
                     else {
-                        nameToShow = AdventureHelper.miniMessage().deserialize(
-                                showName,
-                                ArrayUtils.appendElementToArrayTail(context.tagResolvers(), new CustomTagResolver("name", hoverComponent))
-                        );
+                        nameToShow = AdventureHelper.deserialize(showName, context, DropDisplayNameTag.INSTANCE);
                     }
                 }
                 break;

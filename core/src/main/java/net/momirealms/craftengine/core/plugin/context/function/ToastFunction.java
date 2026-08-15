@@ -35,11 +35,11 @@ public final class ToastFunction<CTX extends Context> extends AbstractConditiona
     @Override
     public void runInternal(CTX ctx) {
         if (this.selector == null) {
-            ctx.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(it -> it.sendToast(AdventureHelper.miniMessage().deserialize(this.toast, ctx.tagResolvers()), this.icon.apply(it), this.advancementType));
+            ctx.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(it -> it.sendToast(AdventureHelper.deserialize(this.toast, ctx), this.icon.apply(it), this.advancementType));
         } else {
             for (Player viewer : this.selector.get(ctx)) {
                 RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
-                viewer.sendToast(AdventureHelper.miniMessage().deserialize(this.toast, relationalContext.tagResolvers()), this.icon.apply(viewer), this.advancementType);
+                viewer.sendToast(AdventureHelper.deserialize(this.toast, relationalContext), this.icon.apply(viewer), this.advancementType);
             }
         }
     }

@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.parameter;
 
+import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.Entity;
@@ -35,6 +36,7 @@ public final class DirectContextParameters {
     public static final ContextKey<Position> COORDINATE = ContextKey.direct("coordinate");
     public static final ContextKey<WorldPosition> POSITION = ContextKey.direct("position");
     public static final ContextKey<String> NAME = ContextKey.direct("name");
+    public static final ContextKey<Component> HOVER_COMPONENT = ContextKey.direct("hover_component");
     public static final ContextKey<Double> X = ContextKey.direct("x");
     public static final ContextKey<Double> Y = ContextKey.direct("y");
     public static final ContextKey<Double> Z = ContextKey.direct("z");

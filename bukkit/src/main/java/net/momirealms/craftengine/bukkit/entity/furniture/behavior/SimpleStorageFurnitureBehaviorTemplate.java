@@ -215,7 +215,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
                     this.furniture.world().playSound(this.furniture.position(), sound.id(), sound.volume().get(), sound.pitch().get(), SoundSource.MASTER);
                 }
             }
-            new BukkitInventory(this.inventory).open(player, AdventureHelper.miniMessage().deserialize(this.template.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
+            new BukkitInventory(this.inventory).open(player, AdventureHelper.deserialize(this.template.containerTitle, PlayerOptionalContext.of(player)));
         }
 
         public void onPlayerClose(Player player) {

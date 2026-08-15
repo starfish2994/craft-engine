@@ -1,11 +1,9 @@
 package net.momirealms.craftengine.core.item.network;
 
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
-import net.momirealms.craftengine.core.plugin.text.minimessage.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,11 +35,5 @@ public class NetworkItemBuildContext extends ItemBuildContext {
     public static NetworkItemBuildContext of(@Nullable Player player) {
         if (player == null) return new NetworkItemBuildContext(null, ContextHolder.empty());
         return new NetworkItemBuildContext(player, ContextHolder.mutable(Map.of(DirectContextParameters.PLAYER, () -> player)));
-    }
-
-    @NotNull
-    protected TagResolver[] getInternalTagResolvers() {
-        return new TagResolver[]{ShiftTag.INSTANCE, ImageTag.INSTANCE, I18NTag.INSTANCE, new NetworkL10NTag(this), new NamedArgumentTag(this),
-                new PlaceholderTag(this), ExpressionTag.INSTANCE, GlobalVariableTag.INSTANCE};
     }
 }

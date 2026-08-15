@@ -1,3 +1,4 @@
+import net.momirealms.adventure
 import net.momirealms.nbt
 import net.momirealms.netty
 import net.momirealms.paperServer
@@ -23,6 +24,7 @@ dependencies {
     paperServer(project)
     nbt(project)
     netty(project)
+    adventure(project)
 
     compileOnly(project(":core"))
     compileOnly(project(":bukkit"))

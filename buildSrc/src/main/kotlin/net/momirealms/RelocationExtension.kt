@@ -9,6 +9,7 @@ open class RelocationExtension {
             relocate("net.kyori", libs)
             relocate("net.momirealms.sparrow.reflection", "$libs.reflection")
             relocate("net.momirealms.sparrow.nbt", "$libs.nbt")
+            relocate("net.momirealms.sparrow.message", "$libs.message")
             relocate("net.momirealms.antigrieflib", "$libs.antigrieflib")
             relocate("cn.gtemc.itembridge", "$libs.itembridge")
             relocate("cn.gtemc.levelerbridge", "$libs.levelerbridge")

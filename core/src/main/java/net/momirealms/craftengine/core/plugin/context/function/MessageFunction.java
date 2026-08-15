@@ -31,14 +31,14 @@ public final class MessageFunction<CTX extends Context> extends AbstractConditio
         if (this.selector == null) {
             ctx.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(it -> {
                 for (String c : this.messages) {
-                    it.sendMessage(AdventureHelper.miniMessage().deserialize(c, ctx.tagResolvers()), this.overlay);
+                    it.sendMessage(AdventureHelper.deserialize(c, ctx), this.overlay);
                 }
             });
         } else {
             for (Player viewer : this.selector.get(ctx)) {
                 RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
                 for (String c : this.messages) {
-                    viewer.sendMessage(AdventureHelper.miniMessage().deserialize(c, relationalContext.tagResolvers()), this.overlay);
+                    viewer.sendMessage(AdventureHelper.deserialize(c, relationalContext), this.overlay);
                 }
             }
         }

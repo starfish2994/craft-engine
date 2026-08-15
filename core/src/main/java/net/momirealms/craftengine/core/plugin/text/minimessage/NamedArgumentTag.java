@@ -1,32 +1,30 @@
 package net.momirealms.craftengine.core.plugin.text.minimessage;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.ParsingException;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.sparrow.message.ParsingException;
+import net.momirealms.sparrow.message.tag.Tag;
+import net.momirealms.sparrow.message.tag.resolver.ArgumentQueue;
+import net.momirealms.sparrow.message.tag.resolver.StaticTagResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.Optional;
 
-public class NamedArgumentTag implements TagResolver {
-    private final Context context;
+public class NamedArgumentTag extends StaticTagResolver {
+    public static final NamedArgumentTag INSTANCE = new NamedArgumentTag("arg");
 
-    public NamedArgumentTag(@NotNull Context context) {
-        this.context = Objects.requireNonNull(context, "context holder");
+    protected NamedArgumentTag(String name) {
+        super(name);
     }
 
     @Override
-    public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull net.kyori.adventure.text.minimessage.Context ctx) throws ParsingException {
-        if (!has(name)) {
+    public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull net.momirealms.sparrow.message.Context ctx) throws ParsingException {
+        if (!(ctx.target() instanceof net.momirealms.craftengine.core.plugin.context.Context context)) {
             return null;
         }
         ContextKey<?> key = ContextKey.chain(arguments.popOr("No argument key provided").toString());
-        Optional<?> optional = this.context.getOptionalParameter(key);
+        Optional<?> optional = parameter(context, key);
         Object value = optional.orElse(null);
         if (value == null) {
             value = arguments.popOr("No default value provided").toString();
@@ -37,8 +35,7 @@ public class NamedArgumentTag implements TagResolver {
         return Tag.selfClosingInserting(ctx.deserialize(String.valueOf(value)));
     }
 
-    @Override
-    public boolean has(@NotNull String name) {
-        return name.equals("arg");
+    protected Optional<?> parameter(net.momirealms.craftengine.core.plugin.context.Context context, ContextKey<?> key) {
+        return context.getOptionalParameter(key);
     }
 }
