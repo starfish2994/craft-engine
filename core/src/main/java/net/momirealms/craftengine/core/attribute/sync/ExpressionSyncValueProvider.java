@@ -11,15 +11,14 @@ public record ExpressionSyncValueProvider(Expression expression) implements Sync
 
     @Override
     public double resolve(double value, double base) {
-        synchronized (this.expression) {
-            this.expression.with("value", value);
-            this.expression.with("base", base);
-            try {
-                return this.expression.evaluate().getNumberValue().doubleValue();
-            } catch (EvaluationException | ParseException e) {
-                CraftEngine.instance().logger().warn("Failed to evaluate sync value expression: " + e.getMessage());
-                return 0;
-            }
+        try {
+            return this.expression.copy()
+                    .with("value", value)
+                    .with("base", base)
+                    .evaluate().getNumberValue().doubleValue();
+        } catch (EvaluationException | ParseException e) {
+            CraftEngine.instance().logger().warn("Failed to evaluate sync value expression: " + e.getMessage());
+            return 0;
         }
     }
 }

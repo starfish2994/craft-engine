@@ -37,7 +37,6 @@ public final class AdventureHelper {
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
     private final MiniMessage miniMessageForSerialize;
-    private final MiniMessage miniMessageForExpression;
     private volatile MiniMessage miniMessage;
     private volatile MiniMessage customMiniMessage;
     private final GsonComponentSerializer gsonComponentSerializer;
@@ -51,7 +50,6 @@ public final class AdventureHelper {
 
     private AdventureHelper() {
         this.miniMessageForSerialize = MiniMessage.builder().strict(true).build();
-        this.miniMessageForExpression = MiniMessage.builder().tags(TagResolver.resolver(CraftEngineTags.EXPRESSION)).build();
         rebuildMiniMessages();
         GsonComponentSerializer.Builder gsonBuilder = GsonComponentSerializer.builder();
         if (!VersionHelper.isOrAbove1_20_5) {
@@ -96,10 +94,6 @@ public final class AdventureHelper {
 
     public static MiniMessage customMiniMessage() {
         return getInstance().customMiniMessage;
-    }
-
-    public static MiniMessage expressionMiniMessage() {
-        return getInstance().miniMessageForExpression;
     }
 
     public static Component deserialize(String input, Context context) {

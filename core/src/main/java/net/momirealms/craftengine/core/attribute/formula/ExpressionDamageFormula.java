@@ -70,15 +70,14 @@ public class ExpressionDamageFormula implements DamageFormula {
 
     @Override
     public double getValue(DamageEvent event) {
-        synchronized (this.expression) {
+        try {
+            final Expression instance = this.expression.copy();
             for (VariableBinding binding : this.bindings) {
-                this.expression.with(binding.name(), binding.resolve(event));
+                instance.with(binding.name(), binding.resolve(event));
             }
-            try {
-                return this.expression.evaluate().getNumberValue().doubleValue();
-            } catch (EvaluationException | ParseException e) {
-                throw new RuntimeException("Failed to evaluate damage formula: " + this.rawExpression, e);
-            }
+            return instance.evaluate().getNumberValue().doubleValue();
+        } catch (EvaluationException | ParseException e) {
+            throw new RuntimeException("Failed to evaluate damage formula: " + this.rawExpression, e);
         }
     }
 

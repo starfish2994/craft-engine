@@ -11,15 +11,7 @@ public final class CraftEngineTags {
             L10NTag.INSTANCE,
             ExpressionTag.INSTANCE,
             GlobalVariableTag.INSTANCE,
-            NamedArgumentTag.INSTANCE,
-            ViewerNamedArgumentTag.INSTANCE,
-            PlaceholderTag.INSTANCE,
-            ViewerPlaceholderTag.INSTANCE,
-            RelationalPlaceholderTag.INSTANCE,
-    };
-    public static final TagResolver[] EXPRESSION = new TagResolver[] {
-            ExpressionTag.INSTANCE,
-            GlobalVariableTag.INSTANCE,
+            RandomTag.INSTANCE,
             NamedArgumentTag.INSTANCE,
             ViewerNamedArgumentTag.INSTANCE,
             PlaceholderTag.INSTANCE,

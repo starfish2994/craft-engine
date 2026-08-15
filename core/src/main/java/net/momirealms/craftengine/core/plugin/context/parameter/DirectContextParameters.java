@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.plugin.context.NamedRandoms;
 import net.momirealms.craftengine.core.util.Cancellable;
 import net.momirealms.craftengine.core.util.GameEdition;
 import net.momirealms.craftengine.core.util.Key;
@@ -23,8 +24,7 @@ import java.util.UUID;
 public final class DirectContextParameters {
     private DirectContextParameters() {}
 
-    public static final ContextKey<Double> RANDOM = ContextKey.direct("random");
-    public static final ContextKey<Double> LAST_RANDOM = ContextKey.direct("last_random");
+    public static final ContextKey<NamedRandoms> RANDOM = ContextKey.direct("random");
     public static final ContextKey<World> WORLD = ContextKey.direct("world");
     public static final ContextKey<Item> FURNITURE_ITEM = ContextKey.direct("furniture_item");
     public static final ContextKey<Item> ITEM_IN_HAND = ContextKey.direct("item_in_hand");

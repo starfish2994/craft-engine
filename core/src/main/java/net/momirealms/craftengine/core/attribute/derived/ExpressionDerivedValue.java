@@ -56,15 +56,14 @@ public final class ExpressionDerivedValue implements DerivedValue {
 
     @Override
     public double evaluate(Function<Attribute, Double> resolver) {
-        synchronized (this.expression) {
+        try {
+            final Expression instance = this.expression.copy();
             for (VariableRef variable : this.variables) {
-                this.expression.with(variable.name, resolver.apply(variable.attribute));
+                instance.with(variable.name, resolver.apply(variable.attribute));
             }
-            try {
-                return this.expression.evaluate().getNumberValue().doubleValue();
-            } catch (EvaluationException | ParseException | ArithmeticException e) {
-                throw new RuntimeException("Failed to evaluate derived attribute expression: " + this.rawExpression, e);
-            }
+            return instance.evaluate().getNumberValue().doubleValue();
+        } catch (EvaluationException | ParseException | ArithmeticException e) {
+            throw new RuntimeException("Failed to evaluate derived attribute expression: " + this.rawExpression, e);
         }
     }
 

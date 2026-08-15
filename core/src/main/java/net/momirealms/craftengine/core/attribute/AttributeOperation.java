@@ -33,26 +33,24 @@ public interface AttributeOperation {
     }
 
     static AttributeOperation expression(Key id, String rawExpression) {
-        Expression expression = new Expression(rawExpression);
+        Expression template = new Expression(rawExpression);
         try {
-            expression.with("base", 0d).with("current", 0d).with("amount", 0d).evaluate();
+            template.copy().with("base", 0d).with("current", 0d).with("amount", 0d).evaluate();
         } catch (EvaluationException | ParseException e) {
             throw new KnownResourceException("attribute.operation.invalid_expression", id.asString(), rawExpression);
         } catch (ArithmeticException ignored) {
             // 零值探针触发的数学域错误（如除零）不代表表达式非法
         }
         return of(id, (base, current, amount) -> {
-            synchronized (expression) {
-                try {
-                    return expression
-                            .with("base", base)
-                            .with("current", current)
-                            .with("amount", amount)
-                            .evaluate().getNumberValue().doubleValue();
-                } catch (EvaluationException | ParseException | ArithmeticException e) {
-                    CraftEngine.instance().logger().warn("Failed to evaluate attribute operation '" + id.asString() + "': " + rawExpression + " (" + e.getMessage() + ")");
-                    return current;
-                }
+            try {
+                return template.copy()
+                        .with("base", base)
+                        .with("current", current)
+                        .with("amount", amount)
+                        .evaluate().getNumberValue().doubleValue();
+            } catch (EvaluationException | ParseException | ArithmeticException e) {
+                CraftEngine.instance().logger().warn("Failed to evaluate attribute operation '" + id.asString() + "': " + rawExpression + " (" + e.getMessage() + ")");
+                return current;
             }
         });
     }

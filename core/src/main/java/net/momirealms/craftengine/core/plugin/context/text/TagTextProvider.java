@@ -1,15 +1,13 @@
 package net.momirealms.craftengine.core.plugin.context.text;
 
-import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.plugin.context.Context;
-import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.Key;
 
 public final class TagTextProvider implements TextProvider {
-    private final String text;
+    private final StringTemplate template;
 
     public TagTextProvider(String text) {
-        this.text = text;
+        this.template = StringTemplate.of(text);
     }
 
     public static TagTextProvider of(String text) {
@@ -18,8 +16,7 @@ public final class TagTextProvider implements TextProvider {
 
     @Override
     public String get(Context context) {
-        Component resultComponent = AdventureHelper.expressionMiniMessage().deserialize(this.text, context);
-        return AdventureHelper.plainTextContent(resultComponent);
+        return this.template.render(context);
     }
 
     @Override

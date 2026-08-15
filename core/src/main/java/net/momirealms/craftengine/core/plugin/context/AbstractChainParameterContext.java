@@ -1,17 +1,11 @@
 package net.momirealms.craftengine.core.plugin.context;
 
-import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractChainParameterContext extends AbstractCommonContext {
 
     public AbstractChainParameterContext(ContextHolder contexts) {
         super(contexts);
-    }
-
-    public AbstractChainParameterContext(ContextHolder contexts,
-                                         List<AdditionalParameterProvider> additionalParameterProviders) {
-        super(contexts, additionalParameterProviders);
     }
 
     @Override

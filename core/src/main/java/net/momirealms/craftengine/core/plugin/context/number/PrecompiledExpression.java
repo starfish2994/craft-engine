@@ -5,7 +5,10 @@ import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.data.EvaluationValue;
 import com.ezylang.evalex.parser.ParseException;
 import net.momirealms.craftengine.core.plugin.context.Context;
+import net.momirealms.craftengine.core.plugin.context.text.StringTags;
 import net.momirealms.craftengine.core.util.AdventureHelper;
+import net.momirealms.craftengine.core.plugin.context.text.StringTags;
+import net.momirealms.craftengine.core.plugin.context.text.StringTemplates;
 import net.momirealms.craftengine.core.util.ThrowableUtils;
 import net.momirealms.sparrow.message.internal.parser.Token;
 import net.momirealms.sparrow.message.internal.parser.TokenParser;
@@ -22,7 +25,7 @@ public final class PrecompiledExpression {
     private final List<String> tagSnippets;
 
     public PrecompiledExpression(String expression) {
-        this(expression, name -> AdventureHelper.expressionMiniMessage().tags().has(name));
+        this(expression, StringTags::has);
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -69,7 +72,7 @@ public final class PrecompiledExpression {
     }
 
     public EvaluationValue evaluate(Context context) {
-        return evaluate(snippet -> AdventureHelper.plainTextContent(AdventureHelper.expressionMiniMessage().deserialize(snippet, context)));
+        return evaluate(snippet -> StringTemplates.render(snippet, context));
     }
 
     public EvaluationValue evaluate(Function<String, String> snippetEvaluator) {

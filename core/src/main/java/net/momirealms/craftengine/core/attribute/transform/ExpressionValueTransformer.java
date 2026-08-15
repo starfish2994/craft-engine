@@ -10,14 +10,13 @@ public record ExpressionValueTransformer(Expression expression) implements Value
 
     @Override
     public double transform(double value) {
-        synchronized (this.expression) {
-            this.expression.with("value", value);
-            try {
-                return this.expression.evaluate().getNumberValue().doubleValue();
-            } catch (EvaluationException | ParseException e) {
-                CraftEngine.instance().logger().warn("Failed to evaluate value transformer expression: " + e.getMessage());
-                return value;
-            }
+        try {
+            return this.expression.copy()
+                    .with("value", value)
+                    .evaluate().getNumberValue().doubleValue();
+        } catch (EvaluationException | ParseException e) {
+            CraftEngine.instance().logger().warn("Failed to evaluate value transformer expression: " + e.getMessage());
+            return value;
         }
     }
 }

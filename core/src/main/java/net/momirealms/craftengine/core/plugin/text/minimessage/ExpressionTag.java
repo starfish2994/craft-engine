@@ -18,11 +18,11 @@ import java.util.concurrent.TimeUnit;
 
 public final class ExpressionTag extends StaticTagResolver {
     public static final TagResolver INSTANCE = new ExpressionTag();
-    private static final Cache<String, PrecompiledExpression> CACHE = Caffeine.newBuilder()
+    public static final Cache<String, PrecompiledExpression> CACHE = Caffeine.newBuilder()
             .maximumSize(256)
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
-    private static final Cache<String, FastDecimalFormat> FORMAT_CACHE = Caffeine.newBuilder()
+    public static final Cache<String, FastDecimalFormat> FORMAT_CACHE = Caffeine.newBuilder()
             .maximumSize(64)
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();

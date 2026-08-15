@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.network;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.momirealms.craftengine.core.font.BitmapImage;
 import net.momirealms.craftengine.core.font.Image;
 import net.momirealms.craftengine.core.font.OffsetFont;
@@ -144,7 +145,7 @@ public abstract class AbstractNetworkManager implements NetworkManager {
                     if (NETWORK_TAGS.contains(sanitized)) {
                         String tag = text.substring(token.startIndex(), token.endIndex());
                         if (tags == null) {
-                            tags = new HashMap<>(4);
+                            tags = new Object2ObjectOpenHashMap<>(4);
                         }
                         tags.computeIfAbsent(tag, k -> {
                             ComponentProvider provider = this.networkTagMapper.get(k);

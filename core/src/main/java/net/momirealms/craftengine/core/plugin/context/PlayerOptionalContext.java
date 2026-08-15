@@ -5,7 +5,6 @@ import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextPar
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
 
 public class PlayerOptionalContext extends AbstractChainParameterContext implements PlayerContext {
@@ -16,13 +15,6 @@ public class PlayerOptionalContext extends AbstractChainParameterContext impleme
     public PlayerOptionalContext(@Nullable Player player,
                                  @NotNull ContextHolder contexts) {
         super(contexts);
-        this.player = player;
-    }
-
-    public PlayerOptionalContext(@Nullable Player player,
-                                 @NotNull ContextHolder contexts,
-                                 List<AdditionalParameterProvider> additionalParameterProviders) {
-        super(contexts, additionalParameterProviders);
         this.player = player;
     }
 
