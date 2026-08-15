@@ -102,6 +102,14 @@ public final class StringTags {
             }
             return parsed.contains("<") ? StringTemplates.render(parsed, context) : parsed;
         });
+        register("global", (args, context) -> {
+            String id = requireArg(args, 0, "No argument variable id provided");
+            String value = CraftEngine.instance().globalVariableManager().get(id);
+            if (value == null) {
+                throw new IllegalArgumentException("Unknown variable: " + id);
+            }
+            return StringTemplates.render(value, context);
+        });
         register("random", (args, context) -> {
             String id = requireArg(args, 0, "No random id provided");
             final double value;
