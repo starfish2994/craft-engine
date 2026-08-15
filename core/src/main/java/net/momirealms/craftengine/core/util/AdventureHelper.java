@@ -114,10 +114,10 @@ public final class AdventureHelper {
 
     private void rebuildMiniMessages() {
         final TagResolver[] externals = externalTagResolvers();
-        // standard tags + CraftEngine tags + external plugin tags, compiled once per rebuild
+        // standard tags + CraftEngine tags + external plugin tags
         this.miniMessage = MiniMessage.builder().tags(TagResolver.resolver(ArrayUtils.merge(ArrayUtils.merge(CraftEngineTags.INTERNAL, CraftEngineTags.STANDARD), externals))).build();
-        // CraftEngine + external tags only, no standard formatting tags (plain-text resolution, stripTags detection)
-        this.miniMessageCustom = MiniMessage.builder().tags(TagResolver.resolver(ArrayUtils.merge(CraftEngineTags.INTERNAL, externals))).build();
+        // CraftEngine + external tags only, no standard formatting tags
+        this.miniMessageCustom = MiniMessage.builder().tags(TagResolver.resolver(ArrayUtils.merge(ArrayUtils.merge(CraftEngineTags.INTERNAL, externals), CraftEngineTags.SPECIAL_STANDARD))).build();
     }
 
     private static TagResolver[] externalTagResolvers() {

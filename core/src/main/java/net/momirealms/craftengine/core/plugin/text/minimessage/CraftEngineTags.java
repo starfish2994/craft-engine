@@ -23,6 +23,11 @@ public final class CraftEngineTags {
             ViewerPlaceholderTag.INSTANCE,
             RelationalPlaceholderTag.INSTANCE,
     };
+    public static final TagResolver[] SPECIAL_STANDARD = new TagResolver[] {
+            HoverTag.RESOLVER,
+            ClickTag.RESOLVER,
+            SequentialHeadTag.RESOLVER
+    };
     public static final TagResolver[] STANDARD = new TagResolver[] {
             HoverTag.RESOLVER,
             ClickTag.RESOLVER,
