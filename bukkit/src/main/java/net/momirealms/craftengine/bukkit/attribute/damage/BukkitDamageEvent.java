@@ -125,7 +125,7 @@ public final class BukkitDamageEvent implements DamageEvent {
         if (this.activeWeaponModifiers == null) {
             this.activeWeaponModifiers = this.manager.getItemAttributeModifiers(weapon);
         }
-        return AttributeModifiers.weaponValue(this.activeWeaponModifiers, attribute, this.attackerContext);
+        return AttributeModifiers.weaponValue(this.activeWeaponModifiers, attribute, this.attackerContext, weapon);
     }
 
     @Nullable

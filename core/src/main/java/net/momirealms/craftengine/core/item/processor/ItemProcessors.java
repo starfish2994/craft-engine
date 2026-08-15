@@ -64,6 +64,8 @@ public final class ItemProcessors {
     public static final ItemProcessorType<WrittenBookTagsProcessor> PROCESS_WRITTEN_BOOK_TAGS = register(Key.ce("process_written_book_tags"), WrittenBookTagsProcessor.FACTORY);
     public static final ItemProcessorType<WrittenBookContentProcessor> WRITTEN_BOOK_CONTENT = register(Key.ce("written_book_content"), WrittenBookContentProcessor.FACTORY, VersionHelper.COMPONENT_RELEASE);
     public static final ItemProcessorType<PaintingVariantProcessor> PAINTING_VARIANT = register(Key.ce("painting_variant"), PaintingVariantProcessor.FACTORY);
+    public static final ItemProcessorType<RandomValuesProcessor> RANDOM_VALUES = register(Key.ce("random_values"), RandomValuesProcessor.FACTORY);
+    public static final ItemProcessorType<RandomValuesProcessor> RANDOMS = register(Key.ce("randoms"), RandomValuesProcessor.FACTORY);
 
     public static <T extends ItemProcessor> ItemProcessorType<T> register(Key key, ItemProcessorFactory<T> factory) {
         ItemProcessorType<T> type = new ItemProcessorType<>(key, factory);

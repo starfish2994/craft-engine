@@ -59,7 +59,7 @@ public interface AttributeManager extends Manageable {
 
     default double getWeaponAttributeValue(@Nullable Item weapon, Attribute attribute, Context context) {
         if (weapon == null || weapon.isEmpty()) return 0;
-        return AttributeModifiers.weaponValue(getItemAttributeModifiers(weapon), attribute, context);
+        return AttributeModifiers.weaponValue(getItemAttributeModifiers(weapon), attribute, context, weapon);
     }
 
     default void refreshEquipments(LivingEntity entity) {

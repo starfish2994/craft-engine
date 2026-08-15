@@ -6,7 +6,9 @@ import net.momirealms.craftengine.core.attribute.equipment.EquipmentSetSlot;
 import net.momirealms.craftengine.core.attribute.modifier.AttributeModifierConfig;
 import net.momirealms.craftengine.core.attribute.modifier.AttributeModifierScope;
 import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.Context;
+import net.momirealms.craftengine.core.plugin.context.number.ItemBoundNumberProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,18 +34,22 @@ public final class AttributeModifiers {
         return attributeModifiers;
     }
 
-    // 武器口径现算：仅 weapon 作用域的修饰符，从 0 起走该属性自己的运算管线
-    // "使用中"语义高于物理槽位，忽略 slot 过滤
-    public static double weaponValue(List<SlotAttributeModifierConfig> modifiers, Attribute attribute, Context context) {
+    public static double weaponValue(List<SlotAttributeModifierConfig> modifiers, Attribute attribute, Context context, Item item) {
         double value = 0;
+        Context boundContext = null;
         for (AttributeOperation operation : attribute.operations()) {
             double phaseBase = value;
             for (SlotAttributeModifierConfig config : modifiers) {
                 if (config.scope != AttributeModifierScope.WEAPON) continue;
                 if (!config.attribute.equals(attribute.id())) continue;
                 if (!config.operation.equals(operation.id())) continue;
-                if (!config.condition.test(context)) continue;
-                value = operation.apply(phaseBase, value, config.amount.getDouble(context));
+                Context ctx = context;
+                if (config.dynamic) {
+                    if (boundContext == null) boundContext = ItemBoundNumberProvider.bind(context, item);
+                    ctx = boundContext;
+                }
+                if (!config.condition.test(ctx)) continue;
+                value = operation.apply(phaseBase, value, config.amount.getDouble(ctx));
             }
         }
         return attribute.limit(value);

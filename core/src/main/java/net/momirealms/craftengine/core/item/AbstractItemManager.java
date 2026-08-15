@@ -86,6 +86,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         CustomDataSerializers.registerSerializer(FurnitureDebugStickData.class, FurnitureDebugStickDataSerializer.INSTANCE);
         CustomDataSerializers.registerSerializer(BlockDebugStickData.class, BlockDebugStickDataSerializer.INSTANCE);
         CustomDataSerializers.registerSerializer(ItemAttributeModifiersData.class, ItemAttributeModifiersDataSerializer.INSTANCE);
+        CustomDataSerializers.registerSerializer(ItemRandomValuesData.class, ItemRandomValuesDataSerializer.INSTANCE);
     }
 
     protected static void registerVanillaItemExtraBehavior(ItemBehavior behavior, Key... items) {
