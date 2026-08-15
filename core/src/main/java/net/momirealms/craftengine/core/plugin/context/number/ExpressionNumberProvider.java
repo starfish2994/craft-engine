@@ -32,12 +32,6 @@ public final class ExpressionNumberProvider implements NumberProvider {
         return this.compiled.evaluate(context).getNumberValue().doubleValue();
     }
 
-    @Override
-    public boolean isConstant() {
-        // a tag-free expression is fully deterministic and cacheable
-        return !this.compiled.hasTags();
-    }
-
     private static class Factory implements NumberProviderFactory<ExpressionNumberProvider> {
 
         @Override

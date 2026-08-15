@@ -7,7 +7,7 @@ public final class StringTemplates {
     }
 
     public static String render(String raw, Context context) {
-        if (raw.indexOf('<') == -1) {
+        if (raw.indexOf('<') == -1 || raw.indexOf('>') == -1) {
             return raw;
         }
         return StringTemplate.of(raw).render(context);

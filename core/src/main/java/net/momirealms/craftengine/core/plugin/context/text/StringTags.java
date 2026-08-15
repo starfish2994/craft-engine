@@ -117,8 +117,8 @@ public final class StringTags {
         register("expr", (args, context) -> {
             String format = requireArg(args, 0, "No format provided");
             String rawExpression = requireArg(args, 1, "No expression provided");
-            PrecompiledExpression compiled = ExpressionTag.CACHE.get(rawExpression, e -> new PrecompiledExpression(e, StringTags::has));
-            Number numberValue = compiled.evaluate(snippet -> StringTemplates.render(snippet, context)).getNumberValue();
+            PrecompiledExpression compiled = ExpressionTag.CACHE.get(rawExpression, PrecompiledExpression::new);
+            Number numberValue = compiled.evaluate(context).getNumberValue();
             if (format.equals("bool")) {
                 return Boolean.toString(numberValue.doubleValue() != 0);
             }

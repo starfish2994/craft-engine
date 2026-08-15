@@ -39,7 +39,11 @@ public final class ExpressionTag extends StaticTagResolver {
         PrecompiledExpression compiled = CACHE.get(expr, PrecompiledExpression::new);
         final Number numberValue;
         try {
-            numberValue = compiled.evaluate(snippet -> AdventureHelper.plainTextContent(ctx.deserialize(snippet))).getNumberValue();
+            if (ctx.target() instanceof net.momirealms.craftengine.core.plugin.context.Context context) {
+                numberValue = compiled.evaluate(context).getNumberValue();
+            } else {
+                numberValue = compiled.evaluate().getNumberValue();
+            }
         } catch (final RuntimeException e) {
             throw ctx.newException("Invalid expression: " + expr, e, arguments);
         }
