@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.attribute.formula;
+package net.momirealms.craftengine.core.attribute.damage;
 
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;

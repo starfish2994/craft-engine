@@ -24,7 +24,7 @@ public final class SpreadingBlockBehavior extends BukkitBlockBehavior implements
     private SpreadingBlockBehavior(BlockDefinition blockDefinition,
                                    String targetBlock) {
         super(blockDefinition);
-        this.targetBlock = LazyReference.lazyReference(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(targetBlock)).minecraftState());
+        this.targetBlock = LazyReference.untilNotNull(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(targetBlock)).minecraftState());
     }
 
     @Override

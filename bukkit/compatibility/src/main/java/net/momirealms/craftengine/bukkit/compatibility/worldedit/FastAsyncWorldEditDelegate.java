@@ -70,7 +70,7 @@ final class FastAsyncWorldEditDelegate extends AbstractDelegateExtent {
     private FastAsyncWorldEditDelegate(EditSessionEvent event, Extent extent) {
         super(extent);
         this.chunksToSave = ConcurrentChainedLong2ReferenceHashTable.createWithCapacity(16);
-        this.ceWorld = LazyReference.lazyReference(() -> {
+        this.ceWorld = LazyReference.untilNotNull(() -> {
             World weWorld = event.getWorld();
             requireNonNull(weWorld, "WorldEdit world is null");
             org.bukkit.World world = Bukkit.getWorld(weWorld.getName());

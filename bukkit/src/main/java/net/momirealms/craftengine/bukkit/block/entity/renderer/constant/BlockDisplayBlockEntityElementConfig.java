@@ -192,7 +192,7 @@ public final class BlockDisplayBlockEntityElementConfig implements BlockEntityEl
             return new BlockDisplayBlockEntityElementConfig(
                     section.getNonNullValue("block", ConfigConstants.ARGUMENT_BLOCK_STATE, v -> {
                         String blockState = v.getAsString();
-                        return LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(blockState));
+                        return LazyReference.untilNotNull(() -> CraftEngine.instance().blockManager().createBlockState(blockState));
                     }),
                     section.getVector3f("scale", ConfigConstants.NORMAL_SCALE),
                     section.getVector3f("position", ConfigConstants.ZERO_VECTOR3),

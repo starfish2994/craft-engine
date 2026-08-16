@@ -8,7 +8,15 @@ import java.util.Optional;
 import java.util.function.DoubleSupplier;
 
 public final class NamedRandoms implements ChainParameterSource {
-    private final Map<String, Double> values = new Object2ObjectOpenHashMap<>(4);
+    public final Map<String, Double> values;
+
+    public NamedRandoms() {
+        this.values = new Object2ObjectOpenHashMap<>(4);
+    }
+
+    public NamedRandoms(Map<String, Double> values) {
+        this.values = values;
+    }
 
     public double getOrRoll(String id) {
         return getOrRoll(id, () -> RandomUtils.generateRandomDouble(0, 1));

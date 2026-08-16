@@ -11,7 +11,7 @@ import net.momirealms.sparrow.reflection.proxy.annotation.ConstructorInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 @ReflectionProxy(name = "net.minecraft.world.item.context.BlockPlaceContext")
 public interface BlockPlaceContextProxy {

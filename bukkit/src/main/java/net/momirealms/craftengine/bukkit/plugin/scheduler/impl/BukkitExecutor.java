@@ -8,7 +8,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 public final class BukkitExecutor extends AbstractBukkitExecutor {
     private final BukkitCraftEngine plugin;
@@ -101,7 +100,7 @@ public final class BukkitExecutor extends AbstractBukkitExecutor {
         return runLater0(r, delay);
     }
 
-    @NonNull
+    @NotNull
     private SchedulerTask runLater0(Runnable r, long delay) {
         if (delay <= 0) {
             if (Bukkit.isPrimaryThread()) {

@@ -7,11 +7,7 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.core.attribute.damage.DamageIndicator;
 import net.momirealms.craftengine.core.attribute.damage.DamageVisibility;
-import net.momirealms.craftengine.core.attribute.formula.EntityDamageContext;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.plugin.context.ContextHolder;
-import net.momirealms.craftengine.core.plugin.context.ContextKey;
-import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -23,7 +19,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public final class EntityDamageListener extends AbstractListener {
     private final BukkitAttributeManager manager;
@@ -62,19 +57,14 @@ public final class EntityDamageListener extends AbstractListener {
                 viewers.add(user);
             }
             if (viewers.isEmpty()) return;
-            ContextHolder.Builder builder = ContextHolder.builder().withParameter(DirectContextParameters.DAMAGE, e.getFinalDamage());
             if (damageEvent == null) {
                 damageEvent = new BukkitDamageEvent(this.manager, event);
-            } else {
-                for (Map.Entry<String, Double> damageParts : damageEvent.damageParts().entrySet()) {
-                    builder.withParameter(ContextKey.direct(damageParts.getKey()), damageParts.getValue());
-                }
             }
-            EntityDamageContext context = EntityDamageContext.of(damageEvent, builder);
+            damageEvent.initFinalDamage();
             net.momirealms.craftengine.core.entity.Entity coreVictim = BukkitAdaptor.adapt(victim);
             List<net.momirealms.craftengine.core.entity.player.Player> coreViewers = List.copyOf(viewers);
             for (DamageIndicator scheme : Config.damageIndicatorSchemes()) {
-                scheme.display(attackerUser, coreVictim, coreViewers, context);
+                scheme.display(attackerUser, coreVictim, coreViewers, damageEvent.context());
             }
         }
     }

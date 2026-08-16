@@ -24,7 +24,6 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,13 +71,13 @@ public final class ItemFurnitureElementConfig implements FurnitureElementConfig<
     }
 
     @Override
-    public ItemFurnitureElement create(@NotNull Furniture furniture, @NonNull ItemFurnitureElement previous) {
+    public ItemFurnitureElement create(@NotNull Furniture furniture, @NotNull ItemFurnitureElement previous) {
         Vec3d pos = getPos(furniture);
         return new ItemFurnitureElement(furniture, this, pos, previous.entityId1, previous.entityId2, !pos.equals(previous.position));
     }
 
     @Override
-    public ItemFurnitureElement createExact(@NotNull Furniture furniture, @NonNull ItemFurnitureElement previous) {
+    public ItemFurnitureElement createExact(@NotNull Furniture furniture, @NotNull ItemFurnitureElement previous) {
         Vec3d pos = getPos(furniture);
         if (!pos.equals(previous.position)) {
             return null;

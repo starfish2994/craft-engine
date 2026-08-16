@@ -66,15 +66,19 @@ public final class PrecompiledExpression {
         this.snippets = snippets;
     }
 
-    private static Object toValue(String text) {
+    private static Object toValue(Object value) {
+        if (value instanceof Number || value instanceof Boolean) {
+            return value;
+        }
+        String formatted = value.toString();
         try {
-            return Double.parseDouble(text);
+            return Double.parseDouble(formatted);
         } catch (final NumberFormatException e) {
-            return switch (text) {
+            return switch (formatted) {
                 case "true", "yes", "TRUE", "YES" -> true;
                 case "false", "no", "FALSE", "NO" -> false;
                 case "null", "NULL" -> null;
-                default -> text;
+                default -> formatted;
             };
         }
     }
@@ -102,11 +106,11 @@ public final class PrecompiledExpression {
             }
             for (int i = 0; i < this.snippets.size(); i++) {
                 final Snippet snippet = this.snippets.get(i);
-                String text = snippet.tag() != null ? snippet.tag().resolve(snippet.args(), context) : null;
-                if (text == null) {
-                    text = snippet.raw(); // unresolved tags stay literal, as in the string template engine
+                Object value = snippet.tag() != null ? snippet.tag().resolve(snippet.args(), context) : null;
+                if (value == null) {
+                    value = snippet.raw(); // unresolved tags stay literal, as in the string template engine
                 }
-                instance.with("var" + (i + 1), toValue(text));
+                instance.with("var" + (i + 1), toValue(value));
             }
             return instance.evaluate();
         } catch (final EvaluationException | ParseException e) {

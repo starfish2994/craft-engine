@@ -55,7 +55,7 @@ public final class StrippableBlockBehavior extends BukkitBlockBehavior {
                                     SoundData stripSound) {
         super(block);
         this.stripped = stripped;
-        this.lazyState = LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(this.stripped));
+        this.lazyState = LazyReference.untilNotNull(() -> CraftEngine.instance().blockManager().createBlockState(this.stripped));
         this.excludedProperties = excludedProperties;
         this.tools = tools;
         this.toolTags = toolTags;

@@ -36,7 +36,7 @@ public final class ConcretePowderBlockBehavior extends BukkitBlockBehavior imple
 
     private ConcretePowderBlockBehavior(BlockDefinition block, String targetBlock) {
         super(block);
-        this.targetBlock = LazyReference.lazyReference(() -> BlockStateParser.deserialize(targetBlock));
+        this.targetBlock = LazyReference.untilNotNull(() -> BlockStateParser.deserialize(targetBlock));
     }
 
     public Object getDefaultBlockState() {

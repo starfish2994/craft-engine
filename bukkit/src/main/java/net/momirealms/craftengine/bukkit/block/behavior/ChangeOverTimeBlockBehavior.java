@@ -32,7 +32,7 @@ public final class ChangeOverTimeBlockBehavior extends BukkitBlockBehavior imple
         this.changeSpeed = changeSpeed;
         this.nextBlock = nextBlock;
         this.excludedProperties = excludedProperties;
-        this.lazyState = LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(this.nextBlock));
+        this.lazyState = LazyReference.untilNotNull(() -> CraftEngine.instance().blockManager().createBlockState(this.nextBlock));
     }
 
     public BlockStateWrapper nextState() {

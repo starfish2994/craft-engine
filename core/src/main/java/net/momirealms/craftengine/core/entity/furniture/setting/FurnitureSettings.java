@@ -20,7 +20,7 @@ public final class FurnitureSettings {
     Map<CustomDataType<?>, Object> customData = new IdentityHashMap<>(4);
     int hitTimes;
     boolean allowBreakingInAdventureMode = false;
-    LazyReference<Set<Key>> correctTools = LazyReference.lazyReference(Set::of);
+    LazyReference<Set<Key>> correctTools = LazyReference.untilNotNull(Set::of);
 
     private FurnitureSettings() {}
 

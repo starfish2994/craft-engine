@@ -32,6 +32,7 @@ import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
+import net.momirealms.craftengine.core.plugin.context.NamedRandoms;
 import net.momirealms.craftengine.core.plugin.context.number.ConstantNumberProvider;
 import net.momirealms.craftengine.core.util.*;
 import org.incendo.cloud.suggestion.Suggestion;
@@ -86,7 +87,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         CustomDataSerializers.registerSerializer(FurnitureDebugStickData.class, FurnitureDebugStickDataSerializer.INSTANCE);
         CustomDataSerializers.registerSerializer(BlockDebugStickData.class, BlockDebugStickDataSerializer.INSTANCE);
         CustomDataSerializers.registerSerializer(ItemAttributeModifiersData.class, ItemAttributeModifiersDataSerializer.INSTANCE);
-        CustomDataSerializers.registerSerializer(ItemRandomValuesData.class, ItemRandomValuesDataSerializer.INSTANCE);
+        CustomDataSerializers.registerSerializer(NamedRandoms.class, NamedRandomsSerializer.INSTANCE);
     }
 
     protected static void registerVanillaItemExtraBehavior(ItemBehavior behavior, Key... items) {

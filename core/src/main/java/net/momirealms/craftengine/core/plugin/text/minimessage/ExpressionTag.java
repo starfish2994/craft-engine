@@ -83,7 +83,7 @@ public final class ExpressionTag extends StaticTagResolver implements StringTag 
         if (format.equals("bool")) {
             return (boundArgs, context) -> {
                 Number numberValue = (context != null ? compiled.evaluate(context) : compiled.evaluate()).getNumberValue();
-                return Boolean.toString(numberValue.doubleValue() != 0);
+                return numberValue.doubleValue() != 0;
             };
         }
         final FastDecimalFormat df = FORMAT_CACHE.get(format, FastDecimalFormat::new);

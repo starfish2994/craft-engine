@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.util;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -54,7 +54,7 @@ public class InjectedBlockEntityMap<K, V> implements Map<K, V> {
     }
 
     @Override
-    public void putAll(@NonNull Map<? extends K, ? extends V> map) {
+    public void putAll(@NotNull Map<? extends K, ? extends V> map) {
         for (Entry<? extends K, ? extends V> entry : map.entrySet()) {
             putListener.accept(entry.getValue());
         }
@@ -67,17 +67,17 @@ public class InjectedBlockEntityMap<K, V> implements Map<K, V> {
     }
 
     @Override
-    public @NonNull Set<K> keySet() {
+    public @NotNull Set<K> keySet() {
         return this.delegateMap.keySet();
     }
 
     @Override
-    public @NonNull Collection<V> values() {
+    public @NotNull Collection<V> values() {
         return this.delegateMap.values();
     }
 
     @Override
-    public @NonNull Set<Entry<K, V>> entrySet() {
+    public @NotNull Set<Entry<K, V>> entrySet() {
         return this.delegateMap.entrySet();
     }
 }

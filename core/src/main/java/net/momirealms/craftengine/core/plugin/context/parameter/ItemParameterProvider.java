@@ -1,10 +1,10 @@
 package net.momirealms.craftengine.core.plugin.context.parameter;
 
 import net.momirealms.craftengine.core.item.Item;
-import net.momirealms.craftengine.core.item.customdata.ItemRandomValueStore;
+import net.momirealms.craftengine.core.item.processor.RandomValuesProcessor;
 import net.momirealms.craftengine.core.plugin.context.ChainParameterProvider;
-import net.momirealms.craftengine.core.plugin.context.ChainParameterSource;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.plugin.context.NamedRandoms;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,31 +13,20 @@ import java.util.function.Function;
 
 public final class ItemParameterProvider implements ChainParameterProvider<Item> {
     public static final ItemParameterProvider INSTANCE = new ItemParameterProvider();
-    private static final String RANDOM_NODE = "random";
     private static final Map<ContextKey<?>, Function<Item, Object>> CONTEXT_FUNCTIONS = new HashMap<>();
+
     static {
         CONTEXT_FUNCTIONS.put(DirectContextParameters.ID, Item::id);
         CONTEXT_FUNCTIONS.put(DirectContextParameters.CUSTOM_MODEL_DATA, i -> i.customModelData().orElse(null));
         CONTEXT_FUNCTIONS.put(DirectContextParameters.IS_CUSTOM, Item::isCustomItem);
         CONTEXT_FUNCTIONS.put(DirectContextParameters.COUNT, Item::count);
         CONTEXT_FUNCTIONS.put(DirectContextParameters.IS_BLOCK_ITEM, Item::isBlockItem);
+        CONTEXT_FUNCTIONS.put(DirectContextParameters.RANDOM, item -> item.getCustomData(NamedRandoms.class, RandomValuesProcessor.TAG_PATH));
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> Optional<T> getOptionalParameter(ContextKey<T> parameter, Item item) {
-        // item.random.xxx → 物品上持久化的随机数（random_values 处理器写入）
-        if (RANDOM_NODE.equals(parameter.node()) && parameter.parent() != null) {
-            return (Optional<T>) Optional.of(new RandomValuesSource(item));
-        }
         return (Optional<T>) Optional.ofNullable(CONTEXT_FUNCTIONS.get(parameter)).map(f -> f.apply(item));
-    }
-
-    private record RandomValuesSource(Item item) implements ChainParameterSource {
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T> Optional<T> getParameter(ContextKey<T> key) {
-            return (Optional<T>) Optional.ofNullable(ItemRandomValueStore.read(this.item).get(key.node()));
-        }
     }
 }

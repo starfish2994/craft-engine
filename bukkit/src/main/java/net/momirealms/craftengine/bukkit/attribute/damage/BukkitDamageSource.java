@@ -2,7 +2,7 @@ package net.momirealms.craftengine.bukkit.attribute.damage;
 
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
-import net.momirealms.craftengine.core.attribute.formula.DamageSource;
+import net.momirealms.craftengine.core.attribute.damage.DamageSource;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.proxy.minecraft.world.damagesource.DamageSourceProxy;

@@ -84,8 +84,6 @@ dependencies {
 Some optional dependencies
 ```kotlin
 dependencies {
-    // If you want to use the shaded adventure library
-    compileOnly("net.momirealms:craft-engine-adventure:26.8")
     // This dependency is used to access certain NMS code, which is not a stable API.
     compileOnly("net.momirealms:craft-engine-bukkit-proxy:26.8")
 }

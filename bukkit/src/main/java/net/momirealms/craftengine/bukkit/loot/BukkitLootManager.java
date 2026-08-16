@@ -199,7 +199,7 @@ public final class BukkitLootManager extends AbstractLootManager {
 
     @Override
     public LootTableReference createReference(Key key) {
-        LazyReference<Loot> lazyReference = LazyReference.lazyReference(() -> {
+        LazyReference<Loot> lazyReference = LazyReference.untilNotNull(() -> {
             Optional<Loot> lootTable = BukkitLootManager.instance().getLoot(key);
             return lootTable.orElseGet(() -> new DatapackLootTable(key));
         });

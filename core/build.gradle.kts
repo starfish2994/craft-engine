@@ -30,6 +30,9 @@ dependencies {
 
 tasks.shadowJar {
     relocation.applyCommon(this)
+    val adventureBundle = project(":core:adventure").tasks.shadowJar
+    dependsOn(adventureBundle)
+    from({ zipTree(adventureBundle.get().archiveFile) })
     archiveClassifier = ""
     archiveFileName = "craft-engine-core-${rootProject.properties["project_version"]}.jar"
 }

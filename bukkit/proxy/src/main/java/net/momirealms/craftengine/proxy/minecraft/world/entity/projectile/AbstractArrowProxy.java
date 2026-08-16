@@ -20,6 +20,6 @@ public interface AbstractArrowProxy extends ProjectileProxy {
     @MethodInvoker(name = "getPickupItem")
     Object getPickupItem(Object target);
 
-    @MethodInvoker(name = "getWeaponItem", activeIf = "min_version=1.21.2")
+    @MethodInvoker(name = "getWeaponItem", activeIf = "min_version=1.21")
     Object getWeaponItem(Object target);
 }

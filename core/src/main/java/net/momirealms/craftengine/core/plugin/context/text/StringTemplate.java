@@ -61,7 +61,7 @@ public final class StringTemplate {
                 continue;
             }
             final TagCall call = (TagCall) part;
-            final String value;
+            final Object value;
             try {
                 value = call.tag.resolve(call.args, context);
             } catch (final Exception e) {

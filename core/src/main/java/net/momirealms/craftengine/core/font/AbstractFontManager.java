@@ -563,7 +563,7 @@ public abstract class AbstractFontManager implements FontManager {
                 }
                 ReferenceImage referenceImage;
                 if (special) {
-                    referenceImage = new ReferenceImage(LazyReference.lazyReference(() -> {
+                    referenceImage = new ReferenceImage(LazyReference.untilNotNull(() -> {
                         Image image = AbstractFontManager.this.imagesByValue.get(refId.value());
                         if (image instanceof BitmapImage bitmapImage) {
                             return bitmapImage;
@@ -571,7 +571,7 @@ public abstract class AbstractFontManager implements FontManager {
                         return DummyImage.INSTANCE;
                     }), refId, row, col);
                 } else {
-                    referenceImage = new ReferenceImage(LazyReference.lazyReference(() -> {
+                    referenceImage = new ReferenceImage(LazyReference.untilNotNull(() -> {
                         Optional<BitmapImage> bitmapImage = bitmapImageById(refId);
                         if (bitmapImage.isPresent()) {
                             return bitmapImage.get();

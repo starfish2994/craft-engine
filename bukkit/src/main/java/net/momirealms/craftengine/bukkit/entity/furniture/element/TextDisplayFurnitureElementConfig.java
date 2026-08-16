@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,13 +138,13 @@ public final class TextDisplayFurnitureElementConfig implements FurnitureElement
     }
 
     @Override
-    public TextDisplayFurnitureElement create(@NotNull Furniture furniture, @NonNull TextDisplayFurnitureElement previous) {
+    public TextDisplayFurnitureElement create(@NotNull Furniture furniture, @NotNull TextDisplayFurnitureElement previous) {
         WorldPosition pos = getPos(furniture);
         return new TextDisplayFurnitureElement(furniture, this, pos, previous.entityId, !pos.equals(previous.position));
     }
 
     @Override
-    public TextDisplayFurnitureElement createExact(@NotNull Furniture furniture, @NonNull TextDisplayFurnitureElement previous) {
+    public TextDisplayFurnitureElement createExact(@NotNull Furniture furniture, @NotNull TextDisplayFurnitureElement previous) {
         WorldPosition pos = getPos(furniture);
         if (!pos.equals(previous.position)) {
             return null;

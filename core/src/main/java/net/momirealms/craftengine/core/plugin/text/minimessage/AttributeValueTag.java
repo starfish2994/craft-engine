@@ -3,7 +3,7 @@ package net.momirealms.craftengine.core.plugin.text.minimessage;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.attribute.Attribute;
 import net.momirealms.craftengine.core.attribute.AttributeSide;
-import net.momirealms.craftengine.core.attribute.formula.EntityDamageContext;
+import net.momirealms.craftengine.core.attribute.damage.EntityDamageContext;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.text.StringTag;
 import net.momirealms.craftengine.core.util.Key;
@@ -37,8 +37,9 @@ public final class AttributeValueTag extends StaticTagResolver implements String
         return Tag.selfClosingInserting(Component.text(String.valueOf(damageContext.event().getAttributeValue(this.side, attribute))));
     }
 
+    @Nullable
     @Override
-    public @Nullable String resolve(String[] args, net.momirealms.craftengine.core.plugin.context.Context context) {
+    public Object resolve(String[] args, net.momirealms.craftengine.core.plugin.context.Context context) {
         return resolveValue(lookup(args), context);
     }
 
@@ -54,10 +55,10 @@ public final class AttributeValueTag extends StaticTagResolver implements String
         return CraftEngine.instance().attributeManager().getAttribute(key).orElseThrow(() -> new IllegalArgumentException("Unknown attribute: " + key.asString()));
     }
 
-    private @Nullable String resolveValue(Attribute attribute, net.momirealms.craftengine.core.plugin.context.Context context) {
+    private Object resolveValue(Attribute attribute, net.momirealms.craftengine.core.plugin.context.Context context) {
         if (!(context instanceof EntityDamageContext damageContext)) {
             return null;
         }
-        return String.valueOf(damageContext.event().getAttributeValue(this.side, attribute));
+        return damageContext.event().getAttributeValue(this.side, attribute);
     }
 }

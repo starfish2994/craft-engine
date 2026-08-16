@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.attribute.formula;
 
+import net.momirealms.craftengine.core.attribute.damage.DamageEvent;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 
 import java.util.LinkedHashMap;

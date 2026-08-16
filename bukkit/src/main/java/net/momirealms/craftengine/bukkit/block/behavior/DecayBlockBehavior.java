@@ -142,7 +142,7 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
                     (IntegerProperty) BlockBehaviorFactory.getProperty(section.path(), block, "age", Integer.class),
                     delay,
                     section.getInt(REQUIRED_LIGHT, 0),
-                    LazyReference.lazyReference(() -> Objects.requireNonNull(CraftEngine.instance().blockManager().createBlockState(decayInto), decayInto)),
+                    LazyReference.untilNotNull(() -> Objects.requireNonNull(CraftEngine.instance().blockManager().createBlockState(decayInto), decayInto)),
                     section.getNumber("chance", ConfigConstants.CONSTANT_ONE)
             );
         }

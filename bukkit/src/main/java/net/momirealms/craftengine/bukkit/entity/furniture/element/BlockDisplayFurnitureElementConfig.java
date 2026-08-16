@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -113,13 +112,13 @@ public final class BlockDisplayFurnitureElementConfig implements FurnitureElemen
     }
 
     @Override
-    public BlockDisplayFurnitureElement create(@NotNull Furniture furniture, @NonNull BlockDisplayFurnitureElement previous) {
+    public BlockDisplayFurnitureElement create(@NotNull Furniture furniture, @NotNull BlockDisplayFurnitureElement previous) {
         WorldPosition pos = getPos(furniture);
         return new BlockDisplayFurnitureElement(furniture, this, pos, previous.entityId, !pos.equals(previous.position));
     }
 
     @Override
-    public BlockDisplayFurnitureElement createExact(@NotNull Furniture furniture, @NonNull BlockDisplayFurnitureElement previous) {
+    public BlockDisplayFurnitureElement createExact(@NotNull Furniture furniture, @NotNull BlockDisplayFurnitureElement previous) {
         WorldPosition pos = getPos(furniture);
         if (!pos.equals(previous.position)) {
             return null;
@@ -153,7 +152,7 @@ public final class BlockDisplayFurnitureElementConfig implements FurnitureElemen
             return new BlockDisplayFurnitureElementConfig(
                     section.getNonNullValue("block", ConfigConstants.ARGUMENT_BLOCK_STATE, v -> {
                         String state = v.getAsString();
-                        return LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(state));
+                        return LazyReference.untilNotNull(() -> CraftEngine.instance().blockManager().createBlockState(state));
                     }),
                     section.getVector3f("scale", ConfigConstants.NORMAL_SCALE),
                     section.getVector3f("position", ConfigConstants.ZERO_VECTOR3),

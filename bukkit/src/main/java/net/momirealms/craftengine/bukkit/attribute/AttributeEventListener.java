@@ -7,6 +7,7 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.core.attribute.AttributeContainer;
 import net.momirealms.craftengine.core.attribute.AttributeContainerSnapshot;
 import net.momirealms.craftengine.core.attribute.AttributeManager;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -14,13 +15,16 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityRemoveEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 
 public final class AttributeEventListener extends AbstractListener {
     private final BukkitAttributeManager manager;
+    public static final String PROJECTILE_WEAPON = "ce:weapon";
 
     public AttributeEventListener(BukkitAttributeManager manager) {
         this.manager = manager;
@@ -57,5 +61,15 @@ public final class AttributeEventListener extends AbstractListener {
             AttributeContainerSnapshot snapshot = container.createSnapshot();
             projectile.setMetadata(AttributeManager.META_KEY, new FixedMetadataValue(BukkitCraftEngine.instance().javaPlugin(), snapshot));
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onEntityShootBow(EntityShootBowEvent event) {
+        if (VersionHelper.isOrAbove1_21) return;
+        ItemStack bow = event.getBow();
+        if (bow == null) return;
+        Entity projectile = event.getProjectile();
+        projectile.setMetadata(PROJECTILE_WEAPON, new FixedMetadataValue(BukkitCraftEngine.instance().javaPlugin(), projectile));
     }
 }

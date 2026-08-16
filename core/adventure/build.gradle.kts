@@ -20,15 +20,15 @@ tasks.shadowJar {
     relocate("net.momirealms.sparrow.message", "net.momirealms.craftengine.libraries.message")
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("adventure") {
-            groupId = "net.momirealms"
-            artifactId = "craft-engine-adventure"
-            version = rootProject.properties["project_version"].toString()
-            from(components["shadow"])
-            artifact(tasks["sourcesJar"])
-            publication.applyCommonPom(this, "CraftEngine Adventure API")
-        }
-    }
-}
+//publishing {
+//    publications {
+//        create<MavenPublication>("adventure") {
+//            groupId = "net.momirealms"
+//            artifactId = "craft-engine-adventure"
+//            version = rootProject.properties["project_version"].toString()
+//            from(components["shadow"])
+//            artifact(tasks["sourcesJar"])
+//            publication.applyCommonPom(this, "CraftEngine Adventure API")
+//        }
+//    }
+//}

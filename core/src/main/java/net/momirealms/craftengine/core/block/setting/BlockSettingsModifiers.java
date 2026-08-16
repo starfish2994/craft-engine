@@ -164,7 +164,7 @@ public final class BlockSettingsModifiers {
     });
     public static final BlockSettingsModifierType<BlockSettingsModifier> CORRECT_TOOLS = register(Key.ce("correct_tools"), value -> {
         List<String> tools = value.getAsStringList();
-        LazyReference<Set<Key>> correctTools = LazyReference.lazyReference(() -> {
+        LazyReference<Set<Key>> correctTools = LazyReference.untilNotNull(() -> {
             Set<Key> ids = new HashSet<>();
             for (String tool : tools) {
                 if (tool.charAt(0) == '#') ids.addAll(CraftEngine.instance().itemManager().itemIdsByTag(Key.of(tool.substring(1))).stream().map(UniqueKey::key).toList());

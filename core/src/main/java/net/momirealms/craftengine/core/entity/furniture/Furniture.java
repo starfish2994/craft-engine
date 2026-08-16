@@ -305,7 +305,7 @@ public abstract class Furniture implements Cullable, ChainParameterSource {
         List<FurnitureHitBox> hitboxes = new ObjectArrayList<>(furnitureHitBoxConfigs.size());
 
         // 辅助map，用于排除重复的座椅
-        LazyReference<Map<Vector3f, Seat<SeatOwner>>> seatMap = LazyReference.lazyReference(HashMap::new);
+        LazyReference<Map<Vector3f, Seat<SeatOwner>>> seatMap = LazyReference.untilNotNull(HashMap::new);
         for (FurnitureHitBoxConfig<?> furnitureHitBoxConfig : furnitureHitBoxConfigs) {
             FurnitureHitBox hitbox = furnitureHitBoxConfig.create(this);
             hitboxes.add(hitbox);

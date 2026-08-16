@@ -32,7 +32,7 @@ public class DatapackLootTable implements Loot {
     public LazyReference<Object> minecraftLootTable;
 
     public DatapackLootTable(Key identifier) {
-        this.minecraftLootTable = LazyReference.lazyReference(() -> {
+        this.minecraftLootTable = LazyReference.untilNotNull(() -> {
             Object minecraftServer = MinecraftServerProxy.INSTANCE.getServer();
             // 1.20.5 +
             if (VersionHelper.isOrAbove1_20_5) {

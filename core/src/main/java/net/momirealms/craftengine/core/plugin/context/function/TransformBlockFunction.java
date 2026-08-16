@@ -96,7 +96,7 @@ public final class TransformBlockFunction<CTX extends Context> extends AbstractC
                     section.getNumber("y", ConfigConstants.POSITION_Y),
                     section.getNumber("z", ConfigConstants.POSITION_Z),
                     section.getNumber(UPDATE_FLAGS, ConfigConstants.UPDATE_ALL),
-                    LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(block))
+                    LazyReference.untilNotNull(() -> CraftEngine.instance().blockManager().createBlockState(block))
             );
         }
     }

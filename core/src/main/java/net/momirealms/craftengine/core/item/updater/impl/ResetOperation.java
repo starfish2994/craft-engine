@@ -54,7 +54,7 @@ public final class ResetOperation implements ItemUpdater {
         @Override
         public ResetOperation create(Key item, ConfigSection section) {
             return new ResetOperation(
-                    LazyReference.lazyReference(() -> CraftEngine.instance().itemManager().getItemDefinition(item).orElseThrow()),
+                    LazyReference.untilNotNull(() -> CraftEngine.instance().itemManager().getItemDefinition(item).orElseThrow()),
                     section.getList(KEEP_COMPONENTS, ConfigValue::getAsIdentifier),
                     section.getList(KEEP_TAGS, v -> v.getAsString().split("\\."))
             );

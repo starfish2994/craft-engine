@@ -8,7 +8,7 @@ import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.*;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 

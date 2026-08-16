@@ -109,7 +109,7 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
                 }
             }
         }
-        return new TagsAndState(mcTags, LazyReference.lazyReference(() -> {
+        return new TagsAndState(mcTags, LazyReference.untilNotNull(() -> {
             for (Key customBlock : customBlocks) {
                 BukkitBlockManager.instance().blockById(customBlock).ifPresent(block -> {
                     for (ImmutableBlockState state : block.variantProvider().states()) {

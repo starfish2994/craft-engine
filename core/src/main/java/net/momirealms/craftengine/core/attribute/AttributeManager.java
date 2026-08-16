@@ -1,6 +1,6 @@
 package net.momirealms.craftengine.core.attribute;
 
-import net.momirealms.craftengine.core.attribute.formula.DamageEvent;
+import net.momirealms.craftengine.core.attribute.damage.DamageEvent;
 import net.momirealms.craftengine.core.attribute.formula.DamageFormula;
 import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifier;
 import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifierStore;
@@ -59,7 +59,7 @@ public interface AttributeManager extends Manageable {
 
     default double getWeaponAttributeValue(@Nullable Item weapon, Attribute attribute, Context context) {
         if (weapon == null || weapon.isEmpty()) return 0;
-        return AttributeModifiers.weaponValue(getItemAttributeModifiers(weapon), attribute, context, weapon);
+        return AttributeModifiers.weaponValue(getItemAttributeModifiers(weapon), attribute, context);
     }
 
     default void refreshEquipments(LivingEntity entity) {

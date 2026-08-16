@@ -25,7 +25,7 @@ public final class ParticleDataTypes {
     static {
         registerParticleData(section -> {
                     final String blockState = section.getNonNullString(BLOCK_STATE);
-                    return new BlockStateData(LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(blockState)));
+                    return new BlockStateData(LazyReference.untilNotNull(() -> CraftEngine.instance().blockManager().createBlockState(blockState)));
                 },
                 ParticleTypes.BLOCK, ParticleTypes.FALLING_DUST, ParticleTypes.DUST_PILLAR, ParticleTypes.BLOCK_CRUMBLE, ParticleTypes.BLOCK_MARKER);
         registerParticleData(section -> new ColorData(
@@ -62,7 +62,7 @@ public final class ParticleDataTypes {
                 ParticleTypes.DUST_COLOR_TRANSITION);
         registerParticleData(section -> {
                     final Key itemId = section.getNonNullIdentifier("item");
-                    return new ItemStackData(LazyReference.lazyReference(() -> Item.byId(itemId)));
+                    return new ItemStackData(LazyReference.untilNotNull(() -> Item.byId(itemId)));
                 },
                 ParticleTypes.ITEM);
         registerParticleData(section -> new VibrationData(

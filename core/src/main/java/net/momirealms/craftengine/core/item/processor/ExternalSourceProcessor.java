@@ -74,7 +74,7 @@ public final class ExternalSourceProcessor implements ItemProcessor {
             ConfigSection section = value.getAsSection();
             String plugin = section.getNonNullString(PLUGIN);
             String id = section.getNonNullString("id");
-            return new ExternalSourceProcessor(id, LazyReference.lazyReference(() -> {
+            return new ExternalSourceProcessor(id, LazyReference.untilNotNull(() -> {
                 ItemSource itemSource = CraftEngine.instance().compatibilityManager().getItemSource(plugin.toLowerCase(Locale.ENGLISH));
                 if (itemSource == null) {
                     CraftEngine.instance().logger().warn("Item source '" + plugin + "' not found for item '" + id + "'");

@@ -43,7 +43,7 @@ public final class BlockSettings {
     Key itemId;
     Set<Key> tags = Set.of();
     float incorrectToolSpeed = 0.3f;
-    LazyReference<Set<Key>> correctTools = LazyReference.lazyReference(Set::of);
+    LazyReference<Set<Key>> correctTools = LazyReference.untilNotNull(Set::of);
     String name;
     String supportShapeBlockState;
     float friction = 0.6f;

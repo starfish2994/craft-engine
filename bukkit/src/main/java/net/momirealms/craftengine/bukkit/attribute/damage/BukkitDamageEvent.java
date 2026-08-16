@@ -1,22 +1,25 @@
 package net.momirealms.craftengine.bukkit.attribute.damage;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.attribute.AttributeEventListener;
 import net.momirealms.craftengine.bukkit.attribute.BukkitAttributeManager;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.attribute.*;
-import net.momirealms.craftengine.core.attribute.formula.DamageEvent;
-import net.momirealms.craftengine.core.attribute.formula.DamageSource;
+import net.momirealms.craftengine.core.attribute.damage.DamageEvent;
+import net.momirealms.craftengine.core.attribute.damage.DamageSource;
+import net.momirealms.craftengine.core.attribute.damage.EntityDamageContext;
 import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
-import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.setting.value.AttributeModifiers;
-import net.momirealms.craftengine.core.plugin.context.Context;
-import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.ContextHolder;
+import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.damage.CraftDamageSourceProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.projectile.AbstractArrowProxy;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.metadata.MetadataValue;
@@ -33,14 +36,11 @@ public final class BukkitDamageEvent implements DamageEvent {
     private final Entity victim;
     private final AttributeGetter victimAttributes;
     private final AttributeGetter attackerAttributes;
-    private final Context attackerContext;
-    // 本次攻击实际使用的武器及其合并修饰符，惰性解析（null 表示无）
-    private boolean weaponResolved;
-    @Nullable
-    private Item activeWeapon;
+    private final EntityDamageContext context;
+    private final Item activeWeapon;
+    private final Map<String, Double> damageParts = new LinkedHashMap<>();
     @Nullable
     private List<SlotAttributeModifierConfig> activeWeaponModifiers;
-    private final Map<String, Double> damageParts = new LinkedHashMap<>();
 
     public BukkitDamageEvent(BukkitAttributeManager manager, EntityDamageEvent event) {
         this.manager = manager;
@@ -51,8 +51,14 @@ public final class BukkitDamageEvent implements DamageEvent {
         AttributeContainer victimContainer = manager.getContainer(victimEntity.getUniqueId());
         this.victimAttributes = victimContainer == null ? EmptyAttributeHolder.INSTANCE : victimContainer;
         this.attackerAttributes = causingEntityAttributes();
-        Entity causingEntity = this.source.causingEntity();
-        this.attackerContext = causingEntity instanceof Player player ? PlayerOptionalContext.of(player) : PlayerOptionalContext.emptyImmutable();
+        Item weapon = this.resolveActiveWeapon();
+        this.activeWeapon = weapon == null || weapon.isEmpty() ? null : weapon;
+        this.context = EntityDamageContext.of(this, ContextHolder.builder().withOptionalParameter(DirectContextParameters.ITEM, this.activeWeapon));
+    }
+
+    @Override
+    public EntityDamageContext context() {
+        return this.context;
     }
 
     @Override
@@ -83,6 +89,11 @@ public final class BukkitDamageEvent implements DamageEvent {
     @Override
     public void recordDamagePart(String id, double amount) {
         this.damageParts.put(id, amount);
+        this.context.contexts().withParameter(ContextKey.direct("damage_" + id), amount);
+    }
+
+    public void initFinalDamage() {
+        this.context.contexts().withParameter(DirectContextParameters.DAMAGE, this.event.getFinalDamage());
     }
 
     @Override
@@ -120,20 +131,17 @@ public final class BukkitDamageEvent implements DamageEvent {
     }
 
     private double weaponAttributeValue(Attribute attribute) {
-        Item weapon = activeWeapon();
-        if (weapon == null) return 0;
+        Item weapon = this.activeWeapon;
+        if (weapon == null || weapon.isEmpty()) return 0;
         if (this.activeWeaponModifiers == null) {
             this.activeWeaponModifiers = this.manager.getItemAttributeModifiers(weapon);
         }
-        return AttributeModifiers.weaponValue(this.activeWeaponModifiers, attribute, this.attackerContext, weapon);
+        return AttributeModifiers.weaponValue(this.activeWeaponModifiers, attribute, this.context);
     }
 
     @Nullable
-    private Item activeWeapon() {
-        if (!this.weaponResolved) {
-            this.weaponResolved = true;
-            this.activeWeapon = resolveActiveWeapon();
-        }
+    @Override
+    public Item activeWeapon() {
         return this.activeWeapon;
     }
 
@@ -146,13 +154,19 @@ public final class BukkitDamageEvent implements DamageEvent {
             }
             return null;
         }
-        // 弹射物：原版记录的发射武器（弓/弩/三叉戟），1.21.2 起可用
-        if (VersionHelper.isOrAbove1_21_2) {
-            Object direct = this.source.directNmsEntity();
-            if (direct != null && AbstractArrowProxy.CLASS.isInstance(direct)) {
+        // 弹射物的武器
+        Object direct = this.source.directNmsEntity();
+        if (AbstractArrowProxy.CLASS.isInstance(direct)) {
+            if (VersionHelper.isOrAbove1_21) {
                 Object weaponStack = AbstractArrowProxy.INSTANCE.getWeaponItem(direct);
                 if (weaponStack != null) {
                     return ItemStackUtils.wrap(weaponStack);
+                }
+            } else {
+                @SuppressWarnings("deprecation")
+                List<MetadataValue> metadata = EntityProxy.INSTANCE.getBukkitEntity(direct).getMetadata(AttributeEventListener.PROJECTILE_WEAPON);
+                if (!metadata.isEmpty()) {
+                    return ItemStackUtils.wrap(metadata.getFirst());
                 }
             }
         }

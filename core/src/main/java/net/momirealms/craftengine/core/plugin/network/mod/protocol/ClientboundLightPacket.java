@@ -29,7 +29,7 @@ public record ClientboundLightPacket(BlockPos pos, byte level) implements Client
             )
     );
     public static final int BLOCK_UPDATE_PACKET_ID = CraftEngine.instance().platform().packetIds().clientboundBlockUpdatePacket();
-    public static final LazyReference<int[]> LIGHT_BLOCK_STATES_ID = LazyReference.lazyReference(() -> {
+    public static final LazyReference<int[]> LIGHT_BLOCK_STATES_ID = LazyReference.untilNotNull(() -> {
         int[] ids = new int[16];
         BlockManager blockManager = CraftEngine.instance().blockManager();
         ids[0] = Objects.requireNonNull(blockManager.createBlockState("minecraft:air")).registryId();
@@ -38,7 +38,7 @@ public record ClientboundLightPacket(BlockPos pos, byte level) implements Client
         }
         return ids;
     });
-    public static final LazyReference<int[]> WATERLOGGED_LIGHT_BLOCK_STATES_ID = LazyReference.lazyReference(() -> {
+    public static final LazyReference<int[]> WATERLOGGED_LIGHT_BLOCK_STATES_ID = LazyReference.untilNotNull(() -> {
         int[] ids = new int[16];
         BlockManager blockManager = CraftEngine.instance().blockManager();
         ids[0] = Objects.requireNonNull(blockManager.createBlockState("minecraft:water")).registryId();

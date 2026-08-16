@@ -70,7 +70,7 @@ public final class PlaceBlockFunction<CTX extends Context> extends AbstractCondi
                     section.getNumber("y", ConfigConstants.POSITION_Y),
                     section.getNumber("z", ConfigConstants.POSITION_Z),
                     section.getNumber(UPDATE_FLAGS, NumberProviders.direct(UpdateFlags.UPDATE_ALL)),
-                    LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(state))
+                    LazyReference.untilNotNull(() -> CraftEngine.instance().blockManager().createBlockState(state))
             );
         }
     }
