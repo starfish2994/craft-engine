@@ -27,8 +27,8 @@ public class ConstantAttributeModifier implements AttributeModifier {
     }
 
     @Override
-    public Predicate<Context> condition() {
-        return this.condition;
+    public boolean test(Context context) {
+        return this.condition.test(context);
     }
 
     @Override

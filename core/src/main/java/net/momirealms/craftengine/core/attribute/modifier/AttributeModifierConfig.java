@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 
 public class AttributeModifierConfig {
     protected static final String[] UPDATE_INTERVAL = ConfigKeys.of("update_interval");
+    protected static final String[] CONDITIONS = ConfigKeys.of("condition(s)");
     public final Key attribute;
     public final Key id;
     public final NumberProvider amount;
@@ -50,15 +51,13 @@ public class AttributeModifierConfig {
         Key id = section.getNonNullIdentifier("id");
         AttributeModifierScope scope = section.getEnum("scope", AttributeModifierScope.class, AttributeModifierScope.ENTITY);
         Key operation = section.getNonNullIdentifier("operation");
-
         NumberProvider amount = section.getNonNullNumber("amount");
-        List<Predicate<Context>> conditionsList = section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
+        List<Predicate<Context>> conditionsList = section.getList(CONDITIONS, CommonConditions::fromConfig);
         Predicate<Context> conditions = MiscUtils.allOf(conditionsList);
-
         boolean dynamic = !amount.isConstant() || !conditionsList.isEmpty();
         int updateInterval;
         if (dynamic) {
-            updateInterval = section.getInt("update_interval", 20);
+            updateInterval = section.getInt(UPDATE_INTERVAL, 20);
         } else {
             updateInterval = 0;
         }

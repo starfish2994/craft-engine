@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.attribute.modifier;
 
 import net.momirealms.craftengine.core.attribute.equipment.EquipmentSlotGroup;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
@@ -19,6 +20,10 @@ public final class SlotAttributeModifierConfig extends AttributeModifierConfig {
     public SlotAttributeModifierConfig(Key attribute, Key id, NumberProvider amount, Key operation, Predicate<Context> condition, AttributeModifierScope scope, EquipmentSlotGroup slot, int updateInterval, boolean dynamic) {
         super(attribute, id, amount, operation, condition, scope, updateInterval, dynamic);
         this.slot = slot;
+    }
+
+    public ItemBoundAttributeModifier build(Item item) {
+        return new ItemBoundAttributeModifier(this, item);
     }
 
     @SuppressWarnings("DuplicatedCode")

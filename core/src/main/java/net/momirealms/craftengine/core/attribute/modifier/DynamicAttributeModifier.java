@@ -3,9 +3,7 @@ package net.momirealms.craftengine.core.attribute.modifier;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
 
-import java.util.function.Predicate;
-
-public final class DynamicAttributeModifier implements AttributeModifier {
+public class DynamicAttributeModifier implements AttributeModifier {
     private final AttributeModifierConfig config;
 
     public DynamicAttributeModifier(AttributeModifierConfig config) {
@@ -13,8 +11,8 @@ public final class DynamicAttributeModifier implements AttributeModifier {
     }
 
     @Override
-    public Predicate<Context> condition() {
-        return this.config.condition;
+    public boolean test(Context context) {
+        return this.config.condition.test(context);
     }
 
     @Override

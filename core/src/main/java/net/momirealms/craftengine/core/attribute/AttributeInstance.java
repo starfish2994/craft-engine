@@ -121,7 +121,7 @@ public class AttributeInstance {
                 this.trackedById = new Object2ObjectOpenHashMap<>();
                 this.trackedList = new SwapList<>();
             }
-            TrackedModifier tracked = new TrackedModifier(modifier, modifier.amount(this.context), modifier.condition().test(this.context));
+            TrackedModifier tracked = new TrackedModifier(modifier, modifier.amount(this.context), modifier.test(this.context));
             TrackedModifier previous = this.trackedById.put(modifier.id(), tracked);
             if (previous != null) {
                 // 原位替换列表中的旧快照
@@ -171,7 +171,7 @@ public class AttributeInstance {
             }
             state.nextTick = tick + interval;
             nextDue = Math.min(nextDue, state.nextTick);
-            boolean condition = modifier.condition().test(this.context);
+            boolean condition = modifier.test(this.context);
             // 条件不满足时快照值不参与 recalculate，跳过 amount 求值
             double amount = condition ? modifier.amount(this.context) : state.amount;
             if (condition != state.condition || amount != state.amount) {
@@ -217,7 +217,7 @@ public class AttributeInstance {
                         if (snapshot.condition) {
                             value = operation.apply(phaseBase, value, snapshot.amount);
                         }
-                    } else if (modifier.condition().test(this.context)) {
+                    } else if (modifier.test(this.context)) {
                         value = operation.apply(phaseBase, value, modifier.amount(this.context));
                     }
                 }

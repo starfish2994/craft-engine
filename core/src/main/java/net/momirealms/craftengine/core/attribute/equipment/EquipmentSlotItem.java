@@ -13,9 +13,9 @@ import java.util.List;
 
 public final class EquipmentSlotItem {
     private final Item item;
-    private final List<AttributeModifierConfig> snapshots;
+    private final List<SlotAttributeModifierConfig> snapshots;
 
-    private EquipmentSlotItem(Item item, List<AttributeModifierConfig> snapshots) {
+    private EquipmentSlotItem(Item item, List<SlotAttributeModifierConfig> snapshots) {
         this.item = item;
         this.snapshots = snapshots;
     }
@@ -23,7 +23,7 @@ public final class EquipmentSlotItem {
     public static EquipmentSlotItem create(EquipmentSetSlot slot, Item item) {
         List<SlotAttributeModifierConfig> modifiers = CraftEngine.instance().attributeManager().getItemAttributeModifiers(item);
         if (modifiers.isEmpty()) return new EquipmentSlotItem(item, List.of());
-        List<AttributeModifierConfig> snapshots = new ArrayList<>(modifiers.size());
+        List<SlotAttributeModifierConfig> snapshots = new ArrayList<>(modifiers.size());
         for (SlotAttributeModifierConfig config : modifiers) {
             if (config.slot.test(slot)) {
                 snapshots.add(config);
@@ -36,21 +36,21 @@ public final class EquipmentSlotItem {
         return this.item;
     }
 
-    public List<AttributeModifierConfig> snapshots() {
+    public List<SlotAttributeModifierConfig> snapshots() {
         return this.snapshots;
     }
 
     public void addOrUpdateModifiers(AttributeContainer container) {
-        for (AttributeModifierConfig config : this.snapshots) {
+        for (SlotAttributeModifierConfig config : this.snapshots) {
             if (config.scope == AttributeModifierScope.WEAPON) continue;
             AttributeInstance instance = container.getInstance(config.attribute);
             if (instance == null) continue;
-            instance.addOrUpdateModifier(config.build());
+            instance.addOrUpdateModifier(config.build(this.item));
         }
     }
 
     public void removeModifiers(AttributeContainer container) {
-        for (AttributeModifierConfig config : this.snapshots) {
+        for (SlotAttributeModifierConfig config : this.snapshots) {
             if (config.scope == AttributeModifierScope.WEAPON) continue;
             AttributeInstance instance = container.getInstance(config.attribute);
             if (instance == null) continue;
