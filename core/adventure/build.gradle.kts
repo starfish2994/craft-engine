@@ -17,6 +17,7 @@ tasks.shadowJar {
     archiveBaseName.set("adventure-bundle")
     archiveClassifier = ""
     relocate("net.kyori", "net.momirealms.craftengine.libraries")
+    relocate("net.momirealms.sparrow.message", "net.momirealms.craftengine.libraries.message")
 }
 
 publishing {
