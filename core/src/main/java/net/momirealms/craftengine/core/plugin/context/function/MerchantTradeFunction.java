@@ -141,10 +141,14 @@ public final class MerchantTradeFunction<CTX extends Context> extends AbstractCo
                     item.itemNameComponent(Component.text(this.id.asString()).color(NamedTextColor.RED));
                 } else {
                     if (this.components != null) {
-                        this.components.apply(item, ItemBuildContext.empty());
+                        ItemBuildContext empty = ItemBuildContext.empty();
+                        empty.setItem(item);
+                        this.components.apply(item, empty);
                     }
                     if (this.nbt != null) {
-                        this.nbt.apply(item, ItemBuildContext.empty());
+                        ItemBuildContext empty = ItemBuildContext.empty();
+                        empty.setItem(item);
+                        this.nbt.apply(item, empty);
                     }
                 }
                 item.count(this.count.getInt(context));

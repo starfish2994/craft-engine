@@ -14,7 +14,7 @@ import java.util.StringJoiner;
 public interface SimpleNetworkItemProcessor extends ItemProcessor {
 
     @Override
-    default Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
+    default void prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
         if (VersionHelper.COMPONENT_RELEASE) {
             Key componentType= componentType(item, context);
             if (componentType != null) {
@@ -36,7 +36,6 @@ public interface SimpleNetworkItemProcessor extends ItemProcessor {
                 }
             }
         }
-        return item;
     }
 
     @Nullable

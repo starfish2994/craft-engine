@@ -68,7 +68,7 @@ public final class TagsProcessor implements ItemProcessor {
     }
 
     @Override
-    public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
+    public void prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
         if (VersionHelper.isOrAbove1_20_5) {
             Tag previous = item.getComponentAsSparrowTag(DataComponentKeys.CUSTOM_DATA);
             if (previous != null) {
@@ -88,7 +88,6 @@ public final class TagsProcessor implements ItemProcessor {
                 }
             }
         }
-        return item;
     }
 
     private static class Factory implements ItemProcessorFactory<TagsProcessor> {

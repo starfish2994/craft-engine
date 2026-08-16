@@ -20,6 +20,8 @@ public final class CloneableItem implements BuildableItem {
 
     @Override
     public Item buildItem(ItemBuildContext context, int count) {
-        return this.item.copyWithCount(count);
+        Item item = this.item.copyWithCount(count);
+        context.setItem(item);
+        return item;
     }
 }

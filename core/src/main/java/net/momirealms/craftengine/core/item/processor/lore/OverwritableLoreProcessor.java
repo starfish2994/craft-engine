@@ -48,17 +48,17 @@ public final class OverwritableLoreProcessor implements SimpleNetworkItemProcess
     }
 
     @Override
-    public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
+    public void prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
         if (VersionHelper.COMPONENT_RELEASE) {
             if (item.hasNonDefaultComponent(DataComponentKeys.LORE)) {
-                return item;
+                return;
             }
         } else {
             if (item.hasTag("display", "Lore")) {
-                return item;
+                return;
             }
         }
-        return SimpleNetworkItemProcessor.super.prepareNetworkItem(item, context, networkData);
+        SimpleNetworkItemProcessor.super.prepareNetworkItem(item, context, networkData);
     }
 
     private static class Factory implements ItemProcessorFactory<OverwritableLoreProcessor> {

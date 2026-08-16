@@ -40,6 +40,7 @@ public final class ItemUpdateConfig {
         }
         ItemBuildContext buildContext = context.get();
         Item orginalItem = item;
+        buildContext.setItem(orginalItem);
         for (Version version : this.versions) {
             if (currentVersion < version.version) {
                 item = version.apply(item, buildContext);
@@ -51,7 +52,7 @@ public final class ItemUpdateConfig {
 
     public record Version(int version, ItemUpdater[] updaters) implements Comparable<Version> {
 
-        public <T> Item apply(Item item, ItemBuildContext context) {
+        public Item apply(Item item, ItemBuildContext context) {
             for (ItemUpdater updater : updaters) {
                 item = updater.update(item, context);
             }

@@ -4,6 +4,7 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.AbstractItemDefinition;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
@@ -42,11 +43,12 @@ public final class BukkitItemDefinition extends AbstractItemDefinition {
     @Override
     public BukkitItem buildItem(ItemBuildContext context, int count) {
         ItemStack item = ItemStackUtils.getBukkitStack(ItemStackProxy.INSTANCE.newInstance(this.item, count));
-        BukkitItem wrapped = BukkitItemManager.instance().wrap(item);
+        Item wrapped = BukkitItemManager.instance().wrap(item);
+        context.setItem(wrapped);
         for (ItemProcessor modifier : processors()) {
-            modifier.apply(wrapped, context);
+            wrapped = modifier.apply(wrapped, context);
         }
-        return wrapped;
+        return (BukkitItem) wrapped;
     }
 
     @Override

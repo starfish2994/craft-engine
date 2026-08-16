@@ -271,7 +271,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
             return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
         }
         // 创建context
-        NetworkItemBuildContext context = NetworkItemBuildContext.of(player);
+        NetworkItemBuildContext context = NetworkItemBuildContext.of(player, original);
         // 准备阶段
         CompoundTag tag = new CompoundTag();
         for (ItemProcessor modifier : customItem.clientBoundProcessors()) {
@@ -294,7 +294,7 @@ public final class ModernNetworkItemHandler implements NetworkItemHandler {
         }
         // 应用阶段
         for (ItemProcessor modifier : customItem.clientBoundProcessors()) {
-            modifier.apply(wrapped, context);
+            wrapped = modifier.apply(wrapped, context);
         }
         // 如果tag不空，则需要返回
         if (!tag.isEmpty()) {

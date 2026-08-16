@@ -13,6 +13,10 @@ dependencies {
     adventure(project, JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
 }
 
+configurations.implementation {
+    exclude(mapOf("group" to "org.jspecify", "module" to "jspecify"))
+}
+
 tasks.shadowJar {
     archiveBaseName.set("adventure-bundle")
     archiveClassifier = ""

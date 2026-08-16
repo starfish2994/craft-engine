@@ -193,6 +193,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
             return new OtherItem(wrapped, forceReturn).process(NetworkTextReplaceContext.of(player));
         }
 
+        // legacy 物品无需保留 original副本，因为不存在组件默认值设定
         // 应用 client-bound-material
         BukkitItemDefinition customItem = (BukkitItemDefinition) optionalCustomItem.get();
         if (customItem.hasClientboundMaterial() && ItemStackProxy.INSTANCE.getItem(wrapped.minecraftItem()) != customItem.clientItem()) {
@@ -211,7 +212,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         // 应用client-bound-data
         CompoundTag tag = new CompoundTag();
         // 创建context
-        NetworkItemBuildContext context = NetworkItemBuildContext.of(player);
+        NetworkItemBuildContext context = NetworkItemBuildContext.of(player, wrapped);
         // 准备阶段
         for (ItemProcessor modifier : customItem.clientBoundProcessors()) {
             modifier.prepareNetworkItem(wrapped, context, tag);
@@ -227,7 +228,7 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
         }
         // 应用阶段
         for (ItemProcessor modifier : customItem.clientBoundProcessors()) {
-            modifier.apply(wrapped, context);
+            wrapped = modifier.apply(wrapped, context);
         }
         // 如果tag不空，则需要返回
         if (!tag.isEmpty()) {

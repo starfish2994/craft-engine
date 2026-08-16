@@ -1,39 +1,23 @@
 package net.momirealms.craftengine.core.item.network;
 
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Map;
 
 public class NetworkItemBuildContext extends ItemBuildContext {
 
-    public NetworkItemBuildContext(@Nullable Player player, @NotNull ContextHolder contexts) {
+    public NetworkItemBuildContext(@NotNull Player player, Item item, @NotNull ContextHolder contexts) {
         super(player, contexts);
+        super.item = item;
     }
 
-    @NotNull
-    public static NetworkItemBuildContext empty() {
-        return new NetworkItemBuildContext(null, ContextHolder.empty());
-    }
-
-    @NotNull
-    public static NetworkItemBuildContext of(@Nullable Player player, @NotNull ContextHolder contexts) {
-        return new NetworkItemBuildContext(player, contexts);
-    }
-
-    @NotNull
-    public static NetworkItemBuildContext of(@Nullable Player player, @NotNull ContextHolder.Builder builder) {
-        if (player != null) builder.withParameter(DirectContextParameters.PLAYER, player);
-        return new NetworkItemBuildContext(player, builder.build());
-    }
-
-    @NotNull
-    public static NetworkItemBuildContext of(@Nullable Player player) {
-        if (player == null) return new NetworkItemBuildContext(null, ContextHolder.empty());
-        return new NetworkItemBuildContext(player, ContextHolder.mutable(Map.of(DirectContextParameters.PLAYER, () -> player)));
+    public static NetworkItemBuildContext of(Player player, Item item) {
+        return new NetworkItemBuildContext(player, item, ContextHolder.builder()
+                .withParameter(DirectContextParameters.PLAYER, player)
+                .withParameter(DirectContextParameters.ITEM, item)
+                .build());
     }
 }

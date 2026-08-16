@@ -100,7 +100,7 @@ public final class HideTooltipProcessor implements ItemProcessor {
     }
 
     @Override
-    public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
+    public void prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
         if (VersionHelper.isOrAbove1_21_5) {
             Tag previous = item.getComponentAsSparrowTag(DataComponentKeys.TOOLTIP_DISPLAY);
             if (previous != null) {
@@ -125,7 +125,6 @@ public final class HideTooltipProcessor implements ItemProcessor {
                 networkData.put("HideFlags", NetworkItemHandler.pack(NetworkItemHandler.Operation.REMOVE));
             }
         }
-        return item;
     }
 
     public interface Applier {

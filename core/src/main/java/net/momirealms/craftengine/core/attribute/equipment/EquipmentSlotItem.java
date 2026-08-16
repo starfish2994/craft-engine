@@ -7,7 +7,6 @@ import net.momirealms.craftengine.core.attribute.modifier.AttributeModifierScope
 import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.context.number.ItemBoundNumberProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,25 +26,10 @@ public final class EquipmentSlotItem {
         List<AttributeModifierConfig> snapshots = new ArrayList<>(modifiers.size());
         for (SlotAttributeModifierConfig config : modifiers) {
             if (config.slot.test(slot)) {
-                snapshots.add(bindItem(config, item));
+                snapshots.add(config);
             }
         }
         return new EquipmentSlotItem(item, snapshots);
-    }
-
-    private static AttributeModifierConfig bindItem(SlotAttributeModifierConfig config, Item item) {
-        if (!config.dynamic) return config;
-        return new SlotAttributeModifierConfig(
-                config.attribute,
-                config.id,
-                config.amount.isConstant() ? config.amount : new ItemBoundNumberProvider(config.amount, item),
-                config.operation,
-                ctx -> config.condition.test(ItemBoundNumberProvider.bind(ctx, item)),
-                config.scope,
-                config.slot,
-                config.updateInterval,
-                config.dynamic
-        );
     }
 
     public Item item() {

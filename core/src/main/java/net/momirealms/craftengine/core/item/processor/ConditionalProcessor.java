@@ -36,13 +36,12 @@ public final class ConditionalProcessor implements ItemProcessor {
     }
 
     @Override
-    public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
+    public void prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
         if (this.condition.test(context)) {
             for (ItemProcessor m : this.modifiers) {
-                item = m.prepareNetworkItem(item, context, networkData);
+                m.prepareNetworkItem(item, context, networkData);
             }
         }
-        return item;
     }
 
     private static class Factory implements ItemProcessorFactory<ConditionalProcessor> {

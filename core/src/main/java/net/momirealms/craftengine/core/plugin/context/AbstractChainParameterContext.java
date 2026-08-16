@@ -2,17 +2,18 @@ package net.momirealms.craftengine.core.plugin.context;
 
 import java.util.Optional;
 
-public abstract class AbstractChainParameterContext extends AbstractCommonContext {
+public abstract class AbstractChainParameterContext implements Context {
+    protected final ContextHolder contexts;
 
     public AbstractChainParameterContext(ContextHolder contexts) {
-        super(contexts);
+        this.contexts = contexts;
     }
 
     @Override
     public <T> Optional<T> getOptionalParameter(ContextKey<T> parameter) {
         ContextKey<Object> parentKey = parameter.parent();
         if (parentKey == null) {
-            return super.getOptionalParameter(parameter);
+            return this.contexts.getOptional(parameter);
         }
         Optional<Object> parentValue = getOptionalParameter(parentKey);
         if (parentValue.isEmpty()) {
@@ -22,5 +23,10 @@ public abstract class AbstractChainParameterContext extends AbstractCommonContex
             return source.getParameter(parameter);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public ContextHolder contexts() {
+        return this.contexts;
     }
 }

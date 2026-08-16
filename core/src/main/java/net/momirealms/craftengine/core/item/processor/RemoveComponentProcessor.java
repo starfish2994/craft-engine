@@ -32,14 +32,13 @@ public final class RemoveComponentProcessor implements ItemProcessor {
     }
 
     @Override
-    public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
+    public void prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
         for (Key component : this.arguments) {
             Tag previous = item.getComponentAsSparrowTag(component);
             if (previous != null) {
                 networkData.put(component.asString(), NetworkItemHandler.pack(NetworkItemHandler.Operation.ADD, previous));
             }
         }
-        return item;
     }
 
     private static class Factory implements ItemProcessorFactory<RemoveComponentProcessor> {

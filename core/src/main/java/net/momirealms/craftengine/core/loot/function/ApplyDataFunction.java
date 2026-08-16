@@ -24,7 +24,8 @@ public final class ApplyDataFunction extends AbstractLootConditionalFunction {
 
     @Override
     protected Item applyInternal(Item item, LootContext context) {
-        ItemBuildContext ctx = ItemBuildContext.of(context.player());
+        ItemBuildContext ctx = ItemBuildContext.of(context.player(), context.contexts());
+        ctx.setItem(item);
         for (ItemProcessor modifier : this.modifiers) {
             item = modifier.apply(item, ctx);
         }

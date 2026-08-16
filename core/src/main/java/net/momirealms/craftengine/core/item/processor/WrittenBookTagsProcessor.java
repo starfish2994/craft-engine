@@ -56,7 +56,7 @@ public final class WrittenBookTagsProcessor implements ItemProcessor {
     }
 
     @Override
-    public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
+    public void prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
         if (VersionHelper.COMPONENT_RELEASE) {
             CompoundTag writtenBookTag = (CompoundTag) item.getComponentAsSparrowTag(DataComponentKeys.WRITTEN_BOOK_CONTENT);
             if (writtenBookTag != null) {
@@ -88,6 +88,5 @@ public final class WrittenBookTagsProcessor implements ItemProcessor {
                 }
             }
         }
-        return item;
     }
 }
