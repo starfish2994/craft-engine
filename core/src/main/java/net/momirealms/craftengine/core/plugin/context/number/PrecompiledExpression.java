@@ -13,8 +13,7 @@ import net.momirealms.sparrow.message.internal.parser.TokenParser;
 import net.momirealms.sparrow.message.internal.parser.TokenType;
 import net.momirealms.sparrow.message.internal.parser.node.TagPart;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 
 public final class PrecompiledExpression {
@@ -49,7 +48,7 @@ public final class PrecompiledExpression {
                         // bind the tag handler and its pre-parsed arguments once and for all
                         extracted.add(new Snippet(
                                 expression.substring(token.startIndex(), token.endIndex()),
-                                StringTags.get(name),
+                                StringTags.get(name) != null ? Objects.requireNonNull(StringTags.get(name)).precompile(args) : null,
                                 args));
                         substituted.append("var").append(extracted.size());
                         continue;
@@ -89,11 +88,18 @@ public final class PrecompiledExpression {
     }
 
     public EvaluationValue evaluate(Context context) {
-        if (this.snippets.isEmpty()) {
+        return this.evaluate(context, Map.of());
+    }
+
+    public EvaluationValue evaluate(Context context, Map<String, ?> extraVariables) {
+        if (this.snippets.isEmpty() && extraVariables.isEmpty()) {
             return this.evaluate();
         }
         try {
             final Expression instance = this.template.copy();
+            for (final Map.Entry<String, ?> entry : extraVariables.entrySet()) {
+                instance.with(entry.getKey(), entry.getValue());
+            }
             for (int i = 0; i < this.snippets.size(); i++) {
                 final Snippet snippet = this.snippets.get(i);
                 String text = snippet.tag() != null ? snippet.tag().resolve(snippet.args(), context) : null;
@@ -106,6 +112,22 @@ public final class PrecompiledExpression {
         } catch (final EvaluationException | ParseException e) {
             throw new RuntimeException("Invalid expression: " + this.raw, e);
         }
+    }
+
+    public Set<String> usedVariables() {
+        try {
+            final Set<String> used = new HashSet<>(this.template.getUsedVariables());
+            for (int i = 1; i <= this.snippets.size(); i++) {
+                used.remove("var" + i);
+            }
+            return used;
+        } catch (final ParseException e) {
+            return Set.of();
+        }
+    }
+
+    public String raw() {
+        return this.raw;
     }
 
     private record Snippet(String raw, StringTag tag, String[] args) {

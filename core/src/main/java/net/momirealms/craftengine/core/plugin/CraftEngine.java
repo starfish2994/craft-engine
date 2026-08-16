@@ -53,6 +53,8 @@ import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.craftengine.core.plugin.script.ScriptManager;
 import net.momirealms.craftengine.core.plugin.script.ScriptManagerImpl;
 import net.momirealms.craftengine.core.plugin.text.component.NBTDataComponentConverter;
+import net.momirealms.craftengine.core.plugin.text.minimessage.ExpressionTag;
+import net.momirealms.craftengine.core.plugin.text.minimessage.RandomTag;
 import net.momirealms.craftengine.core.sound.SoundManager;
 import net.momirealms.craftengine.core.util.CompletableFutures;
 import net.momirealms.craftengine.core.util.GsonHelper;
@@ -210,6 +212,10 @@ public abstract class CraftEngine implements Plugin {
     }
 
     private void reloadManagers() {
+        // precompiled expression / number provider caches may bind Attribute instances
+        // that a reload rebuilds — drop them first
+        ExpressionTag.clearCaches();
+        RandomTag.clearCaches();
         this.templateManager.reload();
         this.globalVariableManager.reload();
         this.furnitureManager.reload();

@@ -17,6 +17,8 @@ public final class CraftEngineTags {
             PlaceholderTag.INSTANCE,
             ViewerPlaceholderTag.INSTANCE,
             RelationalPlaceholderTag.INSTANCE,
+            AttributeValueTag.ATTACKER,
+            AttributeValueTag.VICTIM,
     };
     public static final TagResolver[] SPECIAL_STANDARD = new TagResolver[] {
             HoverTag.RESOLVER,

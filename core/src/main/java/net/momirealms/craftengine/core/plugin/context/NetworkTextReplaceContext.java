@@ -6,8 +6,6 @@ import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextPar
 import net.momirealms.craftengine.core.util.MiscUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-
 public final class NetworkTextReplaceContext extends PlayerOptionalContext implements PlayerContext {
 
     public NetworkTextReplaceContext(Player player) {

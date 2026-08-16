@@ -5,22 +5,19 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.plugin.context.ContextRandoms;
 import net.momirealms.craftengine.core.plugin.context.number.*;
+import net.momirealms.craftengine.core.plugin.context.text.StringTag;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
 import net.momirealms.sparrow.message.ParsingException;
 import net.momirealms.sparrow.message.tag.Tag;
 import net.momirealms.sparrow.message.tag.resolver.ArgumentQueue;
 import net.momirealms.sparrow.message.tag.resolver.StaticTagResolver;
-import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public final class RandomTag extends StaticTagResolver {
-    public static final TagResolver INSTANCE = new RandomTag();
+public final class RandomTag extends StaticTagResolver implements StringTag {
+    public static final RandomTag INSTANCE = new RandomTag();
     private static final Cache<String, NumberProvider> PROVIDER_CACHE = Caffeine.newBuilder()
             .maximumSize(256)
             .expireAfterAccess(10, TimeUnit.MINUTES)
@@ -102,10 +99,10 @@ public final class RandomTag extends StaticTagResolver {
         super("random");
     }
 
-    /**
-     * Returns the (cached) number provider for a distribution spec, e.g. {@code uniform:1:5}
-     * or {@code 1~5}. Shared with the string-template engine's {@code <random>} tag.
-     */
+    public static void clearCaches() {
+        PROVIDER_CACHE.invalidateAll();
+    }
+
     public static NumberProvider getProvider(String type, List<String> params) {
         return PROVIDER_CACHE.get(type + ":" + String.join(":", params), k -> parse(type, params));
     }
@@ -183,6 +180,35 @@ public final class RandomTag extends StaticTagResolver {
                     : provider.getDouble();
         }
         return Tag.selfClosingInserting(Component.text(value));
+    }
+
+    @Override
+    public String resolve(String[] args, net.momirealms.craftengine.core.plugin.context.Context context) {
+        String id = StringTag.requireArg(args, 0, "No random id provided");
+        final double value;
+        if (args.length == 1) {
+            value = context != null ? ContextRandoms.getOrRoll(context, id) : RandomUtils.generateRandomDouble(0, 1);
+        } else {
+            NumberProvider provider = getProvider(args[1], Arrays.asList(args).subList(2, args.length));
+            value = context != null
+                    ? ContextRandoms.getOrRoll(context, id, () -> provider.getDouble(context))
+                    : provider.getDouble();
+        }
+        return String.valueOf(value);
+    }
+
+    @Override
+    public StringTag precompile(String[] args) {
+        final String id = StringTag.requireArg(args, 0, "No random id provided");
+        if (args.length == 1) {
+            return (boundArgs, context) -> String.valueOf(context != null
+                    ? ContextRandoms.getOrRoll(context, id)
+                    : RandomUtils.generateRandomDouble(0, 1));
+        }
+        final NumberProvider provider = getProvider(args[1], Arrays.asList(args).subList(2, args.length));
+        return (boundArgs, context) -> String.valueOf(context != null
+                ? ContextRandoms.getOrRoll(context, id, () -> provider.getDouble(context))
+                : provider.getDouble());
     }
 
     @FunctionalInterface

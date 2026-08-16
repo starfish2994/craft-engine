@@ -28,7 +28,7 @@ public final class DamageFormulas {
         if (value.is(Map.class)) {
             return fromConfig(value.getAsSection());
         }
-        return ExpressionDamageFormula.compile(value.path(), value.getAsString());
+        return ExpressionDamageFormula.compile(value.getAsString());
     }
 
     public static DamageFormula fromConfig(ConfigSection section) {

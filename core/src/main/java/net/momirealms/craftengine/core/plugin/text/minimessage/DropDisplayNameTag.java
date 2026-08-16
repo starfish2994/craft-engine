@@ -27,5 +27,4 @@ public final class DropDisplayNameTag extends StaticTagResolver {
         }
         return Tag.selfClosingInserting(component);
     }
-
 }

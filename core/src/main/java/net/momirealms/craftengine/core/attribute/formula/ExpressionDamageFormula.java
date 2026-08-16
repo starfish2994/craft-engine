@@ -1,107 +1,41 @@
 package net.momirealms.craftengine.core.attribute.formula;
 
-import com.ezylang.evalex.EvaluationException;
-import com.ezylang.evalex.Expression;
-import com.ezylang.evalex.parser.ParseException;
-import net.momirealms.craftengine.core.attribute.Attribute;
-import net.momirealms.craftengine.core.attribute.AttributeSide;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
-import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.ThrowableUtils;
-import org.jetbrains.annotations.Nullable;
+import net.momirealms.craftengine.core.plugin.context.ContextHolder;
+import net.momirealms.craftengine.core.plugin.context.number.PrecompiledExpression;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 public class ExpressionDamageFormula implements DamageFormula {
-    public static final String ATTACKER_PREFIX = "attacker_";
-    public static final String VICTIM_PREFIX = "victim_";
-    public static final DamageFormulaFactory<ExpressionDamageFormula> FACTORY = args -> compile(args.assemblePath("expression"), args.getNonNullString("expression"));
-    private final String rawExpression;
-    private final Expression expression;
-    private final List<VariableBinding> bindings;
+    public static final DamageFormulaFactory<ExpressionDamageFormula> FACTORY = args -> compile(args.getNonNullString("expression"));
+    private static final Set<String> EVENT_VARIABLES = Set.of("damage", "is_critical", "is_sweep");
 
-    public ExpressionDamageFormula(String rawExpression, Expression expression, List<VariableBinding> bindings) {
+    private final String rawExpression;
+    private final PrecompiledExpression compiled;
+
+    private ExpressionDamageFormula(String rawExpression, PrecompiledExpression compiled) {
         this.rawExpression = rawExpression;
-        this.expression = expression;
-        this.bindings = bindings;
+        this.compiled = compiled;
     }
 
-    public static ExpressionDamageFormula compile(String path, String formula) {
-        Expression expression = new Expression(formula);
-        Set<String> usedVariables;
-        try {
-            usedVariables = expression.getUsedVariables();
-        } catch (ParseException e) {
-            ThrowableUtils.sneakyThrow(e);
-            return null;
-        }
-        List<VariableBinding> bindings = new ArrayList<>();
-        for (String variable : usedVariables) {
-            switch (variable) {
-                case "damage" ->
-                        bindings.add(VariableBinding.field(variable, VariableBinding.FIELD_DAMAGE));
-                case "is_critical" ->
-                        bindings.add(VariableBinding.field(variable, VariableBinding.FIELD_IS_CRITICAL));
-                case "is_sweep" ->
-                        bindings.add(VariableBinding.field(variable, VariableBinding.FIELD_IS_SWEEP));
-                default -> {
-                    if (variable.startsWith(ATTACKER_PREFIX)) {
-                        bindings.add(VariableBinding.attribute(variable, AttributeSide.ATTACKER, resolveAttribute(path, formula, variable, ATTACKER_PREFIX)));
-                    } else if (variable.startsWith(VICTIM_PREFIX)) {
-                        bindings.add(VariableBinding.attribute(variable, AttributeSide.VICTIM, resolveAttribute(path, formula, variable, VICTIM_PREFIX)));
-                    } else {
-                        throw new KnownResourceException("attribute.formula.unknown_variable", formula, variable);
-                    }
-                }
+    public static ExpressionDamageFormula compile(String formula) {
+        PrecompiledExpression compiled = new PrecompiledExpression(formula);
+        for (String variable : compiled.usedVariables()) {
+            if (!EVENT_VARIABLES.contains(variable)) {
+                throw new KnownResourceException("attribute.formula.unknown_variable", formula, variable);
             }
         }
-        return new ExpressionDamageFormula(formula, expression, bindings);
-    }
-
-    private static Attribute resolveAttribute(String path, String formula, String variable, String prefix) {
-        // evalex 变量名不允许冒号，约定首个下划线代替命名空间分隔符: attacker_example_attack_damage → example:attack_damage
-        String id = variable.substring(prefix.length()).replaceFirst("_", ":");
-        return CraftEngine.instance().attributeManager().getAttribute(Key.of(id))
-                .orElseThrow(() -> new KnownResourceException("attribute.formula.unknown_attribute", path, id, formula));
+        return new ExpressionDamageFormula(formula, compiled);
     }
 
     @Override
     public double getValue(DamageEvent event) {
         try {
-            final Expression instance = this.expression.copy();
-            for (VariableBinding binding : this.bindings) {
-                instance.with(binding.name(), binding.resolve(event));
-            }
-            return instance.evaluate().getNumberValue().doubleValue();
-        } catch (EvaluationException | ParseException e) {
+            return this.compiled.evaluate(EntityDamageContext.of(event, ContextHolder.builder()
+
+            )).getNumberValue().doubleValue();
+        } catch (final RuntimeException e) {
             throw new RuntimeException("Failed to evaluate damage formula: " + this.rawExpression, e);
-        }
-    }
-
-    public record VariableBinding(String name, @Nullable AttributeSide side, @Nullable Attribute attribute, int fieldKind) {
-        static final int KIND_ATTRIBUTE = 0;
-        static final int FIELD_DAMAGE = 1;
-        static final int FIELD_IS_CRITICAL = 2;
-        static final int FIELD_IS_SWEEP = 3;
-
-        static VariableBinding field(String name, int fieldKind) {
-            return new VariableBinding(name, null, null, fieldKind);
-        }
-
-        static VariableBinding attribute(String name, AttributeSide side, Attribute attribute) {
-            return new VariableBinding(name, side, attribute, KIND_ATTRIBUTE);
-        }
-
-        Object resolve(DamageEvent event) {
-            return switch (this.fieldKind) {
-                case FIELD_DAMAGE -> event.damage();
-                case FIELD_IS_CRITICAL -> event.source().isCritical();
-                case FIELD_IS_SWEEP -> event.isSweepAttack();
-                default -> event.getAttributeValue(this.side, this.attribute);
-            };
         }
     }
 }

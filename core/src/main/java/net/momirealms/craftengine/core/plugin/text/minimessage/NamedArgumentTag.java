@@ -2,6 +2,9 @@ package net.momirealms.craftengine.core.plugin.text.minimessage;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.plugin.context.text.StringTag;
+import net.momirealms.craftengine.core.plugin.context.text.StringTemplates;
+import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.sparrow.message.ParsingException;
 import net.momirealms.sparrow.message.tag.Tag;
 import net.momirealms.sparrow.message.tag.resolver.ArgumentQueue;
@@ -11,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class NamedArgumentTag extends StaticTagResolver {
+public class NamedArgumentTag extends StaticTagResolver implements StringTag {
     public static final NamedArgumentTag INSTANCE = new NamedArgumentTag("arg");
 
     protected NamedArgumentTag(String name) {
@@ -24,8 +27,7 @@ public class NamedArgumentTag extends StaticTagResolver {
             return null;
         }
         ContextKey<?> key = ContextKey.chain(arguments.popOr("No argument key provided").toString());
-        Optional<?> optional = parameter(context, key);
-        Object value = optional.orElse(null);
+        Object value = parameter(context, key).orElse(null);
         if (value == null) {
             value = arguments.popOr("No default value provided").toString();
         }
@@ -33,6 +35,45 @@ public class NamedArgumentTag extends StaticTagResolver {
             return Tag.selfClosingInserting(component);
         }
         return Tag.selfClosingInserting(ctx.deserialize(String.valueOf(value)));
+    }
+
+    @Override
+    public @Nullable String resolve(String[] args, net.momirealms.craftengine.core.plugin.context.Context context) {
+        Object value = resolveValue(args, context);
+        if (value instanceof Component component) {
+            return AdventureHelper.plainTextContent(component);
+        }
+        return StringTemplates.render(String.valueOf(value), context);
+    }
+
+    @Override
+    public StringTag precompile(String[] args) {
+        // bind the parameter key and precompile the default value once
+        final ContextKey<?> key = ContextKey.chain(StringTag.requireArg(args, 0, "No argument key provided"));
+        final net.momirealms.craftengine.core.plugin.context.text.StringTemplate defaultTemplate =
+                args.length > 1 ? net.momirealms.craftengine.core.plugin.context.text.StringTemplate.of(args[1]) : null;
+        return (boundArgs, context) -> {
+            Object value = parameter(context, key).orElse(null);
+            if (value == null) {
+                if (defaultTemplate == null) {
+                    throw new IllegalArgumentException("No default value provided");
+                }
+                return defaultTemplate.render(context);
+            }
+            if (value instanceof Component component) {
+                return AdventureHelper.plainTextContent(component);
+            }
+            return StringTemplates.render(String.valueOf(value), context);
+        };
+    }
+
+    protected Object resolveValue(String[] args, net.momirealms.craftengine.core.plugin.context.Context context) {
+        String key = StringTag.requireArg(args, 0, "No argument key provided");
+        Object value = parameter(context, ContextKey.chain(key)).orElse(null);
+        if (value == null) {
+            value = StringTag.requireArg(args, 1, "No default value provided");
+        }
+        return value;
     }
 
     protected Optional<?> parameter(net.momirealms.craftengine.core.plugin.context.Context context, ContextKey<?> key) {

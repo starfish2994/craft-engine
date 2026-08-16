@@ -36,7 +36,7 @@ public final class StringTemplate {
                         final Token child = children.get(i);
                         args[i - 1] = TagPart.unquoteAndEscape(raw, child.startIndex(), child.endIndex());
                     }
-                    parts.add(new TagCall(raw.substring(token.startIndex(), token.endIndex()), tag, args));
+                    parts.add(new TagCall(raw.substring(token.startIndex(), token.endIndex()), tag.precompile(args), args));
                     hasTags = true;
                     continue;
                 }

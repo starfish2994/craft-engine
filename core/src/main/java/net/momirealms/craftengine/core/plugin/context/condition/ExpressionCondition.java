@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.condition;
 
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -19,7 +20,12 @@ public final class ExpressionCondition<CTX extends Context> implements Condition
 
     @Override
     public boolean test(CTX ctx) {
-        return this.expression.evaluate(ctx).getBooleanValue();
+        try {
+            return this.expression.evaluate(ctx).getBooleanValue();
+        } catch (Throwable t) {
+            CraftEngine.instance().logger().warn("Error evaluating expression: " + this.expression.raw(), t);
+            return false;
+        }
     }
 
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, ExpressionCondition<CTX>> {
