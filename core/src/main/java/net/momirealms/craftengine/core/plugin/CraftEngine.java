@@ -212,8 +212,6 @@ public abstract class CraftEngine implements Plugin {
     }
 
     private void reloadManagers() {
-        // precompiled expression / number provider caches may bind Attribute instances
-        // that a reload rebuilds — drop them first
         ExpressionTag.clearCaches();
         RandomTag.clearCaches();
         this.templateManager.reload();
