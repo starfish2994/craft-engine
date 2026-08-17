@@ -2,8 +2,6 @@ package net.momirealms.craftengine.core.attribute;
 
 import net.momirealms.craftengine.core.attribute.damage.DamageEvent;
 import net.momirealms.craftengine.core.attribute.formula.DamageFormula;
-import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifier;
-import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifierStore;
 import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifiersProvider;
 import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
 import net.momirealms.craftengine.core.entity.Entity;
@@ -17,7 +15,9 @@ import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 public interface AttributeManager extends Manageable {
     String META_KEY = "ce:attr";
@@ -40,13 +40,6 @@ public interface AttributeManager extends Manageable {
         if (weapon == null || weapon.isEmpty()) return 0;
         return AttributeModifiers.weaponValue(getItemAttributeModifiers(weapon), attribute, context);
     }
-
-    @Nullable
-    AttributeContainer getContainer(UUID uuid);
-
-    void removeContainer(UUID uuid);
-
-    void tickContainers();
 
     Optional<AttributeOperation> getOperation(Key id);
 

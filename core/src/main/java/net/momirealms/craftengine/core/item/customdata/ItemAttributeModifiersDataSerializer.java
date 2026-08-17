@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.item.customdata;
 import net.momirealms.craftengine.core.attribute.equipment.EquipmentSlotGroup;
 import net.momirealms.craftengine.core.attribute.modifier.AttributeModifierScope;
 import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifier;
+import net.momirealms.craftengine.core.util.CustomDataSerializer;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;

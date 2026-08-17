@@ -54,6 +54,7 @@ public final class ItemSettings {
     Set<Key> allowedProjectiles = Set.of();
     EquipmentSetPart equipmentSetPart;
     AttributeModifiers attributeModifiers;
+    EquipmentPotionEffects equipmentPotionEffects;
 
     private ItemSettings() {}
 
@@ -154,6 +155,7 @@ public final class ItemSettings {
         newSettings.triggerAdvancement = settings.triggerAdvancement;
         newSettings.equipmentSetPart = settings.equipmentSetPart;
         newSettings.attributeModifiers = settings.attributeModifiers;
+        newSettings.equipmentPotionEffects = settings.equipmentPotionEffects;
         newSettings.customData = new IdentityHashMap<>(settings.customData);
         return newSettings;
     }
@@ -328,6 +330,11 @@ public final class ItemSettings {
         return this.attributeModifiers;
     }
 
+    @Nullable
+    public EquipmentPotionEffects equipmentPotionEffects() {
+        return this.equipmentPotionEffects;
+    }
+
     public ItemSettings fireworkColor(Color color) {
         this.fireworkColor = color;
         return this;
@@ -480,6 +487,11 @@ public final class ItemSettings {
 
     public ItemSettings attributeModifiers(AttributeModifiers attributeModifiers) {
         this.attributeModifiers = attributeModifiers;
+        return this;
+    }
+
+    public ItemSettings equipmentPotionEffects(EquipmentPotionEffects equipmentPotionEffects) {
+        this.equipmentPotionEffects = equipmentPotionEffects;
         return this;
     }
 }

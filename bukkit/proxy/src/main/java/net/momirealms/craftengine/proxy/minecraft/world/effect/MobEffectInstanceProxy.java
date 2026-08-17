@@ -3,6 +3,7 @@ package net.momirealms.craftengine.proxy.minecraft.world.effect;
 import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.ConstructorInvoker;
+import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 
@@ -15,4 +16,19 @@ public interface MobEffectInstanceProxy {
 
     @ConstructorInvoker(activeIf = "max_version=1.20.4")
     Object newInstance$legacy(@Type(clazz = MobEffectProxy.class) Object effect, int duration, int amplifier, boolean ambient, boolean visible, boolean showIcon);
+
+    @MethodInvoker(name = "getDuration")
+    int getDuration(Object target);
+
+    @MethodInvoker(name = "getAmplifier")
+    int getAmplifier(Object target);
+
+    @MethodInvoker(name = "isAmbient")
+    boolean isAmbient(Object target);
+
+    @MethodInvoker(name = "isVisible")
+    boolean isVisible(Object target);
+
+    @MethodInvoker(name = "showIcon")
+    boolean showIcon(Object target);
 }

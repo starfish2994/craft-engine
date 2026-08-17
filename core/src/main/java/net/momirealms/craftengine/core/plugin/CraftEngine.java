@@ -225,6 +225,8 @@ public abstract class CraftEngine implements Plugin {
         this.blockManager.reload();
         this.worldManager.reload();
         this.lootManager.reload();
+        this.entityManager.reload();
+        this.attributeManager.reload();
         this.guiManager.reload();
         this.packManager.reload();
         this.advancementManager.reload();
@@ -342,6 +344,7 @@ public abstract class CraftEngine implements Plugin {
                         this.lootManager.runDelayedSyncTasks();
                         this.attributeManager.runDelayedSyncTasks();
                         this.itemManager.runDelayedSyncTasks();
+                        this.entityManager.runDelayedSyncTasks();
                         this.compatibilityManager.runDelayedSyncTasks();
                         if (callEvent) this.callReloadEvent();
                         long syncTime = timestamp.deltaMillis();
@@ -383,6 +386,8 @@ public abstract class CraftEngine implements Plugin {
         this.seatManager.delayedInit();
         // 注册属性监听器
         this.attributeManager.delayedInit();
+        // 注册实体状态监听器
+        this.entityManager.delayedInit();
         // 注册玩家相关监听器
         this.proxyMessageManager.delayedInit();
         // 加载实体剔除线程
@@ -451,6 +456,7 @@ public abstract class CraftEngine implements Plugin {
                 this.lootManager.runDelayedSyncTasks();
                 this.attributeManager.runDelayedSyncTasks();
                 this.itemManager.runDelayedSyncTasks();
+                this.entityManager.runDelayedSyncTasks();
                 this.compatibilityManager.runDelayedSyncTasks();
             } else {
                 try {
@@ -569,6 +575,7 @@ public abstract class CraftEngine implements Plugin {
         this.isStopping = true;
         if (this.networkManager != null) this.networkManager.disable();
         if (this.fontManager != null) this.fontManager.disable();
+        if (this.entityManager != null) this.entityManager.disable();
         if (this.attributeManager != null) this.attributeManager.disable();
         if (this.advancementManager != null) this.advancementManager.disable();
         if (this.packManager != null) this.packManager.disable();

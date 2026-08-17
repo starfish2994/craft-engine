@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.item.customdata;
 
+import net.momirealms.craftengine.core.util.CustomDataSerializer;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.StringTag;

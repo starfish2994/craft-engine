@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.entity;
 
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
+import net.momirealms.craftengine.core.entity.effect.PotionEffectSnapshot;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.Key;
@@ -29,6 +30,9 @@ public interface LivingEntity extends Entity {
     void damage(double amount, Key damageType, @Nullable Entity causeEntity);
 
     void addPotionEffect(Key potionEffectType, int duration, int amplifier, boolean ambient, boolean particles, boolean showIcon);
+
+    @Nullable
+    PotionEffectSnapshot getPotionEffect(Key potionEffectType);
 
     void removePotionEffect(Key potionEffectType);
 

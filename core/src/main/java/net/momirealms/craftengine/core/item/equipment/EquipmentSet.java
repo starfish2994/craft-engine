@@ -3,29 +3,24 @@ package net.momirealms.craftengine.core.item.equipment;
 import net.momirealms.craftengine.core.attribute.modifier.AttributeModifierConfig;
 import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.function.DummyFunction;
 import net.momirealms.craftengine.core.plugin.context.function.Function;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class EquipmentSet {
     private final Entry[] entries;
-    private final boolean accumulate;
 
-    public EquipmentSet(Entry[] entries, boolean accumulate) {
+    public EquipmentSet(Entry[] entries) {
         this.entries = entries;
-        this.accumulate = accumulate;
     }
 
     public static EquipmentSet fromConfig(ConfigSection section) {
-        boolean accumulate = section.getBoolean("accumulate", true);
         ConfigSection piecesSection = section.getNonNullSection("pieces");
         int maxPieces = 0;
         Map<Integer, Entry> entries = new HashMap<>();
@@ -38,15 +33,7 @@ public final class EquipmentSet {
         for (Map.Entry<Integer, Entry> entry : entries.entrySet()) {
             entriesArray[entry.getKey() - 1] = entry.getValue();
         }
-        return new EquipmentSet(entriesArray, accumulate);
-    }
-
-    public boolean accumulate() {
-        return this.accumulate;
-    }
-
-    public int maxTier() {
-        return this.entries.length;
+        return new EquipmentSet(entriesArray);
     }
 
     @Nullable
@@ -58,35 +45,15 @@ public final class EquipmentSet {
     public int effectiveTier(int pieces) {
         if (pieces <= 0) return 0;
         int clamped = Math.min(pieces, this.entries.length);
-        if (this.accumulate) return clamped;
         for (int i = clamped - 1; i >= 0; i--) {
             if (this.entries[i] != null) return i + 1;
         }
         return 0;
     }
 
-    public boolean isTierActive(int tier, int pieces) {
-        if (tier < 1 || tier > this.entries.length || this.entries[tier - 1] == null) return false;
-        if (this.accumulate) return pieces >= tier;
-        return effectiveTier(pieces) == tier;
-    }
-
     public List<AttributeModifierConfig> getAttributeModifiers(int pieces) {
-        if (pieces <= 0) return List.of();
-        if (this.accumulate) {
-            int clamped = Math.min(pieces, this.entries.length);
-            List<AttributeModifierConfig> list = new ArrayList<>(4);
-            for (int i = 0; i < clamped; i++) {
-                Entry entry = this.entries[i];
-                if (entry != null) {
-                    list.addAll(entry.modifiers);
-                }
-            }
-            return list;
-        } else {
-            Entry entry = entry(effectiveTier(pieces));
-            return entry == null ? List.of() : entry.modifiers;
-        }
+        Entry entry = entry(effectiveTier(pieces));
+        return entry == null ? List.of() : entry.modifiers;
     }
 
     public static class Entry {

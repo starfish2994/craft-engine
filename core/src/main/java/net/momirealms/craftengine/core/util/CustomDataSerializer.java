@@ -1,4 +1,4 @@
-package net.momirealms.craftengine.core.item.customdata;
+package net.momirealms.craftengine.core.util;
 
 import net.momirealms.sparrow.nbt.Tag;
 

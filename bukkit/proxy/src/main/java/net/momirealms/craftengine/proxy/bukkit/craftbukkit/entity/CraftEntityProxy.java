@@ -3,6 +3,7 @@ package net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
 import net.momirealms.sparrow.reflection.proxy.annotation.FieldSetter;
+import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import org.bukkit.entity.Entity;
 
@@ -15,4 +16,7 @@ public interface CraftEntityProxy {
 
     @FieldSetter(name = "entity")
     void setEntity(Entity target, Object entity);
+
+    @MethodInvoker(name = "getPersistentDataContainer")
+    Object getPersistentDataContainer(Entity target);
 }

@@ -25,7 +25,6 @@ import net.momirealms.craftengine.bukkit.plugin.network.handler.PlayerPacketHand
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
-import net.momirealms.craftengine.core.attribute.AttributeContainer;
 import net.momirealms.craftengine.core.attribute.damage.DamageVisibility;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;

@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.item.customdata;
 
+import net.momirealms.craftengine.core.util.CustomDataSerializer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;

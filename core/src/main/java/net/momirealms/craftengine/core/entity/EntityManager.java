@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public interface EntityManager extends Manageable {
 
@@ -25,4 +26,7 @@ public interface EntityManager extends Manageable {
         entities.addAll(customEntityIdsByTag(tag));
         return entities;
     }
+
+    @Nullable
+    LivingEntityHolder getEntityHolder(UUID uuid);
 }

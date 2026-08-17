@@ -21,16 +21,14 @@ import java.util.Map;
 public final class BukkitAttributeManager extends AbstractAttributeManager {
     private final BukkitCraftEngine plugin;
     private final AttributeEventListener attributeEventListener;
-    private final PaperAttributeEventListener paperAttributeEventListener;
     private final EntityDamageListener entityDamageListener;
     private final Map<Key, Map<Key, Double>> vanillaDefaultAttributes;
 
     public BukkitAttributeManager(BukkitCraftEngine plugin) {
         super(plugin);
         this.plugin = plugin;
-        this.attributeEventListener = new AttributeEventListener(this);
+        this.attributeEventListener = new AttributeEventListener();
         this.entityDamageListener = new EntityDamageListener(this);
-        this.paperAttributeEventListener = VersionHelper.hasPaperPatch ? new PaperAttributeEventListener(this) : null;
         this.vanillaDefaultAttributes = buildVanillaDefaultAttributeTable();
     }
 
@@ -44,14 +42,12 @@ public final class BukkitAttributeManager extends AbstractAttributeManager {
         boolean enable = Config.enableAttributeSystem();
         this.attributeEventListener.setActive(enable);
         this.entityDamageListener.setActive(enable || Config.enableDamageIndicator());
-        if (this.paperAttributeEventListener != null) this.paperAttributeEventListener.setActive(enable);
     }
 
     @Override
     public void disable() {
         this.attributeEventListener.setActive(false);
         this.entityDamageListener.setActive(false);
-        if (this.paperAttributeEventListener != null) this.paperAttributeEventListener.setActive(false);
     }
 
     @Override

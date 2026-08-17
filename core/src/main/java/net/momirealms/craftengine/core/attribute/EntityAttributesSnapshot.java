@@ -4,17 +4,11 @@ import net.momirealms.craftengine.core.util.Key;
 
 import java.util.Map;
 
-public final class AttributeContainerSnapshot implements AttributeGetter {
-    private final AttributeContainer source;
+public final class EntityAttributesSnapshot implements AttributeGetter {
     private final Map<Key, Double> snapshots;
 
-    AttributeContainerSnapshot(AttributeContainer source, Map<Key, Double> snapshots) {
-        this.source = source;
+    EntityAttributesSnapshot(Map<Key, Double> snapshots) {
         this.snapshots = snapshots;
-    }
-
-    public AttributeContainer source() {
-        return this.source;
     }
 
     public Map<Key, Double> snapshots() {

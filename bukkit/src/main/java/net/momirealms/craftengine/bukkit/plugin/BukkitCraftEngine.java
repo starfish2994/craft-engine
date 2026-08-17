@@ -320,7 +320,7 @@ public final class BukkitCraftEngine extends CraftEngine {
                     serverPlayer.tick();
                 }
                 if (Config.enableAttributeSystem()) {
-                    attributeManager().tickContainers();
+                    entityManager().tickLivingEntities();
                 }
             }, 1, 1);
         }
@@ -435,6 +435,11 @@ public final class BukkitCraftEngine extends CraftEngine {
     @Override
     public BukkitAdvancementManager advancementManager() {
         return (BukkitAdvancementManager) this.advancementManager;
+    }
+
+    @Override
+    public BukkitEntityManager entityManager() {
+        return (BukkitEntityManager) this.entityManager;
     }
 
     @Override

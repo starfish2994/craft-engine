@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributes;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributes1_21;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
+import net.momirealms.craftengine.core.entity.LivingEntityContext;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.SwapList;
@@ -38,11 +39,10 @@ public class AttributeInstance {
     private double lastSyncValue = Double.NaN;
     private double lastSyncBase = Double.NaN;
 
-    public AttributeInstance(Attribute attribute, Context context, Entity entity) {
+    public AttributeInstance(Attribute attribute, LivingEntityContext context) {
         this.attribute = attribute;
         this.context = context;
-        this.entity = entity;
-        this.lastBase = attribute.baseValueSource().resolve(entity);
+        this.lastBase = attribute.baseValueSource().resolve(context.entity);
     }
 
     public Attribute attribute() {

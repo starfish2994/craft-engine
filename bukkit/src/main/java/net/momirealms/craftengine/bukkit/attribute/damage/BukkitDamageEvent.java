@@ -11,9 +11,11 @@ import net.momirealms.craftengine.core.attribute.damage.EntityDamageContext;
 import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
+import net.momirealms.craftengine.core.entity.LivingEntityHolder;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.setting.value.AttributeModifiers;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
@@ -48,8 +50,8 @@ public final class BukkitDamageEvent implements DamageEvent {
         this.source = new BukkitDamageSource(CraftDamageSourceProxy.INSTANCE.getHandle(event.getDamageSource()));
         org.bukkit.entity.Entity victimEntity = this.event.getEntity();
         this.victim = BukkitAdaptor.adapt(victimEntity);
-        AttributeContainer victimContainer = manager.getContainer(victimEntity.getUniqueId());
-        this.victimAttributes = victimContainer == null ? EmptyAttributeHolder.INSTANCE : victimContainer;
+        LivingEntityHolder victimHolder = CraftEngine.instance().entityManager().getEntityHolder(victimEntity.getUniqueId());
+        this.victimAttributes = victimHolder == null ? EmptyAttributeHolder.INSTANCE : victimHolder.attributes();
         this.attackerAttributes = causingEntityAttributes();
         Item weapon = this.resolveActiveWeapon();
         this.activeWeapon = weapon == null || weapon.isEmpty() ? null : weapon;
@@ -107,15 +109,16 @@ public final class BukkitDamageEvent implements DamageEvent {
         if (entity == null) {
             return EmptyAttributeHolder.INSTANCE;
         }
-        AttributeGetter container = this.manager.getContainer(entity.getUniqueId());
-        if (container == null) {
+        LivingEntityHolder holder = CraftEngine.instance().entityManager().getEntityHolder(entity.getUniqueId());
+        AttributeGetter attributes = holder == null ? null : holder.attributes();
+        if (attributes == null) {
             List<MetadataValue> attribute = entity.getMetadata(AttributeManager.META_KEY);
             if (!attribute.isEmpty()) {
                 MetadataValue first = attribute.getFirst();
-                container = (AttributeGetter) first.value();
+                attributes = (AttributeGetter) first.value();
             }
         }
-        return container == null ? EmptyAttributeHolder.INSTANCE : container;
+        return attributes == null ? EmptyAttributeHolder.INSTANCE : attributes;
     }
 
     @Override

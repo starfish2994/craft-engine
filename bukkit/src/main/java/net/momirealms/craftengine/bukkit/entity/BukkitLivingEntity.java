@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
+import net.momirealms.craftengine.core.entity.effect.PotionEffectSnapshot;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.util.Key;
@@ -28,6 +29,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class BukkitLivingEntity extends BukkitEntity implements net.momirealms.craftengine.core.entity.LivingEntity {
+    protected BukkitVanillaAttributeInstance attributes;
 
     protected BukkitLivingEntity(WeakReference<Object> entity) {
         super(entity);
@@ -40,17 +42,22 @@ public class BukkitLivingEntity extends BukkitEntity implements net.momirealms.c
     @Nullable
     @Override
     public VanillaAttributeInstance getVanillaAttribute(Key attribute) {
-        if (VersionHelper.isOrAbove1_20_5) {
-            Object holder = RegistryUtils.getHolderById(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(attribute));
-            if (holder == null) return null;
-            Object instance = LivingEntityProxy.INSTANCE.getAttribute(minecraftEntity(), holder);
-            return instance == null ? null : new BukkitVanillaAttributeInstance(instance);
-        } else {
-            Object attributeObject = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(attribute));
-            if (attributeObject == null) return null;
-            Object instance = LivingEntityProxy.INSTANCE.getAttribute$legacy(minecraftEntity(), attributeObject);
-            return instance == null ? null : new BukkitVanillaAttributeInstance(instance);
+        if (this.attributes == null) {
+            if (VersionHelper.isOrAbove1_20_5) {
+                Object holder = RegistryUtils.getHolderById(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(attribute));
+                if (holder == null) return null;
+                Object instance = LivingEntityProxy.INSTANCE.getAttribute(minecraftEntity(), holder);
+                if (instance == null) return null;
+                this.attributes = new BukkitVanillaAttributeInstance(instance);
+            } else {
+                Object attributeObject = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(attribute));
+                if (attributeObject == null) return null;
+                Object instance = LivingEntityProxy.INSTANCE.getAttribute$legacy(minecraftEntity(), attributeObject);
+                if (instance == null) return null;
+                this.attributes = new BukkitVanillaAttributeInstance(instance);
+            }
         }
+        return this.attributes;
     }
 
     @Override
@@ -107,6 +114,30 @@ public class BukkitLivingEntity extends BukkitEntity implements net.momirealms.c
                 LivingEntityProxy.INSTANCE.addEffect(minecraftEntity(), MobEffectInstanceProxy.INSTANCE.newInstance$legacy(mobEffect, duration, amplifier, ambient, particles, showIcon));
             }
         }
+    }
+
+    @Nullable
+    @Override
+    public PotionEffectSnapshot getPotionEffect(Key potionEffectType) {
+        Object effect;
+        if (VersionHelper.isOrAbove1_20_5) {
+            Object holder = RegistryUtils.getHolderById(BuiltInRegistriesProxy.MOB_EFFECT, KeyUtils.toIdentifier(potionEffectType));
+            if (holder == null) return null;
+            effect = LivingEntityProxy.INSTANCE.getEffect(minecraftEntity(), holder);
+        } else {
+            Object mobEffect = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.MOB_EFFECT, KeyUtils.toIdentifier(potionEffectType));
+            if (mobEffect == null) return null;
+            effect = LivingEntityProxy.INSTANCE.getEffect$legacy(minecraftEntity(), mobEffect);
+        }
+        if (effect == null) return null;
+        return new PotionEffectSnapshot(
+                potionEffectType,
+                MobEffectInstanceProxy.INSTANCE.getDuration(effect),
+                MobEffectInstanceProxy.INSTANCE.getAmplifier(effect),
+                MobEffectInstanceProxy.INSTANCE.isAmbient(effect),
+                MobEffectInstanceProxy.INSTANCE.isVisible(effect),
+                MobEffectInstanceProxy.INSTANCE.showIcon(effect)
+        );
     }
 
     @Override

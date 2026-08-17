@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.item.AbstractItemManager;
 import net.momirealms.craftengine.core.item.equipment.ComponentBasedEquipment;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
 import net.momirealms.craftengine.core.item.equipment.Equipments;
+import net.momirealms.craftengine.core.item.equipment.SlotPotionEffect;
 import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainder;
 import net.momirealms.craftengine.core.item.recipe.remainder.CraftRemainders;
 import net.momirealms.craftengine.core.item.setting.value.*;
@@ -217,6 +218,10 @@ public final class ItemSettingsModifiers {
     public static final ItemSettingsModifierType<ItemSettingsModifier> ATTRIBUTE_MODIFIERS = register(Key.ce("attribute_modifiers"), (value -> {
         AttributeModifiers attributeModifiers = new AttributeModifiers(value.getAsList(v -> SlotAttributeModifierConfig.fromConfig(v.getAsSection())));
         return settings -> settings.attributeModifiers(attributeModifiers);
+    }));
+    public static final ItemSettingsModifierType<ItemSettingsModifier> EQUIPMENT_POTION_EFFECTS = register(Key.ce("equipment_potion_effects"), (value -> {
+        EquipmentPotionEffects potionEffects = new EquipmentPotionEffects(value.getAsList(v -> SlotPotionEffect.fromConfig(v.getAsSection())));
+        return settings -> settings.equipmentPotionEffects(potionEffects);
     }));
 
     private ItemSettingsModifiers() {

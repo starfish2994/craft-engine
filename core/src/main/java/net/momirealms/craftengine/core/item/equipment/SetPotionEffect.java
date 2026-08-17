@@ -4,18 +4,18 @@ import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Key;
 
+import java.util.Objects;
+
 public final class SetPotionEffect {
     private static final String[] SHOW_ICON = ConfigKeys.of("show_icon");
     private final Key type;
-    private final int duration;
     private final int amplifier;
     private final boolean ambient;
     private final boolean particles;
     private final boolean icon;
 
-    public SetPotionEffect(Key type, int duration, int amplifier, boolean ambient, boolean particles, boolean icon) {
+    public SetPotionEffect(Key type, int amplifier, boolean ambient, boolean particles, boolean icon) {
         this.type = type;
-        this.duration = duration;
         this.amplifier = amplifier;
         this.ambient = ambient;
         this.particles = particles;
@@ -25,7 +25,6 @@ public final class SetPotionEffect {
     public static SetPotionEffect fromConfig(ConfigSection section) {
         return new SetPotionEffect(
                 section.getNonNullIdentifier("type"),
-                section.getInt("duration", -1), // -1 常驻,档位失效时移除
                 section.getInt("amplifier", 0),
                 section.getBoolean("ambient"),
                 section.getBoolean("particles", true),
@@ -37,8 +36,13 @@ public final class SetPotionEffect {
         return this.type;
     }
 
-    public int duration() {
-        return this.duration;
+    public boolean sameEffect(SetPotionEffect other) {
+        return other != null
+                && this.type.equals(other.type)
+                && this.amplifier == other.amplifier
+                && this.ambient == other.ambient
+                && this.particles == other.particles
+                && this.icon == other.icon;
     }
 
     public int amplifier() {
@@ -55,5 +59,17 @@ public final class SetPotionEffect {
 
     public boolean icon() {
         return this.icon;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SetPotionEffect that)) return false;
+        return this.sameEffect(that);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.type, this.amplifier, this.ambient, this.particles, this.icon);
     }
 }

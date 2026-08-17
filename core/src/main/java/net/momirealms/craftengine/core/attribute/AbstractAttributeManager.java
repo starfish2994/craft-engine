@@ -23,7 +23,8 @@ import net.momirealms.craftengine.core.attribute.sync.SyncValueProviders;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier.Operation;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.EntityDefinition;
-import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.entity.LivingEntity;
+import net.momirealms.craftengine.core.entity.LivingEntityHolder;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.equipment.EquipmentSet;
@@ -33,9 +34,7 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
-import net.momirealms.craftengine.core.util.ConcurrentChainedUUID2ReferenceHashTable;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.SwapList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,20 +51,14 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     protected final Map<Key, AttributeOperation> configOperations = new HashMap<>();
     // 套装定义
     protected final Map<Key, EquipmentSet> equipmentSets = new HashMap<>();
-    // 运行中的实体属性容器
-    protected final ConcurrentChainedUUID2ReferenceHashTable<AttributeContainer> containers = ConcurrentChainedUUID2ReferenceHashTable.createWithCapacity(128);
-    // 需逐 tick 更新的容器（含玩家），配合容器自带下标实现 O(1) 移除
-    protected final SwapList<AttributeContainer> tickingContainers = new SwapList<>();
-    // 容器 tick 计数，仅随 tickContainers 递增
-    private int containerTickCount;
     // 物品修饰符动态来源注册表（按 id），变动时重建有序快照
     protected final Map<Key, RegisteredProvider> itemModifiersProviders = new LinkedHashMap<>();
-    // 按优先级升序的快照，遍历时零排序开销
-    protected volatile List<ItemAttributeModifiersProvider> sortedItemModifiersProviders = List.of();
     private final OperationParser operationParser = new OperationParser();
     private final AttributeParser attributeParser = new AttributeParser();
     private final DamageFormulaParser damageFormulaParser = new DamageFormulaParser();
     private final EquipmentSetParser equipmentSetParser = new EquipmentSetParser();
+    // 按优先级升序的快照，遍历时零排序开销
+    protected volatile List<ItemAttributeModifiersProvider> sortedItemModifiersProviders = List.of();
     // API配置合并
     protected Map<Key, Attribute> mergedAttributes = Map.of();
     // 按实体类型分桶的受限属性
@@ -136,12 +129,6 @@ public abstract class AbstractAttributeManager implements AttributeManager {
         this.sortedItemModifiersProviders = List.copyOf(sorted);
     }
 
-    protected record RegisteredProvider(int priority, ItemAttributeModifiersProvider provider) {
-    }
-
-    private record ModifierMergeKey(Key attribute, Key id) {
-    }
-
     @Override
     public List<SlotAttributeModifierConfig> getItemAttributeModifiers(Item item) {
         List<ItemAttributeModifiersProvider> providers = this.sortedItemModifiersProviders;
@@ -174,55 +161,11 @@ public abstract class AbstractAttributeManager implements AttributeManager {
 
     @Override
     public double getAttributeValue(Entity entity, Attribute attribute) {
-        AttributeGetter attributeGetter = getContainer(entity);
-        if (attributeGetter == null) {
+        LivingEntityHolder holder = this.plugin.entityManager().getEntityHolder(entity.uuid());
+        if (holder == null) {
             return attribute.defaultValue(entity);
         }
-        return attributeGetter.getAttributeValue(attribute);
-    }
-
-    @Override
-    public void removeContainer(UUID uuid) {
-        AttributeContainer container = this.containers.remove(uuid);
-        if (container != null) {
-            container.equipments().clearSetEffects();
-            container.clearSyncModifiers();
-            if (container.index() != -1) {
-                this.tickingContainers.swapRemove(container);
-            }
-        }
-    }
-
-    @Override
-    public void tickContainers() {
-        int tick = ++this.containerTickCount;
-        SwapList<AttributeContainer> containers = this.tickingContainers;
-        for (int i = 0, size = containers.size(); i < size; i++) {
-            containers.get(i).tick(tick);
-        }
-    }
-
-    @Override
-    public AttributeContainer getContainer(UUID uuid) {
-        return this.containers.get(uuid);
-    }
-
-    public AttributeContainer getContainer(Entity entity) {
-        return this.containers.get(entity.uuid());
-    }
-
-    public void createContainer(Entity entity) {
-        List<Attribute> attributes = this.attributesByEntityType(entity.type());
-        if (attributes.isEmpty()) {
-            return;
-        }
-        this.containers.computeIfAbsent(entity.uuid(), k -> {
-            AttributeContainer container = new AttributeContainer(entity, attributes);
-            if (entity instanceof Player || Config.enableEntityAttributeTick()) {
-                this.tickingContainers.add(container);
-            }
-            return container;
-        });
+        return holder.attributes().getAttributeValue(attribute);
     }
 
     @Override
@@ -263,6 +206,40 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     protected abstract double vanillaEntityTypeDefaultBaseValue(Key entityType, Key attribute, double fallback);
+
+    private List<AttributeOperation> parseOperations(ConfigSection section) {
+        List<String> operationIds = section.getStringList("operations");
+        if (operationIds.isEmpty()) return AttributeOperations.DEFAULT_PIPELINE;
+        List<AttributeOperation> operations = new ArrayList<>(operationIds.size());
+        for (String operationId : operationIds) {
+            Key operationKey = Key.of(operationId);
+            operations.add(getOperation(operationKey)
+                    .orElseThrow(() -> new KnownResourceException("attribute.unknown_operation", section.assemblePath("operations"), operationKey.asString())));
+        }
+        return List.copyOf(operations);
+    }
+
+    @Nullable
+    private Set<Key> parseApplicableEntityTypes(ConfigSection section) {
+        List<String> entities = section.getStringList("entities");
+        if (entities.isEmpty()) return null;
+        Set<Key> types = new HashSet<>();
+        for (String entry : entities) {
+            if (entry.isEmpty()) continue;
+            if (entry.charAt(0) == '#') {
+                types.addAll(AbstractAttributeManager.this.plugin.entityManager().entityIdsByTag(Key.of(entry.substring(1))));
+            } else {
+                types.add(Key.of(entry));
+            }
+        }
+        return types.isEmpty() ? null : Set.copyOf(types);
+    }
+
+    protected record RegisteredProvider(int priority, ItemAttributeModifiersProvider provider) {
+    }
+
+    private record ModifierMergeKey(Key attribute, Key id) {
+    }
 
     private final class DamageFormulaParser extends SectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("damage_rule(s)");
@@ -408,34 +385,6 @@ public abstract class AbstractAttributeManager implements AttributeManager {
         }
     }
 
-    private List<AttributeOperation> parseOperations(ConfigSection section) {
-        List<String> operationIds = section.getStringList("operations");
-        if (operationIds.isEmpty()) return AttributeOperations.DEFAULT_PIPELINE;
-        List<AttributeOperation> operations = new ArrayList<>(operationIds.size());
-        for (String operationId : operationIds) {
-            Key operationKey = Key.of(operationId);
-            operations.add(getOperation(operationKey)
-                    .orElseThrow(() -> new KnownResourceException("attribute.unknown_operation", section.assemblePath("operations"), operationKey.asString())));
-        }
-        return List.copyOf(operations);
-    }
-
-    @Nullable
-    private Set<Key> parseApplicableEntityTypes(ConfigSection section) {
-        List<String> entities = section.getStringList("entities");
-        if (entities.isEmpty()) return null;
-        Set<Key> types = new HashSet<>();
-        for (String entry : entities) {
-            if (entry.isEmpty()) continue;
-            if (entry.charAt(0) == '#') {
-                types.addAll(AbstractAttributeManager.this.plugin.entityManager().entityIdsByTag(Key.of(entry.substring(1))));
-            } else {
-                types.add(Key.of(entry));
-            }
-        }
-        return types.isEmpty() ? null : Set.copyOf(types);
-    }
-
     private final class EquipmentSetParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("equipment_set(s)");
 
@@ -468,6 +417,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
             AbstractAttributeManager.this.equipmentSets.put(id, EquipmentSet.fromConfig(section));
         }
+
     }
 
     private final class OperationParser extends IdSectionConfigParser {

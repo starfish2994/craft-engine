@@ -610,8 +610,8 @@ public final class Config {
         this.chunk_system$generation$surface = config.getBoolean("chunk-system.generation.surface", true);
 
         // attribute
-        this.attribute$enable = config.getBoolean("attribute.enable", true);
         if (this.firstTime) {
+            this.attribute$enable = config.getBoolean("attribute.enable", true);
             this.attribute$entity_tick = config.getBoolean("attribute.entity-tick", true);
         }
         this.attribute$health_scaling$enable = config.getBoolean("attribute.health-scaling.enable", false);

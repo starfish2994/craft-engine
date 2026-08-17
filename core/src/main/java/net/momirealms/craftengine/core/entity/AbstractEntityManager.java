@@ -6,7 +6,10 @@ import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
+import net.momirealms.craftengine.core.util.ConcurrentChainedUUID2ReferenceHashTable;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.SwapList;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +21,10 @@ public abstract class AbstractEntityManager implements EntityManager {
     protected final CraftEngine plugin;
     protected final Map<Key, List<Key>> customEntityTags = new HashMap<>();
     protected final Map<Key, EntityDefinition> entityDefinitions = new ConcurrentHashMap<>();
+    protected final ConcurrentChainedUUID2ReferenceHashTable<LivingEntityHolder> livingEntities = ConcurrentChainedUUID2ReferenceHashTable.createWithCapacity(512);
+    protected final SwapList<LivingEntityHolder> tickingEntities = new SwapList<>();
     private final EntityParser entityParser = new EntityParser();
+    private int livingEntityTick;
 
     protected AbstractEntityManager(CraftEngine plugin) {
         this.plugin = plugin;
@@ -48,6 +54,45 @@ public abstract class AbstractEntityManager implements EntityManager {
     @Override
     public ConfigParser[] parsers() {
         return new ConfigParser[]{this.entityParser};
+    }
+
+    public LivingEntityHolder trackLivingEntity(LivingEntity entity) {
+        LivingEntityHolder holder = new LivingEntityHolder(entity);
+        if (VersionHelper.hasFoliaPatch) {
+
+        } else {
+            this.tickingEntities.add(holder);
+        }
+        return this.livingEntities.put(entity.uuid(), holder);
+    }
+
+    public void untrackLivingEntity(UUID uuid, boolean death) {
+        LivingEntityHolder removed = this.livingEntities.remove(uuid);
+        if (removed != null) {
+            if (!VersionHelper.hasFoliaPatch) {
+                this.tickingEntities.remove(removed);
+            }
+            removed.close(death);
+        }
+    }
+
+    public void tickLivingEntities() {
+        int tick = ++this.livingEntityTick;
+        SwapList<LivingEntityHolder> holders = this.tickingEntities;
+        boolean tickAttribute = Config.enableEntityAttributeTick();
+        for (int i = 0, size = holders.size(); i < size; i++) {
+            holders.get(i).tick(tick, tickAttribute);
+        }
+    }
+
+    @Override
+    public void disable() {
+        unload();
+    }
+
+    @Override
+    public LivingEntityHolder getEntityHolder(UUID uuid) {
+        return this.livingEntities.get(uuid);
     }
 
     private final class EntityParser extends IdSectionConfigParser {
