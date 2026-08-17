@@ -11,7 +11,7 @@ import java.util.Map;
 
 // TODO 设计的很差。未来最好重构
 public class ItemBuildContext extends PlayerOptionalContext {
-    public static final ItemBuildContext EMPTY = new ItemBuildContext(null, ContextHolder.emptyImmutable());
+    public static final ItemBuildContext EMPTY = new ItemBuildContext(null, ContextHolder.empty());
     protected Item item;
 
     public ItemBuildContext(@Nullable Player player, @NotNull ContextHolder contexts) {

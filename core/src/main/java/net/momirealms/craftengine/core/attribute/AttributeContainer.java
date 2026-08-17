@@ -38,7 +38,6 @@ public final class AttributeContainer implements AttributeGetter, SwapList.Index
                 .withOptionalParameter(DirectContextParameters.PLAYER, entity instanceof Player player ? player : null)
                 .immutable(true)
                 .build());
-        this.context.contexts().withParameter(DirectContextParameters.ENTITY, entity);
         this.equipments = new EntityEquipments(this);
         ImmutableMap.Builder<Key, AttributeInstance> mapBuilder = ImmutableMap.builder();
         int count = 0;
