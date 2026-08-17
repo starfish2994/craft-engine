@@ -11,26 +11,35 @@ import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.Context;
+import net.momirealms.craftengine.core.plugin.context.ContextHolder;
+import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.SwapList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public final class AttributeContainer implements AttributeGetter {
-    private final AttributeManager manager;
+public final class AttributeContainer implements AttributeGetter, SwapList.Indexed {
     private final Entity entity;
     private final AttributeInstance[] instances;
     private final ImmutableMap<Key, AttributeInstance> instancesById;
     private final EntityEquipments equipments;
+    // 不可变 context
     private final Context context;
+    // 在管理器 tick 列表中的下标，-1 表示不在列表中
+    private int tickListIndex = -1;
 
-    public AttributeContainer(AttributeManager manager, Entity entity) {
-        this.manager = manager;
+    public AttributeContainer(Entity entity, List<Attribute> applicable) {
         this.entity = entity;
-        this.context = entity instanceof Player player ? PlayerOptionalContext.of(player) : PlayerOptionalContext.emptyImmutable();
+        this.context = new AttributeContainerContext(entity, ContextHolder.builder()
+                .withParameter(DirectContextParameters.ENTITY, entity)
+                .withOptionalParameter(DirectContextParameters.PLAYER, entity instanceof Player player ? player : null)
+                .immutable(true)
+                .build());
+        this.context.contexts().withParameter(DirectContextParameters.ENTITY, entity);
         this.equipments = new EntityEquipments(this);
-        List<Attribute> applicable = manager.attributesByEntityType(entity.type());
         ImmutableMap.Builder<Key, AttributeInstance> mapBuilder = ImmutableMap.builder();
         int count = 0;
         for (Attribute attribute : applicable) {
@@ -53,6 +62,7 @@ public final class AttributeContainer implements AttributeGetter {
                     this.equipments.add(EquipmentSetSlot.fromEquipmentSlot(slot), item);
                 }
             }
+            this.equipments.updateSets();
         }
     }
 
@@ -64,22 +74,12 @@ public final class AttributeContainer implements AttributeGetter {
         return this.entity;
     }
 
-    public EntityEquipments equipments() {
-        return this.equipments;
+    public Context context() {
+        return this.context;
     }
 
-    // 重扫全部装备槽：实例覆盖/动态来源变化后，已穿戴物品经此方法重新生效
-    public void refreshEquipments() {
-        if (!(this.entity instanceof LivingEntity livingEntity)) return;
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            this.equipments.remove(EquipmentSetSlot.fromEquipmentSlot(slot));
-        }
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            Item item = livingEntity.getItemByEquipmentSlot(slot);
-            if (!item.isEmpty()) {
-                this.equipments.add(EquipmentSetSlot.fromEquipmentSlot(slot), item);
-            }
-        }
+    public EntityEquipments equipments() {
+        return this.equipments;
     }
 
     // 该实体不适用的属性（含派生属性）返回 null
@@ -120,6 +120,16 @@ public final class AttributeContainer implements AttributeGetter {
                 instance.syncToVanilla();
             }
         }
+    }
+
+    @Override
+    public int index() {
+        return this.tickListIndex;
+    }
+
+    @Override
+    public void index(int index) {
+        this.tickListIndex = index;
     }
 
     public AttributeContainerSnapshot createSnapshot() {

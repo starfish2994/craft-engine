@@ -4,6 +4,7 @@ import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.plugin.listener.AbstractListener;
 import net.momirealms.craftengine.bukkit.util.EquipmentSlotUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
@@ -39,15 +40,19 @@ public final class PaperAttributeEventListener extends AbstractListener {
         for (Map.Entry<EquipmentSlot, EntityEquipmentChangedEvent.EquipmentChange> entry : equipmentChanges.entrySet()) {
             EquipmentSlot slot = entry.getKey();
             EntityEquipmentChangedEvent.EquipmentChange changed = entry.getValue();
-            equipments.add(EquipmentSlotUtils.toEquipmentSetSlot(slot), ItemStackUtils.wrap(changed.newItem()));
+            BukkitItem newItem = ItemStackUtils.wrap(changed.newItem());
+            if (!newItem.isEmpty()) {
+                equipments.add(EquipmentSlotUtils.toEquipmentSetSlot(slot), newItem);
+            }
         }
+        equipments.updateSets();
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onEntityAdd(EntityAddToWorldEvent event) {
         if (event.getEntity() instanceof LivingEntity livingEntity) {
             if (livingEntity instanceof Player) return;
-            this.manager.getOrCreateContainer(BukkitAdaptor.adapt(livingEntity));
+            this.manager.createContainer(BukkitAdaptor.adapt(livingEntity));
         }
     }
 

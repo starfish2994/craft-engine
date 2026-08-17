@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierC
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.item.equipment.EquipmentSet;
 import net.momirealms.craftengine.core.item.setting.value.AttributeModifiers;
 import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
@@ -35,38 +36,9 @@ public interface AttributeManager extends Manageable {
 
     void unregisterItemModifiersProvider(Key id);
 
-    default List<ItemAttributeModifier> getPersistentItemAttributeModifiers(Item item) {
-        return ItemAttributeModifierStore.read(item);
-    }
-
-    default void addPersistentItemAttributeModifier(Item item, ItemAttributeModifier modifier) {
-        List<ItemAttributeModifier> modifiers = new ArrayList<>(ItemAttributeModifierStore.read(item));
-        modifiers.removeIf(m -> m.id().equals(modifier.id()));
-        modifiers.add(modifier);
-        ItemAttributeModifierStore.write(item, modifiers);
-    }
-
-    default void removePersistentItemAttributeModifier(Item item, Key id) {
-        List<ItemAttributeModifier> modifiers = new ArrayList<>(ItemAttributeModifierStore.read(item));
-        if (modifiers.removeIf(m -> m.id().equals(id))) {
-            ItemAttributeModifierStore.write(item, modifiers);
-        }
-    }
-
-    default void clearPersistentItemAttributeModifiers(Item item) {
-        ItemAttributeModifierStore.write(item, List.of());
-    }
-
     default double getWeaponAttributeValue(@Nullable Item weapon, Attribute attribute, Context context) {
         if (weapon == null || weapon.isEmpty()) return 0;
         return AttributeModifiers.weaponValue(getItemAttributeModifiers(weapon), attribute, context);
-    }
-
-    default void refreshEquipments(LivingEntity entity) {
-        AttributeContainer container = getContainer(entity.uuid());
-        if (container != null) {
-            container.refreshEquipments();
-        }
     }
 
     @Nullable
@@ -74,7 +46,11 @@ public interface AttributeManager extends Manageable {
 
     void removeContainer(UUID uuid);
 
+    void tickContainers();
+
     Optional<AttributeOperation> getOperation(Key id);
+
+    Optional<EquipmentSet> equipmentSet(Key id);
 
     DamageFormula findFormula(DamageEvent event);
 

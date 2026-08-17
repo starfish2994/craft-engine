@@ -678,14 +678,6 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         // 更新玩家游戏刻
         this.gameTicks = ServerPlayerGameModeProxy.INSTANCE.getGameTicks(ServerPlayerProxy.INSTANCE.getGameMode(serverPlayer));
 
-        // 推送属性同步：每 tick 把脏的属性实例批量写回原版
-        if (Config.enableAttributeSystem()) {
-            AttributeContainer attributeContainer = this.plugin.attributeManager().getContainer(this.uuid());
-            if (attributeContainer != null) {
-                attributeContainer.tick(this.gameTicks);
-            }
-        }
-
         // 更新CE UI
         if (this.gameTicks % 20 == 0) {
             this.updateGUI();

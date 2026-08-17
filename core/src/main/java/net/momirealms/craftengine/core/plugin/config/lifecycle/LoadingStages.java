@@ -31,4 +31,5 @@ public final class LoadingStages {
     public static final LoadingStage ATTRIBUTE = new LoadingStage("attributes");
     public static final LoadingStage ATTRIBUTE_RULES = new LoadingStage("attribute rules");
     public static final LoadingStage ATTRIBUTE_OPERATION = new LoadingStage("attribute operations");
+    public static final LoadingStage EQUIPMENT_SET = new LoadingStage("equipment sets");
 }

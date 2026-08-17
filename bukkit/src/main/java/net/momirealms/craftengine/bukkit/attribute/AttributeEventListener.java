@@ -41,7 +41,7 @@ public final class AttributeEventListener extends AbstractListener {
         Player player = event.getPlayer();
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         if (serverPlayer == null) return;
-        this.manager.getOrCreateContainer(serverPlayer);
+        this.manager.createContainer(serverPlayer);
     }
 
     @EventHandler(priority = EventPriority.HIGH)

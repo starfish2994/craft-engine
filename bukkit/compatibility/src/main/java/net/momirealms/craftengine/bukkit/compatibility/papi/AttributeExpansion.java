@@ -80,8 +80,8 @@ public final class AttributeExpansion extends PlaceholderExpansion {
         }
         double value = manager.getAttributeValue(player, attribute);
         if (withWeapon) {
-            Item mainhand = player.getItemInHand(InteractionHand.MAIN_HAND);
-            value += manager.getWeaponAttributeValue(mainhand, attribute, PlayerOptionalContext.of(player));
+            Item mainHand = player.getItemInHand(InteractionHand.MAIN_HAND);
+            value += manager.getWeaponAttributeValue(mainHand, attribute, PlayerOptionalContext.of(player));
         }
         return value;
     }
