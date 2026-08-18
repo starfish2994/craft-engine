@@ -18,7 +18,7 @@ public final class DefaultChunkSerializer {
         ListTag sections = new ListTag();
         CESection[] ceSections = chunk.sections();
         for (CESection ceSection : ceSections) {
-            if (ceSection != null) {
+            if (ceSection != null && !ceSection.isEmpty()) {
                 CompoundTag sectionNbt = DefaultSectionSerializer.serialize(ceSection);
                 if (sectionNbt != null) {
                     sections.add(sectionNbt);

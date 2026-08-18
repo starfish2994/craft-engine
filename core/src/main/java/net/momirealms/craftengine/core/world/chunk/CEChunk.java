@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
+import net.momirealms.craftengine.core.block.entity.InactiveBlockEntityController;
 import net.momirealms.craftengine.core.block.entity.render.BlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
@@ -630,7 +631,7 @@ public class CEChunk {
     public void setBlockEntity(BlockEntity blockEntity) {
         BlockPos pos = blockEntity.pos();
         ImmutableBlockState blockState = this.getBlockState(pos);
-        if (!blockState.hasBlockEntity()) {
+        if (!blockState.hasBlockEntity() && !(blockEntity.controller instanceof InactiveBlockEntityController)) {
             Debugger.BLOCK.debug(() -> "Failed to add invalid block entity " + blockEntity.saveAsTag() + " at " + pos);
             return;
         }
@@ -686,7 +687,7 @@ public class CEChunk {
     public boolean isEmpty() {
         if (!this.blockEntities.isEmpty()) return false;
         for (CESection section : this.sections) {
-            if (section != null && !section.statesContainer.isEmpty()) {
+            if (section != null && !section.isEmpty()) {
                 return false;
             }
         }

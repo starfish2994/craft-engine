@@ -20,7 +20,6 @@ import net.momirealms.craftengine.bukkit.world.gen.CraftEngineFeatures;
 import net.momirealms.craftengine.bukkit.world.gen.InjectedChunkGenerator;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
-import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.pack.Pack;
@@ -539,17 +538,15 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                     CESection ceSection = ceSections[i];
                     Object section = sections[i];
                     WorldStorageInjector.uninject(section);
-                    if (restore) {
+                    if (restore && !ceSection.isEmpty()) {
                         PalettedContainer<ImmutableBlockState> statesContainer = ceSection.statesContainer;
-                        if (!statesContainer.isEmpty()) {
-                            for (int m = 0; m < 4096; m++) {
-                                ImmutableBlockState customState = statesContainer.get(m);
-                                if (!customState.isEmpty()) {
-                                    BlockStateWrapper wrapper = customState.restoreBlockState();
-                                    if (wrapper != null) {
-                                        LevelChunkSectionProxy.INSTANCE.setBlockState(section, m & 15, m >> 8, (m >> 4) & 15, wrapper.minecraftState(), false);
-                                        unsaved = true;
-                                    }
+                        for (int index = 0; index < 4096; index++) {
+                            ImmutableBlockState customState = statesContainer.get(index);
+                            if (!customState.isEmpty()) {
+                                BlockStateWrapper wrapper = customState.restoreBlockState();
+                                if (wrapper != null) {
+                                    LevelChunkSectionProxy.INSTANCE.setBlockState(section, index & 15, index >> 8, (index >> 4) & 15, wrapper.minecraftState(), false);
+                                    unsaved = true;
                                 }
                             }
                         }
@@ -719,14 +716,14 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                         boolean isEmptyBefore = LevelChunkSectionProxy.INSTANCE.hasOnlyAir(section);
                         int sectionY = ceSection.sectionY;
                         // 有自定义方块
-                        PalettedContainer<ImmutableBlockState> palettedContainer = ceSection.statesContainer;
-                        if (!palettedContainer.isEmpty()) {
+                        if (!ceSection.isEmpty()) {
                             if (isEmptyBefore) {
                                 LightEventListenerProxy.INSTANCE.updateSectionStatus(lightEngine, SectionPosProxy.INSTANCE.newInstance(chunkX, sectionY, chunkZ), false);
                             }
+                            PalettedContainer<ImmutableBlockState> statesContainer = ceSection.statesContainer;
                             for (int index = 0; index < 4096; index++) {
-                                ImmutableBlockState customState = palettedContainer.get(index);
-                                if (customState != EmptyBlockDefinition.STATE && customState.customBlockState() != null) {
+                                ImmutableBlockState customState = statesContainer.get(index);
+                                if (!customState.isEmpty() && customState.customBlockState() != null) {
                                     int x = index & 0xF;
                                     int z = (index >> 4) & 0xF;
                                     int y = (index >> 8) & 0xF;
