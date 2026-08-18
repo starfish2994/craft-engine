@@ -13,16 +13,17 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public final class EquipmentPotionEffectController {
-    public static final int LEASE_TICKS = 600;
-    private static final int REFRESH_THRESHOLD = 300;
-    private static final int AUDIT_INTERVAL = 20;
+    public static final int LEASE_TICKS = 619;
+    private static final int REFRESH_THRESHOLD = 317;
 
     private final LivingEntityHolder holder;
     private final LivingEntity entity;
     private final EquipmentPotionEffectStateStore store;
     private final Map<Key, RuntimeState> states = new Object2ObjectArrayMap<>(8);
     private final CandidateTracker candidates = new CandidateTracker();
-    private long nextAuditTick = EntityTickScheduler.NEVER;
+    // Conditions own their evaluation deadlines. This deadline is only for work
+    // that cannot emit an event: managed lease refreshes and finite effect expiry.
+    private long nextReconcileTick = EntityTickScheduler.NEVER;
     private boolean reconcileRequested;
     private boolean mutating;
 
@@ -37,37 +38,37 @@ public final class EquipmentPotionEffectController {
                     holder.currentTick()
             ));
         }
-        scheduleAudit(holder.currentTick());
+        if (!this.states.isEmpty()) {
+            this.nextReconcileTick = holder.currentTick() + 1;
+        }
     }
 
     public void update(Collection<SetPotionEffect> effects) {
         long now = this.holder.currentTick();
         this.candidates.replace(effects, this.holder.context, now, this.entity.uuid().hashCode());
         reconcileAll(now);
-        scheduleAudit(now);
         this.holder.refreshPotionEffectSchedule();
     }
 
     public long runDue(long currentTick) {
         boolean desiredChanged = this.candidates.runDue(this.holder.context, currentTick);
-        boolean auditDue = currentTick >= this.nextAuditTick;
-        boolean shouldReconcile = this.reconcileRequested || desiredChanged || auditDue;
+        boolean reconcileDue = currentTick >= this.nextReconcileTick;
+        boolean shouldReconcile = this.reconcileRequested || desiredChanged || reconcileDue;
         this.reconcileRequested = false;
         if (shouldReconcile) {
             reconcileAll(currentTick);
-            scheduleAudit(currentTick);
         }
         return nextRequiredTick(currentTick);
     }
 
     public long nextRequiredTick(long currentTick) {
         if (!this.holder.periodicWorkEnabled()) return EntityTickScheduler.NEVER;
-        return Math.min(this.candidates.nextTick(), this.nextAuditTick);
+        return Math.min(this.candidates.nextTick(), this.nextReconcileTick);
     }
 
     public void close(boolean death) {
         this.candidates.clear();
-        this.nextAuditTick = EntityTickScheduler.NEVER;
+        this.nextReconcileTick = EntityTickScheduler.NEVER;
         this.reconcileRequested = false;
         if (death) {
             this.states.clear();
@@ -75,6 +76,7 @@ public final class EquipmentPotionEffectController {
             return;
         }
         reconcileAll(this.holder.currentTick());
+        this.nextReconcileTick = EntityTickScheduler.NEVER;
     }
 
     public void observeExternalEffect(PotionEffectSnapshot effect) {
@@ -88,9 +90,9 @@ public final class EquipmentPotionEffectController {
                 state.setShadow(updatedShadow, now);
                 persist(now);
             }
-            this.reconcileRequested = true;
-            this.holder.wakePotionEffects();
         }
+        if (state == null && !this.candidates.desired().containsKey(effect.type())) return;
+        requestReconcile();
     }
 
     public void observeExternalClear(Key type) {
@@ -102,9 +104,9 @@ public final class EquipmentPotionEffectController {
                 state.setShadow(null, now);
                 persist(now);
             }
-            this.reconcileRequested = true;
-            this.holder.wakePotionEffects();
         }
+        if (state == null && !this.candidates.desired().containsKey(type)) return;
+        requestReconcile();
     }
 
     public boolean isMutating() {
@@ -114,12 +116,14 @@ public final class EquipmentPotionEffectController {
     private void reconcileAll(long currentTick) {
         Set<Key> types = new HashSet<>(this.states.keySet());
         types.addAll(this.candidates.desired().keySet());
+        long next = EntityTickScheduler.NEVER;
         for (Key type : types) {
-            reconcile(type, currentTick);
+            next = Math.min(next, reconcile(type, currentTick));
         }
+        this.nextReconcileTick = next;
     }
 
-    private void reconcile(Key type, long currentTick) {
+    private long reconcile(Key type, long currentTick) {
         SetPotionEffect wanted = this.candidates.desired().get(type);
         RuntimeState state = this.states.get(type);
         PotionEffectSnapshot actual = this.entity.getPotionEffect(type);
@@ -143,14 +147,14 @@ public final class EquipmentPotionEffectController {
             } else {
                 // No persisted fingerprint means this might be our old lease or an external
                 // effect. Do not delete it; the finite lease will settle this within 30 seconds.
-                return;
+                return nextEffectExpiryTick(currentTick, actual);
             }
         }
 
         if (wanted == null) {
-            if (state == null) return;
+            if (state == null) return EntityTickScheduler.NEVER;
             restoreAndForget(type, state, actual, managedVisible, currentTick);
-            return;
+            return EntityTickScheduler.NEVER;
         }
 
         if (managedVisible) {
@@ -159,9 +163,9 @@ public final class EquipmentPotionEffectController {
                 actual = this.entity.getPotionEffect(type);
             } else if (actual.duration() >= 0 && actual.duration() <= REFRESH_THRESHOLD) {
                 apply(wanted, LEASE_TICKS);
-                return;
+                return nextManagedLeaseTick(currentTick, LEASE_TICKS);
             } else {
-                return;
+                return nextManagedLeaseTick(currentTick, actual.duration());
             }
         }
 
@@ -179,7 +183,7 @@ public final class EquipmentPotionEffectController {
                     apply(external);
                 }
             }
-            return;
+            return nextEffectExpiryTick(currentTick, external);
         }
 
         if (state == null) {
@@ -196,6 +200,7 @@ public final class EquipmentPotionEffectController {
             state.managed = wanted;
         }
         installManaged(wanted, state, actual, currentTick);
+        return nextManagedLeaseTick(currentTick, LEASE_TICKS);
     }
 
     private void installManaged(SetPotionEffect wanted, RuntimeState state, @Nullable PotionEffectSnapshot actual, long currentTick) {
@@ -257,6 +262,11 @@ public final class EquipmentPotionEffectController {
         }
     }
 
+    private void requestReconcile() {
+        this.reconcileRequested = true;
+        this.holder.wakePotionEffects();
+    }
+
     static boolean matchesManagedLease(@Nullable PotionEffectSnapshot actual,
                                        Key type,
                                        int amplifier) {
@@ -270,6 +280,15 @@ public final class EquipmentPotionEffectController {
 
     private static boolean isPossibleManagedLease(PotionEffectSnapshot actual) {
         return actual.duration() >= 0 && actual.duration() <= LEASE_TICKS;
+    }
+
+    static long nextManagedLeaseTick(long currentTick, int duration) {
+        return currentTick + Math.max(1, duration - REFRESH_THRESHOLD);
+    }
+
+    static long nextEffectExpiryTick(long currentTick, @Nullable PotionEffectSnapshot effect) {
+        if (effect == null || effect.isInfinite()) return EntityTickScheduler.NEVER;
+        return currentTick + Math.max(1, effect.duration());
     }
 
     @Nullable
@@ -297,12 +316,6 @@ public final class EquipmentPotionEffectController {
         this.store.save(persisted);
     }
 
-    private void scheduleAudit(long currentTick) {
-        this.nextAuditTick = this.candidates.desired().isEmpty() && this.states.isEmpty()
-                ? EntityTickScheduler.NEVER
-                : currentTick + AUDIT_INTERVAL;
-    }
-
     static final class CandidateTracker {
         private List<CandidateState> states = List.of();
         private Map<Key, SetPotionEffect> desired = Map.of();
@@ -324,7 +337,7 @@ public final class EquipmentPotionEffectController {
                 long deadline = interval == 0
                         ? EntityTickScheduler.NEVER
                         : currentTick + 1L + Math.floorMod(phaseHash, interval);
-                tracked.add(new CandidateState(effect, active, deadline));
+                tracked.add(new CandidateState(effect, interval, active, deadline));
                 earliest = Math.min(earliest, deadline);
             }
             this.states = tracked;
@@ -337,7 +350,7 @@ public final class EquipmentPotionEffectController {
             boolean activeChanged = false;
             long earliest = EntityTickScheduler.NEVER;
             for (CandidateState state : this.states) {
-                int interval = state.effect.updateInterval();
+                int interval = state.interval;
                 if (interval == 0) continue;
                 if (currentTick >= state.nextTick) {
                     boolean active = state.effect.test(context);
@@ -386,11 +399,13 @@ public final class EquipmentPotionEffectController {
 
     private static final class CandidateState {
         private final SetPotionEffect effect;
+        private final int interval;
         private boolean active;
         private long nextTick;
 
-        private CandidateState(SetPotionEffect effect, boolean active, long nextTick) {
+        private CandidateState(SetPotionEffect effect, int interval, boolean active, long nextTick) {
             this.effect = effect;
+            this.interval = interval;
             this.active = active;
             this.nextTick = nextTick;
         }

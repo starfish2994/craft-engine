@@ -63,6 +63,9 @@ public class NamedArgumentTag extends StaticTagResolver implements StringTag {
             if (value instanceof Component component) {
                 return AdventureHelper.plainTextContent(component);
             }
+            if (value instanceof Number || value instanceof Boolean) {
+                return value;
+            }
             return StringTemplates.render(String.valueOf(value), context);
         };
     }
