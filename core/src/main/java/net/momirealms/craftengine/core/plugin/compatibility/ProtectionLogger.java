@@ -10,6 +10,11 @@ public interface ProtectionLogger {
 
     String plugin();
 
+    void logContainerTransaction(Player player,
+                                 WorldPosition position,
+                                 @Nullable Item oldItem,
+                                 @Nullable Item newItem);
+
     void logItemFrameTransaction(Player player,
                                  WorldPosition position,
                                  Direction direction,

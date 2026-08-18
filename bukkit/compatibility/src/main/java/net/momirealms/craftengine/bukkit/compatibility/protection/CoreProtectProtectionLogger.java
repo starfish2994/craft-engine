@@ -13,11 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 public final class CoreProtectProtectionLogger implements ProtectionLogger {
     private static final String CORE_PROTECT = "CoreProtect";
@@ -31,22 +27,39 @@ public final class CoreProtectProtectionLogger implements ProtectionLogger {
     }
 
     @Override
+    public void logContainerTransaction(Player player,
+                                        WorldPosition position,
+                                        @Nullable Item oldItem,
+                                        @Nullable Item newItem) {
+        ItemStack[] oldState = new ItemStack[] {toBukkitItem(oldItem)};
+        ItemStack[] newState = new ItemStack[] {toBukkitItem(newItem)};
+        queueTransaction(player, position, Material.JUKEBOX, new Object[] {oldState, newState});
+    }
+
+    @Override
     public void logItemFrameTransaction(Player player,
                                         WorldPosition position,
                                         Direction direction,
                                         @Nullable Item oldItem,
                                         @Nullable Item newItem) {
+        ItemStack[] oldState = new ItemStack[] {toBukkitItem(oldItem)};
+        ItemStack[] newState = new ItemStack[] {toBukkitItem(newItem)};
+        Object container = new Object[] {oldState, newState, DirectionUtils.toBlockFace(direction)};
+        queueTransaction(player, position, Material.ITEM_FRAME, container);
+    }
+
+    private static void queueTransaction(Player player,
+                                         WorldPosition position,
+                                         Material type,
+                                         Object container) {
         World world = (World) position.world().platformWorld();
         if (!Config.getConfig(world).ITEM_TRANSACTIONS) {
             return;
         }
-        ItemStack[] oldState = new ItemStack[] {toBukkitItem(oldItem)};
-        ItemStack[] newState = new ItemStack[] {toBukkitItem(newItem)};
-        Object container = new Object[] {oldState, newState, DirectionUtils.toBlockFace(direction)};
         Location location = new Location(world, position.x(), position.y(), position.z());
         PlayerInteractEntityListener.queueContainerSpecifiedItems(
                 player.name(),
-                Material.ITEM_FRAME,
+                type,
                 container,
                 location,
                 false

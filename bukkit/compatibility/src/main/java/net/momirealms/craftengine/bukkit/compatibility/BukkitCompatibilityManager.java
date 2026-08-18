@@ -168,6 +168,20 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     }
 
     @Override
+    public void logSingleSlotContainerTransaction(Player player,
+                                                  WorldPosition position,
+                                                  @Nullable Item oldItem,
+                                                  @Nullable Item newItem) {
+        for (ProtectionLogger logger : this.protectionLoggerArray) {
+            try {
+                logger.logContainerTransaction(player, position, oldItem, newItem);
+            } catch (Throwable e) {
+                this.plugin.logger().warn("Failed to log container transaction with " + logger.plugin(), e);
+            }
+        }
+    }
+
+    @Override
     public void logItemFrameTransaction(Player player,
                                         WorldPosition position,
                                         Direction direction,

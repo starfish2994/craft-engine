@@ -30,6 +30,7 @@ import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.CEWorld;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
@@ -133,6 +134,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             boolean isDoubleClick = playerId.equals(lastClickPlayer) && (now - lastClickTime) <= 500;
             boolean hasStoredItem = !storedItem.isEmpty();
             boolean handHasItem = !itemInHand.isEmpty();
+            Item oldItem = snapshotItem(controller);
 
             // 双击批量放入背包里所有相似物品
             if (hasStoredItem && isDoubleClick) {
@@ -144,6 +146,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                 int actuallyAdded = controller.add(matchedCount);
                 if (actuallyAdded > 0) {
                     player.clearOrCountMatchingInventoryItems(item -> item.isSimilar(storedItem), actuallyAdded);
+                    logTransaction(player, world, pos, oldItem, controller);
                     if (this.putSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.putSound);
                     player.swingHand(hand);
                     return InteractionResult.SUCCESS_AND_CANCEL;
@@ -155,6 +158,9 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                 int count = itemInHand.count();
                 int actuallyPut = controller.put(itemInHand.copyWithCount(1), count);
                 itemInHand.shrink(actuallyPut);
+                if (actuallyPut > 0) {
+                    logTransaction(player, world, pos, oldItem, controller);
+                }
                 // 更新点击时间, 等待可能的二次点击
                 controller.lastClickTime(now);
                 controller.lastClickPlayer(playerId);
@@ -183,6 +189,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
             Item storedItem = controller.item();
             if (storedItem.isEmpty() || controller.itemCount() <= 0) return;
+            Item oldItem = snapshotItem(controller);
 
             Item itemInHand = player.getItemInHand(InteractionHand.MAIN_HAND);
             boolean handEmpty = itemInHand.isEmpty();
@@ -203,17 +210,43 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             }
 
             // 取出物品
-            controller.take(takeAmount, item -> {
+            int actuallyTaken = controller.take(takeAmount, item -> {
                 if (handEmpty) {
                     player.setItemInHand(InteractionHand.MAIN_HAND, item);
                 } else {
                     itemInHand.grow(item.count());
                 }
             }, true);
+            if (actuallyTaken > 0) {
+                logTransaction(player, world, pos, oldItem, controller);
+            }
 
             player.swingHand(InteractionHand.MAIN_HAND);
             if (this.takeSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.takeSound);
         });
+    }
+
+    private static void logTransaction(Player player,
+                                       World world,
+                                       BlockPos pos,
+                                       @Nullable Item oldItem,
+                                       DrawerBlockEntityController controller) {
+        BukkitCraftEngine.instance().compatibilityManager().logSingleSlotContainerTransaction(
+                player,
+                new WorldPosition(world, pos),
+                oldItem,
+                snapshotItem(controller)
+        );
+    }
+
+    @Nullable
+    private static Item snapshotItem(DrawerBlockEntityController controller) {
+        Item item = controller.item();
+        int count = controller.itemCount();
+        if (item.isEmpty() || count <= 0) {
+            return null;
+        }
+        return item.copyWithCount(count);
     }
 
     // 比较器红石信号.
