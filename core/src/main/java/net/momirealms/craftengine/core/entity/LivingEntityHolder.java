@@ -45,7 +45,7 @@ public final class LivingEntityHolder {
                 .withOptionalParameter(DirectContextParameters.PLAYER, entity instanceof Player player ? player : null)
                 .immutable(true)
                 .build());
-        List<Attribute> attributeList = Config.enableAttributeSystem() ? CraftEngine.instance().attributeManager().attributesByEntityType(entity.type()) : List.of();
+        List<Attribute> attributeList = Config.enableAttributeSystem() ? CraftEngine.instance().attributeManager().attributesByEntityType(entity.id()) : List.of();
         this.attributes = attributeList.isEmpty() ? EmptyAttributeHolder.INSTANCE : new EntityAttributes(this, attributeList);
         this.potionEffects = new EquipmentPotionEffectController(this);
         this.equipments = new EntityEquipments(this);

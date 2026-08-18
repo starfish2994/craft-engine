@@ -195,13 +195,13 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     @Override
-    public double vanillaAttributeDefaultBaseValue(Key entityType, Key attribute, double fallback) {
-        EntityDefinition definition = this.plugin.entityManager().entityDefinition(entityType);
+    public double vanillaAttributeDefaultBaseValue(LivingEntity living, Key attribute, double fallback) {
+        EntityDefinition definition = this.plugin.entityManager().entityDefinition(living.id());
         if (definition != null) {
             Double value = definition.settings().attributeValue(attribute);
             if (value != null) return value;
         }
-        return vanillaEntityTypeDefaultBaseValue(entityType, attribute, fallback);
+        return vanillaEntityTypeDefaultBaseValue(living.type(), attribute, fallback);
     }
 
     protected abstract double vanillaEntityTypeDefaultBaseValue(Key entityType, Key attribute, double fallback);

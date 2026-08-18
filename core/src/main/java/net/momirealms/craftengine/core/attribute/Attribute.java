@@ -65,7 +65,7 @@ public final class Attribute {
     }
 
     public boolean appliesTo(LivingEntity entity) {
-        return this.applicableEntityTypes == null || this.applicableEntityTypes.contains(entity.type());
+        return this.applicableEntityTypes == null || this.applicableEntityTypes.contains(entity.id());
     }
 
     public List<SyncTarget> syncTargets() {

@@ -25,7 +25,7 @@ public final class MatchEntityCondition<CTX extends Context> implements Conditio
     @Override
     public boolean test(CTX ctx) {
         Optional<Entity> entity = ctx.getOptionalParameter(DirectContextParameters.ENTITY);
-        return entity.filter(value -> MiscUtils.matchRegex(value.type().asString(), this.ids, this.regexMatch)).isPresent();
+        return entity.filter(value -> MiscUtils.matchRegex(value.id().asString(), this.ids, this.regexMatch)).isPresent();
     }
 
     public static <CTX extends Context> ConditionFactory<CTX, MatchEntityCondition<CTX>> factory() {

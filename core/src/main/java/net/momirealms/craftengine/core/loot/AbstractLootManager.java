@@ -50,8 +50,6 @@ public abstract class AbstractLootManager implements LootManager {
                 .add(source);
     }
 
-    public abstract void resetEntityProviders();
-
     protected final class LootParser extends IdSectionConfigParser {
         public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("loot(s)");
         private int count;

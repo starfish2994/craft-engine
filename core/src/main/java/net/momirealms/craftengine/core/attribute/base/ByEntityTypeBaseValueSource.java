@@ -16,7 +16,7 @@ public record ByEntityTypeBaseValueSource(Key attribute, double fallback, @Nulla
 
     @Override
     public double resolve(LivingEntity entity) {
-        double baseValue = CraftEngine.instance().attributeManager().vanillaAttributeDefaultBaseValue(entity.type(), this.attribute, Double.NaN);
+        double baseValue = CraftEngine.instance().attributeManager().vanillaAttributeDefaultBaseValue(entity, this.attribute, Double.NaN);
         if (Double.isNaN(baseValue)) return this.fallback;
         return this.transformer == null ? baseValue : this.transformer.transform(baseValue);
     }

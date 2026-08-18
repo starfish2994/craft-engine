@@ -4,11 +4,13 @@ import net.momirealms.craftengine.core.entity.setting.EntitySettings;
 import net.momirealms.craftengine.core.entity.tick.EntityTickScheduler;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.compatibility.EntityProvider;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.util.ConcurrentChainedUUID2ReferenceHashTable;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +25,7 @@ public abstract class AbstractEntityManager implements EntityManager {
     protected final ConcurrentChainedUUID2ReferenceHashTable<LivingEntityHolder> livingEntities = ConcurrentChainedUUID2ReferenceHashTable.createWithCapacity(512);
     protected final EntityTickScheduler entityTickScheduler = new EntityTickScheduler();
     private final EntityParser entityParser = new EntityParser();
+    private volatile EntityProvider[] entityProviders = new EntityProvider[0];
 
     protected AbstractEntityManager(CraftEngine plugin) {
         this.plugin = plugin;
@@ -54,11 +57,34 @@ public abstract class AbstractEntityManager implements EntityManager {
         return new ConfigParser[]{this.entityParser};
     }
 
+    @Override
+    public void delayedLoad() {
+        resetEntityProviders();
+    }
+
+    @Override
+    public void resetEntityProviders() {
+        List<EntityProvider> providers = new ArrayList<>();
+        for (String source : Config.entityIdSources()) {
+            Optional.ofNullable(this.plugin.compatibilityManager().getEntityProvider(source)).ifPresent(providers::add);
+        }
+        this.entityProviders = providers.toArray(new EntityProvider[0]);
+    }
+
+    @Override
+    public Key getEntityId(Entity entity) {
+        for (EntityProvider provider : this.entityProviders) {
+            String entityId = provider.getEntityId(entity);
+            if (entityId != null) {
+                return Key.of(provider.plugin(), StringUtils.normalizeString(entityId));
+            }
+        }
+        return entity.type();
+    }
+
     public LivingEntityHolder trackLivingEntity(LivingEntity entity) {
         LivingEntityHolder previous = this.livingEntities.remove(entity.uuid());
         if (previous != null) {
-            // Do not leave the old holder visible while the replacement performs
-            // its initial equipment/potion reconciliation.
             previous.close(false);
         }
         LivingEntityHolder holder = new LivingEntityHolder(entity, this.entityTickScheduler);

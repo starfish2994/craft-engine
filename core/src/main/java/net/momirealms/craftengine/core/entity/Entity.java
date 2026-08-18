@@ -20,6 +20,8 @@ import java.util.UUID;
 public interface Entity extends ChainParameterSource {
     Key type();
 
+    Key id();
+
     boolean isValid();
 
     boolean isAlive();

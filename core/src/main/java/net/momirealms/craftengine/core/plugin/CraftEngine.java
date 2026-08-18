@@ -19,7 +19,6 @@ import net.momirealms.craftengine.core.item.ItemManager;
 import net.momirealms.craftengine.core.item.processor.ItemProcessors;
 import net.momirealms.craftengine.core.item.recipe.RecipeManager;
 import net.momirealms.craftengine.core.item.setting.ItemSettingsModifiers;
-import net.momirealms.craftengine.core.loot.AbstractLootManager;
 import net.momirealms.craftengine.core.loot.LootManager;
 import net.momirealms.craftengine.core.pack.PackManager;
 import net.momirealms.craftengine.core.painting.PaintingManager;
@@ -255,7 +254,8 @@ public abstract class CraftEngine implements Plugin {
         delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.advancementManager.delayedLoad(), this.scheduler.async()));
         // 战利品
         delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.lootManager.delayedLoad(), this.scheduler.async()));
-        // 战利品来源
+        // 外部实体ID提供器
+        delayedLoadTasks.add(CompletableFuture.runAsync(() -> this.entityManager.delayedLoad(), this.scheduler.async()));
         // 如果重载配方
         if (reloadRecipe) {
             // 转换数据包配方
@@ -436,7 +436,7 @@ public abstract class CraftEngine implements Plugin {
             this.compatibilityManager.onDelayedEnable();
             // 再次触发
             ((AbstractItemManager) this.itemManager).resetItemProviders();
-            ((AbstractLootManager) this.lootManager).resetEntityProviders();
+            this.entityManager.resetEntityProviders();
 
             if (!Config.delayConfigurationLoad()) {
                 // 单独加载配方

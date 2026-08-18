@@ -409,9 +409,9 @@ emoji:
   # Prevent lag or oversized packet when processing emoji-heavy content
   max-emojis-per-parse: 16
 
-loot:
+entity:
   # Add supported plugins to this list to allow customizing mob drops from certain plugins. For example, MythicMobs.
-  entity-sources: []
+  id-sources: []
 
 image:
   # Prevents players from spamming the chat or other systems by sending raw characters.

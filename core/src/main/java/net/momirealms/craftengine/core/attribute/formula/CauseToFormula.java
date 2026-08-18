@@ -17,7 +17,7 @@ public final class CauseToFormula {
     public DamageFormula getFormula(DamageEvent event) {
         VictimToFormula victimToFormula = this.formulas.get(event.source().type());
         if (victimToFormula != null) {
-            return victimToFormula.getFormula(event.victim().type());
+            return victimToFormula.getFormula(event.victim().id());
         }
         return null;
     }

@@ -50,5 +50,5 @@ public interface AttributeManager extends Manageable {
 
     void processDamageEvent(DamageEvent event);
 
-    double vanillaAttributeDefaultBaseValue(Key entityType, Key attribute, double fallback);
+    double vanillaAttributeDefaultBaseValue(LivingEntity living, Key attribute, double fallback);
 }

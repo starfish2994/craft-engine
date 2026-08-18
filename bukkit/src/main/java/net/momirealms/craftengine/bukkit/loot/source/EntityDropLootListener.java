@@ -2,9 +2,9 @@ package net.momirealms.craftengine.bukkit.loot.source;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
-import net.momirealms.craftengine.bukkit.loot.BukkitLootManager;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
+import net.momirealms.craftengine.core.entity.EntityManager;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.loot.LootManager;
@@ -25,17 +25,17 @@ import org.bukkit.event.entity.EntityDropItemEvent;
 import java.util.List;
 
 public final class EntityDropLootListener implements Listener {
-    private final BukkitLootManager manager;
+    private final EntityManager entityManager;
 
-    public EntityDropLootListener(BukkitLootManager manager) {
-        this.manager = manager;
+    public EntityDropLootListener(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDropItem(EntityDropItemEvent event) {
         if (event.getEntity() instanceof Player) return;
         BukkitEntity bukkitEntity = BukkitAdaptor.adapt(event.getEntity());
-        List<LootSource> sources = LootSources.ENTITY_DROP.getSources(this.manager.getEntityId(bukkitEntity));
+        List<LootSource> sources = LootSources.ENTITY_DROP.getSources(this.entityManager.getEntityId(bukkitEntity));
         if (sources.isEmpty()) return;
         Location location = event.getItemDrop().getLocation();
         World world = BukkitAdaptor.adapt(location.getWorld());

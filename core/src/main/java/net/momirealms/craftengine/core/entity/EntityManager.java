@@ -20,6 +20,10 @@ public interface EntityManager extends Manageable {
     @Nullable
     EntityDefinition entityDefinition(Key entityType);
 
+    void resetEntityProviders();
+
+    Key getEntityId(Entity entity);
+
     default List<Key> entityIdsByTag(Key tag) {
         List<Key> entities = new ArrayList<>();
         entities.addAll(vanillaEntityIdsByTag(tag));

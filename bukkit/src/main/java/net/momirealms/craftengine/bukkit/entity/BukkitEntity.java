@@ -5,6 +5,7 @@ import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.customdata.CustomDataKey;
 import net.momirealms.craftengine.core.entity.data.EntityData;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -31,6 +32,7 @@ import java.util.UUID;
 
 public class BukkitEntity implements net.momirealms.craftengine.core.entity.Entity {
     protected final WeakReference<Object> entityRef;
+    protected Key id;
 
     public BukkitEntity(Object entity) {
         if (EntityProxy.CLASS.isInstance(entity)) {
@@ -136,6 +138,14 @@ public class BukkitEntity implements net.momirealms.craftengine.core.entity.Enti
         Object entityType = EntityProxy.INSTANCE.getType(minecraftEntity());
         Object id = RegistryProxy.INSTANCE.getKey(BuiltInRegistriesProxy.ENTITY_TYPE, entityType);
         return KeyUtils.identifierToKey(id);
+    }
+
+    @Override
+    public Key id() {
+        if (this.id == null) {
+            this.id = CraftEngine.instance().entityManager().getEntityId(this);
+        }
+        return this.id;
     }
 
     @Override

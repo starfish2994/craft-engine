@@ -227,7 +227,7 @@ public final class Config {
     private List<String> recipe$ingredient_sources;
     private boolean recipe$inject_block_entities;
 
-    private List<String> loot$entity_sources;
+    private List<String> entity$id_sources;
 
     private boolean image$illegal_characters_filter$command;
     private boolean image$illegal_characters_filter$chat;
@@ -746,8 +746,8 @@ public final class Config {
             this.recipe$inject_block_entities = config.getBoolean("recipe.inject-block-entities", true);
         }
 
-        // loot
-        this.loot$entity_sources = config.getStringList("recipe.entity-sources");
+        // entity identity providers used by loot sources and other entity systems
+        this.entity$id_sources = config.getStringList("entity.id-sources");
 
         // image
         this.image$illegal_characters_filter$anvil = config.getBoolean("image.illegal-characters-filter.anvil", true);
@@ -1526,8 +1526,8 @@ public final class Config {
         return instance.recipe$inject_block_entities;
     }
 
-    public static List<String> lootEntitySources() {
-        return instance.loot$entity_sources;
+    public static List<String> entityIdSources() {
+        return instance.entity$id_sources;
     }
 
     public static boolean unlockOnIngredientObtained() {

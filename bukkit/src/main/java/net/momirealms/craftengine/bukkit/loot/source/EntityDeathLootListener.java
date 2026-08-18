@@ -3,8 +3,8 @@ package net.momirealms.craftengine.bukkit.loot.source;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.loot.BukkitLootContextParameters;
-import net.momirealms.craftengine.bukkit.loot.BukkitLootManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.core.entity.EntityManager;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.LootContext;
@@ -28,17 +28,17 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import java.util.List;
 
 public final class EntityDeathLootListener implements Listener {
-    private final BukkitLootManager manager;
+    private final EntityManager entityManager;
 
-    public EntityDeathLootListener(BukkitLootManager manager) {
-        this.manager = manager;
+    public EntityDeathLootListener(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event) {
         Entity entity = event.getEntity();
         BukkitEntity bukkitEntity = BukkitAdaptor.adapt(entity);
-        List<LootSource> sources = LootSources.ENTITY_DEATH.getSources(this.manager.getEntityId(bukkitEntity));
+        List<LootSource> sources = LootSources.ENTITY_DEATH.getSources(this.entityManager.getEntityId(bukkitEntity));
         if (sources.isEmpty()) return;
         Location location = entity.getLocation();
         net.momirealms.craftengine.core.world.World world = BukkitAdaptor.adapt(entity.getWorld());
