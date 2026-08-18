@@ -29,6 +29,7 @@ import net.momirealms.craftengine.bukkit.compatibility.packetevents.WrappedBlock
 import net.momirealms.craftengine.bukkit.compatibility.papi.PlaceholderAPIUtils;
 import net.momirealms.craftengine.bukkit.compatibility.permission.LuckPermsEventListeners;
 import net.momirealms.craftengine.bukkit.compatibility.permission.LuckPermsUtils;
+import net.momirealms.craftengine.bukkit.compatibility.protection.CoreProtectProtectionLogger;
 import net.momirealms.craftengine.bukkit.compatibility.quickshop.QuickShopItemExpressionHandler;
 import net.momirealms.craftengine.bukkit.compatibility.skript.SkriptHook;
 import net.momirealms.craftengine.bukkit.compatibility.slimeworld.SlimeFormatStorageAdaptor;
@@ -47,6 +48,7 @@ import net.momirealms.craftengine.core.block.BlockManager;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.furniture.ExternalModel;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.compatibility.*;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
@@ -56,13 +58,16 @@ import net.momirealms.craftengine.core.plugin.context.function.DummyFunction;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.AdventureHelper;
+import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -80,9 +85,11 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     private final Map<String, ItemSource> itemSources;
     private final Map<String, LevelerProvider> levelerProviders;
     private final Map<String, EntityProvider> entityProviders;
+    private final Map<String, ProtectionLogger> protectionLoggers;
     private final Set<String> loggedPlugins;
     private ModelProvider[] modelProviderArray;
     private TagResolverProvider[] tagResolverProviderArray = null;
+    private ProtectionLogger[] protectionLoggerArray;
     private AxiomCraftEngineDisplay axiomCraftEngineDisplay;
     private JsonObject blueMapBlockColors = new JsonObject();
     private boolean hasPlaceholderAPI;
@@ -95,10 +102,12 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         this.itemSources = new HashMap<>();
         this.levelerProviders = new HashMap<>();
         this.entityProviders = new HashMap<>();
+        this.protectionLoggers = new HashMap<>();
         this.modelProviders = new HashMap<>();
         this.tagResolverProviders = new HashMap<>();
         this.loggedPlugins = new HashSet<>();
         this.modelProviderArray = new ModelProvider[0];
+        this.protectionLoggerArray = new ProtectionLogger[0];
     }
 
     @Override
@@ -150,6 +159,27 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     @Override
     public void registerEntityProvider(EntityProvider provider) {
         this.entityProviders.put(provider.plugin(), provider);
+    }
+
+    @Override
+    public void registerProtectionLogger(ProtectionLogger logger) {
+        this.protectionLoggers.put(logger.plugin(), logger);
+        this.protectionLoggerArray = this.protectionLoggers.values().toArray(new ProtectionLogger[0]);
+    }
+
+    @Override
+    public void logItemFrameTransaction(Player player,
+                                        WorldPosition position,
+                                        Direction direction,
+                                        @Nullable Item oldItem,
+                                        @Nullable Item newItem) {
+        for (ProtectionLogger logger : this.protectionLoggerArray) {
+            try {
+                logger.logItemFrameTransaction(player, position, direction, oldItem, newItem);
+            } catch (Throwable e) {
+                this.plugin.logger().warn("Failed to log item frame transaction with " + logger.plugin(), e);
+            }
+        }
     }
 
     @Override
@@ -224,6 +254,9 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
 
     @Override
     public void onDelayedEnable() {
+        if (this.isPluginEnabled("CoreProtect")) {
+            runCatchingHook(() -> registerProtectionLogger(new CoreProtectProtectionLogger()), "CoreProtect");
+        }
         if (this.isPluginEnabled("PlaceholderAPI")) {
             runCatchingHook(() -> {
                 PlaceholderAPIUtils.registerExpansions(this.plugin);

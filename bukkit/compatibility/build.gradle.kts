@@ -18,6 +18,7 @@ repositories {
     maven("https://jitpack.io")
     maven("https://repo.codemc.io/repository/maven-public/") // quickshop
     maven("https://repo.opencollab.dev/main/") // geyser
+    maven("https://maven.playpro.com/") // coreprotect
 }
 
 dependencies {
@@ -78,4 +79,6 @@ dependencies {
     compileOnly("cn.gtemc:itembridge:${rootProject.properties["itembridge_version"]}")
     // LevelerBridge
     compileOnly("cn.gtemc:levelerbridge:${rootProject.properties["levelerbridge_version"]}")
+    // CoreProtect
+    compileOnly("net.coreprotect:coreprotect:24.0")
 }

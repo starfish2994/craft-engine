@@ -78,6 +78,7 @@ paper {
         register("Vault") { required = false }
         register("AxiomPaper") { required = false }
         register("QuickShop-Hikari") { required = false }
+        register("CoreProtect") { required = false }
 
         // PacketEvents
         register("GrimAC") { required = false }
@@ -254,4 +255,3 @@ fun registerPaperTask(
         applyCommonConfig()
     }
 }
-

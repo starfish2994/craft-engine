@@ -28,6 +28,7 @@ import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import org.bukkit.Location;
@@ -141,6 +142,13 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
                     return InteractionResult.SUCCESS_AND_CANCEL;
                 }
                 itemFrame.updateItem(null); // 先取出来
+                BukkitCraftEngine.instance().compatibilityManager().logItemFrameTransaction(
+                        player,
+                        new WorldPosition(world, pos),
+                        state.get(this.directionProperty),
+                        item,
+                        null
+                );
                 if (!player.canInstabuild()) {
                     player.setItemInHand(InteractionHand.MAIN_HAND, item); // 然后给玩家
                 }
@@ -156,6 +164,13 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
                     item.shrink(1); // 先扣物品
                 }
                 itemFrame.updateItem(copied); // 然后放进去
+                BukkitCraftEngine.instance().compatibilityManager().logItemFrameTransaction(
+                        player,
+                        new WorldPosition(world, pos),
+                        state.get(this.directionProperty),
+                        null,
+                        copied
+                );
                 playSound(world, pos, this.putSound);
                 player.swingHand(context.getHand());
                 return InteractionResult.SUCCESS_AND_CANCEL;

@@ -4,8 +4,12 @@ import com.google.gson.JsonElement;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.furniture.ExternalModel;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
+import net.momirealms.craftengine.core.util.Direction;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.sparrow.message.tag.resolver.TagResolver;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiConsumer;
 
@@ -54,6 +58,14 @@ public interface CompatibilityManager {
     EntityProvider getEntityProvider(String id);
 
     void registerEntityProvider(EntityProvider provider);
+
+    void registerProtectionLogger(ProtectionLogger logger);
+
+    void logItemFrameTransaction(Player player,
+                                 WorldPosition position,
+                                 Direction direction,
+                                 @Nullable Item oldItem,
+                                 @Nullable Item newItem);
 
     boolean hasPermission(NetWorkUser user, String permission);
 

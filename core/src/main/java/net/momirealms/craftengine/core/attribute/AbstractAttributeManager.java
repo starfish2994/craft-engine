@@ -21,7 +21,6 @@ import net.momirealms.craftengine.core.attribute.sync.SyncTarget;
 import net.momirealms.craftengine.core.attribute.sync.SyncValueProvider;
 import net.momirealms.craftengine.core.attribute.sync.SyncValueProviders;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier.Operation;
-import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.EntityDefinition;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.entity.LivingEntityHolder;
