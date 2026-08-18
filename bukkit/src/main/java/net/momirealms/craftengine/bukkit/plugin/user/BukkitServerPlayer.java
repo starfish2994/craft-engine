@@ -61,12 +61,14 @@ import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.util.random.RandomUtils;
 import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.chunk.client.ClientChunk;
 import net.momirealms.craftengine.core.world.collision.AABB;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.HolderProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.common.ClientboundResourcePackPopPacketProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.game.*;
@@ -81,6 +83,7 @@ import net.momirealms.craftengine.proxy.minecraft.server.network.ServerGamePacke
 import net.momirealms.craftengine.proxy.minecraft.server.network.config.JoinWorldTaskProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.network.config.ServerResourcePackConfigurationTaskProxy;
 import net.momirealms.craftengine.proxy.minecraft.sounds.SoundEventProxy;
+import net.momirealms.craftengine.proxy.minecraft.sounds.SoundSourceProxy;
 import net.momirealms.craftengine.proxy.minecraft.util.thread.BlockableEventLoopProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectsProxy;
@@ -96,12 +99,15 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.InventoryMenuP
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.SlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemCooldownsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndLightGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.ClipContextProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypeProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.chunk.ChunkSourceProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.phys.BlockHitResultProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import net.momirealms.craftengine.proxy.paper.chunk.system.entity.RegionizedPlayerChunkLoaderProxy;
 import org.bukkit.*;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -109,7 +115,6 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.RayTraceResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -716,7 +721,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
         // 更新眼睛位置
         {
-            this.eyeLocation = getEyePos();
+            this.eyeLocation = getEyePos(serverPlayer);
         }
 
         // 本tick内有挥手
@@ -726,24 +731,18 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
                 // 原版有的，方块挖掘间隔。除非是秒破，否则必走此延迟
                 if (this.gameTicks - this.lastSuccessfulBreak > 5) {
                     if (this.isDestroyingBlock) {
-                        this.tickBlockDestroy();
+                        this.tickBlockDestroy(serverPlayer);
                     } else {
                         // 连续挥手且没被重置
                         if (++this.awfulBreakFixer >= 4) {
                             this.awfulBreakFixer = 0;
-                            RayTraceResult result = rayTrace(new Location(platformPlayer().getWorld(), this.eyeLocation.x, this.eyeLocation.y, this.eyeLocation.z), getCachedInteractionRange(), FluidCollisionMode.NEVER);
-                            if (result != null) {
-                                Entity hitEntity = result.getHitEntity();
-                                if (hitEntity == null) {
-                                    Block hitBlock = result.getHitBlock();
-                                    if (hitBlock != null) {
-                                        Location location = hitBlock.getLocation();
-                                        BlockPos hitPos = new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-                                        Object blockState = BlockStateUtils.getBlockState(hitBlock);
-                                        ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(blockState).orElse(null);
-                                        this.startMiningBlock(hitPos, blockState, customState);
-                                    }
-                                }
+                            Object hitResult = rayTrace(serverPlayer, getCachedInteractionRange());
+                            if (!BlockHitResultProxy.INSTANCE.isMiss(hitResult)) {
+                                Object blockPos = BlockHitResultProxy.INSTANCE.getBlockPos(hitResult);
+                                BlockPos hitPos = LocationUtils.fromBlockPos(blockPos);
+                                Object blockState = BlockGetterProxy.INSTANCE.getBlockState(EntityProxy.INSTANCE.getLevel(serverPlayer), blockPos);
+                                ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(blockState).orElse(null);
+                                this.startMiningBlock(hitPos, blockState, customState);
                             }
                         }
                     }
@@ -1026,31 +1025,23 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         sendPacket(packet, true);
     }
 
-    private void tickBlockDestroy() {
+    private void tickBlockDestroy(Object serverPlayer) {
         int currentTick = gameTicks();
         Object destroyedState = this.destroyedState;
         if (destroyedState == null) return;
 
         // 进行实现追踪找到指向的方块
-        org.bukkit.entity.Player player = platformPlayer();
-        double range = getCachedInteractionRange();
-        RayTraceResult result = rayTrace(new Location(player.getWorld(), this.eyeLocation.x, this.eyeLocation.y, this.eyeLocation.z, yRot(), xRot()), range, FluidCollisionMode.NEVER);
-        if (result == null) return;
-        if (result.getHitEntity() != null) return;
-        Block hitBlock = result.getHitBlock();
-        if (hitBlock == null) return;
-        Location location = hitBlock.getLocation();
-        BlockPos hitPos = new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        Object hitResult = rayTrace(serverPlayer, getCachedInteractionRange());
+        if (BlockHitResultProxy.INSTANCE.isMiss(hitResult)) return;
+        Object blockPos = BlockHitResultProxy.INSTANCE.getBlockPos(hitResult);
+        BlockPos hitPos = LocationUtils.fromBlockPos(blockPos);
         // 如果命中点位和网络包设置的不同，那么不继续tick
         if (!hitPos.equals(this.destroyPos)) {
-            Object blockState = BlockStateUtils.getBlockState(hitBlock);
+            Object blockState = BlockGetterProxy.INSTANCE.getBlockState(EntityProxy.INSTANCE.getLevel(serverPlayer), blockPos);
             ImmutableBlockState customState = BlockStateUtils.getOptionalCustomBlockState(blockState).orElse(null);
             this.startMiningBlock(hitPos, blockState, customState);
             return;
         }
-
-        Object blockPos = LocationUtils.toBlockPos(hitPos);
-        Object serverPlayer = minecraftPlayer();
 
         // check item in hand
         BukkitItem item = this.getItemInHand(InteractionHand.MAIN_HAND);
@@ -1061,8 +1052,14 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
             if (!BukkitItemUtils.isDebugStick(item) && !canInstabuild()) {
                 Object soundType = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(destroyedState);
                 Object soundEvent = SoundTypeProxy.INSTANCE.getHitSound(soundType);
-                Object soundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
-                player.playSound(location, soundId.toString(), SoundCategory.BLOCKS, 0.5F, 0.5F);
+                Object soundPacket = ClientboundSoundPacketProxy.INSTANCE.newInstance(
+                        HolderProxy.INSTANCE.direct(soundEvent),
+                        SoundSourceProxy.BLOCKS,
+                        hitPos.x(), hitPos.y(), hitPos.z(),
+                        0.5F, 0.5F,
+                        RandomUtils.generateRandomLong()
+                );
+                sendPacket(soundPacket, true);
             }
             this.lastHitBlockTime = currentTick;
         }
@@ -1847,8 +1844,23 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         }
     }
 
-    private RayTraceResult rayTrace(Location start, double range, FluidCollisionMode mode) {
-        return start.getWorld().rayTraceBlocks(start, start.getDirection(), range, mode);
+    private Object rayTrace(Object serverPlayer, double range) {
+        Object start = Vec3Proxy.INSTANCE.newInstance(this.eyeLocation.x, this.eyeLocation.y, this.eyeLocation.z);
+        Object direction = EntityProxy.INSTANCE.getLookAngle(serverPlayer);
+        Object end = Vec3Proxy.INSTANCE.add(
+                start,
+                Vec3Proxy.INSTANCE.getX(direction) * range,
+                Vec3Proxy.INSTANCE.getY(direction) * range,
+                Vec3Proxy.INSTANCE.getZ(direction) * range
+        );
+        Object context = ClipContextProxy.INSTANCE.newInstance(
+                start,
+                end,
+                ClipContextProxy.BlockProxy.OUTLINE,
+                ClipContextProxy.FluidProxy.NONE,
+                serverPlayer
+        );
+        return BlockGetterProxy.INSTANCE.clip(EntityProxy.INSTANCE.getLevel(serverPlayer), context);
     }
 
     public Map<BlockPos, CullableHolder> trackedBlockEntityRenderers() {

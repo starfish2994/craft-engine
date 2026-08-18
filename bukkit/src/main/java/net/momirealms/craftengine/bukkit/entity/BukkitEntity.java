@@ -202,7 +202,10 @@ public class BukkitEntity implements net.momirealms.craftengine.core.entity.Enti
 
     @Override
     public Vec3d getEyePos() {
-        Object entity = minecraftEntity();
+        return getEyePos(minecraftEntity());
+    }
+
+    public Vec3d getEyePos(Object entity) {
         Object vehicle = EntityProxy.INSTANCE.getVehicle(entity);
         if (vehicle != null) {
             Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, entity);

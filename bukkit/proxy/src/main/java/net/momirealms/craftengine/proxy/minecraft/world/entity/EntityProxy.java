@@ -183,6 +183,9 @@ public interface EntityProxy {
     @MethodInvoker(name = "getEyePosition")
     Object getEyePosition(Object target);
 
+    @MethodInvoker(name = "getLookAngle")
+    Object getLookAngle(Object target);
+
     @MethodInvoker(name = "getPose")
     Object getPose(Object target);
 }
