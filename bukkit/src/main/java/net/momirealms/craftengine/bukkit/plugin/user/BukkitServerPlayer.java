@@ -88,6 +88,7 @@ import net.momirealms.craftengine.proxy.minecraft.util.thread.BlockableEventLoop
 import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeInstanceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributesProxy;
@@ -108,8 +109,6 @@ import net.momirealms.craftengine.proxy.minecraft.world.phys.BlockHitResultProxy
 import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import net.momirealms.craftengine.proxy.paper.chunk.system.entity.RegionizedPlayerChunkLoaderProxy;
 import org.bukkit.*;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -772,8 +771,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
             this.firstPersonCameraVec3 = this.eyeLocation;
             int distance = 4;
             if (VersionHelper.isOrAbove1_21_6) {
-                Entity vehicle = platformPlayer().getVehicle();
-                if (vehicle != null && vehicle.getType() == EntityType.HAPPY_GHAST) {
+                Object vehicle = EntityProxy.INSTANCE.getVehicle(serverPlayer);
+                if (vehicle != null && EntityProxy.INSTANCE.getType(vehicle) == EntityTypesProxy.HAPPY_GHAST) {
                     distance = 8;
                 }
             }
@@ -1307,7 +1306,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     @Override
     public double getCachedInteractionRange() {
         if (VersionHelper.isOrAbove1_20_5) {
-            if (this.lastUpdateInteractionRangeTick + 20 > gameTicks()) {
+            if (this.lastUpdateInteractionRangeTick + 20 > this.gameTicks) {
                 return this.cachedInteractionRange;
             }
             Object attribute = LivingEntityProxy.INSTANCE.getAttribute(minecraftPlayer(), AttributesProxy.BLOCK_INTERACTION_RANGE);
@@ -1316,7 +1315,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
             } else {
                 this.cachedInteractionRange = AttributeInstanceProxy.INSTANCE.getValue(attribute);
             }
-            this.lastUpdateInteractionRangeTick = gameTicks();
+            this.lastUpdateInteractionRangeTick = this.gameTicks;
             return this.cachedInteractionRange;
         } else {
             return 4.5d;
