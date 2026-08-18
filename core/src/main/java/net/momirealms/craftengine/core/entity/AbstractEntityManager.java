@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.entity;
 
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.setting.EntitySettings;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
@@ -58,10 +59,12 @@ public abstract class AbstractEntityManager implements EntityManager {
 
     public LivingEntityHolder trackLivingEntity(LivingEntity entity) {
         LivingEntityHolder holder = new LivingEntityHolder(entity);
-        if (VersionHelper.hasFoliaPatch) {
+        if (Config.enableEntityTick() || entity instanceof Player) {
+            if (VersionHelper.hasFoliaPatch) {
 
-        } else {
-            this.tickingEntities.add(holder);
+            } else {
+                this.tickingEntities.add(holder);
+            }
         }
         return this.livingEntities.put(entity.uuid(), holder);
     }
@@ -70,7 +73,7 @@ public abstract class AbstractEntityManager implements EntityManager {
         LivingEntityHolder removed = this.livingEntities.remove(uuid);
         if (removed != null) {
             if (!VersionHelper.hasFoliaPatch) {
-                this.tickingEntities.remove(removed);
+                this.tickingEntities.swapRemove(removed);
             }
             removed.close(death);
         }
@@ -79,7 +82,7 @@ public abstract class AbstractEntityManager implements EntityManager {
     public void tickLivingEntities() {
         int tick = ++this.livingEntityTick;
         SwapList<LivingEntityHolder> holders = this.tickingEntities;
-        boolean tickAttribute = Config.enableEntityAttributeTick();
+        boolean tickAttribute = Config.enableEntityTick();
         for (int i = 0, size = holders.size(); i < size; i++) {
             holders.get(i).tick(tick, tickAttribute);
         }

@@ -569,10 +569,11 @@ recipe:
 
 attribute:
   # Master switch for attribute system
-  enable: false
-  # Whether to tick attribute containers of non-player entities every tick
   # Requires a server restart to take effect
-  entity-tick: true
+  enable: false
+  # Whether to tick attributes/potion effects of non-player entities
+  # Requires a server restart to take effect
+  entity-tick: false
   # If your player has a large amount of health, it can easily cause FPS drops and block the screen. This option allows you to scale the player's health bar
   health-scaling:
     # Master switch for health scaling

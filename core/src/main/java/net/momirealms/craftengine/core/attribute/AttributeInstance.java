@@ -7,10 +7,8 @@ import net.momirealms.craftengine.core.attribute.sync.SyncTarget;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributes;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributes1_21;
-import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.entity.LivingEntityContext;
-import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.SwapList;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -22,10 +20,9 @@ import java.util.Map;
 
 public class AttributeInstance {
     private final Attribute attribute;
-    private final Entity entity;
     private final Map<Key, Map<Key, AttributeModifier>> byOperation = new HashMap<>();
     private final Map<Key, AttributeModifier> byId = new Object2ObjectArrayMap<>();
-    private final Context context;
+    private final LivingEntityContext context;
     @Nullable
     private Map<Key, TrackedModifier> trackedById;
     @Nullable
@@ -196,7 +193,7 @@ public class AttributeInstance {
     }
 
     public void updateBaseValue() {
-        double base = this.attribute.baseValueSource().resolve(this.entity);
+        double base = this.attribute.baseValueSource().resolve(this.context.entity);
         if (base != this.lastBase) {
             this.lastBase = base;
             this.setDirty();
@@ -233,22 +230,22 @@ public class AttributeInstance {
     public void syncToVanilla() {
         List<SyncTarget> targets = this.attribute.syncTargets();
         if (targets.isEmpty()) return;
-        if (!(this.entity instanceof LivingEntity livingEntity)) return;
+        LivingEntity living = this.context.entity;
         double value = this.cachedValue;
         double base = this.lastBase;
         if (Double.compare(value, this.lastSyncValue) == 0 && Double.compare(base, this.lastSyncBase) == 0) return;
         this.lastSyncValue = value;
         this.lastSyncBase = base;
         for (SyncTarget target : targets) {
-            VanillaAttributeInstance vanillaAttribute = livingEntity.getVanillaAttribute(target.target());
+            VanillaAttributeInstance vanillaAttribute = living.getVanillaAttribute(target.target());
             if (vanillaAttribute != null) {
                 if (isMaxHealth(target.target())) {
                     double oldMaxHealth = vanillaAttribute.getValue();
-                    double health = livingEntity.health();
+                    double health = living.health();
                     vanillaAttribute.addOrUpdateTransientModifier(this.attribute.id(), target.operation(), target.evaluate(value, base));
                     double newMaxHealth = vanillaAttribute.getValue();
                     if (oldMaxHealth > 0 && newMaxHealth > 0 && newMaxHealth != oldMaxHealth) {
-                        livingEntity.setHealth(health * newMaxHealth / oldMaxHealth);
+                        living.setHealth(health * newMaxHealth / oldMaxHealth);
                     }
                 } else {
                     vanillaAttribute.addOrUpdateTransientModifier(this.attribute.id(), target.operation(), target.evaluate(value, base));

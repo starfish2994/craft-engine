@@ -48,6 +48,10 @@ public final class SwapList<T extends SwapList.Indexed> extends ObjectArrayList<
     }
 
     public void swapRemove(T t) {
-        this.swapRemove(t.index());
+        int index = t.index();
+        if (index == -1) {
+            return;
+        }
+        this.swapRemove(index);
     }
 }

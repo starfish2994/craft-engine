@@ -31,8 +31,10 @@ public final class AttributeEventListener extends AbstractListener {
             if (holder == null) {
                 return;
             }
-            EntityAttributesSnapshot snapshot = holder.attributes().createSnapshot();
-            projectile.setMetadata(AttributeManager.META_KEY, new FixedMetadataValue(BukkitCraftEngine.instance().javaPlugin(), snapshot));
+            holder.ifAttributesExist(attributes -> {
+                EntityAttributesSnapshot snapshot = attributes.createSnapshot();
+                projectile.setMetadata(AttributeManager.META_KEY, new FixedMetadataValue(BukkitCraftEngine.instance().javaPlugin(), snapshot));
+            });
         }
     }
 

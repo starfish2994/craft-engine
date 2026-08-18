@@ -35,7 +35,7 @@ public final class EntityEquipments {
     public EquipmentSlotItem add(EquipmentSetSlot slot, Item item) {
         EquipmentSlotItem newItem = EquipmentSlotItem.create(slot, item);
         EquipmentSlotItem previous = this.equipments.put(slot, newItem);
-        this.holder.editAttribute(attr -> {
+        this.holder.ifAttributesExist(attr -> {
             if (previous != null) {
                 previous.removeModifiers(attr);
             }
@@ -49,7 +49,7 @@ public final class EntityEquipments {
     public EquipmentSlotItem remove(EquipmentSetSlot slot) {
         EquipmentSlotItem removed = this.equipments.remove(slot);
         if (removed != null) {
-            this.holder.editAttribute(removed::removeModifiers);
+            this.holder.ifAttributesExist(removed::removeModifiers);
         }
         this.dirty = true;
         return removed;
@@ -97,7 +97,7 @@ public final class EntityEquipments {
     }
 
     private void activateEntry(EquipmentSet.Entry entry, boolean runTransitionActions) {
-        this.holder.editAttribute(attr -> {
+        this.holder.ifAttributesExist(attr -> {
             for (AttributeModifierConfig config : entry.modifiers()) {
                 if (config.scope == AttributeModifierScope.WEAPON) continue;
                 AttributeInstance instance = attr.getInstance(config.attribute);
@@ -112,7 +112,7 @@ public final class EntityEquipments {
     }
 
     private void deactivateEntry(EquipmentSet.Entry entry, boolean runTransitionActions) {
-        this.holder.editAttribute(attr -> {
+        this.holder.ifAttributesExist(attr -> {
             for (AttributeModifierConfig config : entry.modifiers()) {
                 if (config.scope == AttributeModifierScope.WEAPON) continue;
                 AttributeInstance instance = attr.getInstance(config.attribute);

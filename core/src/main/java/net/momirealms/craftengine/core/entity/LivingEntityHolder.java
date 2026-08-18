@@ -66,7 +66,7 @@ public final class LivingEntityHolder implements SwapList.Indexed {
         return this.attributes;
     }
 
-    public void editAttribute(Consumer<EntityAttributes> consumer) {
+    public void ifAttributesExist(Consumer<EntityAttributes> consumer) {
         if (this.attributes instanceof EntityAttributes attr) {
             consumer.accept(attr);
         }

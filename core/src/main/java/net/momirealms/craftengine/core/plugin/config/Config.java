@@ -1734,7 +1734,7 @@ public final class Config {
         return instance.attribute$enable;
     }
 
-    public static boolean enableEntityAttributeTick() {
+    public static boolean enableEntityTick() {
         return instance.attribute$entity_tick;
     }
 
