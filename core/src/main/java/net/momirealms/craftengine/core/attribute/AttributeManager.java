@@ -28,7 +28,7 @@ public interface AttributeManager extends Manageable {
 
     List<Attribute> attributesByEntityType(Key entityType);
 
-    double getAttributeValue(Entity entity, Attribute attribute);
+    double getAttributeValue(LivingEntity entity, Attribute attribute);
 
     List<SlotAttributeModifierConfig> getItemAttributeModifiers(Item item);
 

@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.entity;
 
-import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.setting.EntitySettings;
+import net.momirealms.craftengine.core.entity.tick.EntityTickScheduler;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.*;
@@ -9,8 +9,6 @@ import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.util.ConcurrentChainedUUID2ReferenceHashTable;
 import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.SwapList;
-import net.momirealms.craftengine.core.util.VersionHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,9 +21,8 @@ public abstract class AbstractEntityManager implements EntityManager {
     protected final Map<Key, List<Key>> customEntityTags = new HashMap<>();
     protected final Map<Key, EntityDefinition> entityDefinitions = new ConcurrentHashMap<>();
     protected final ConcurrentChainedUUID2ReferenceHashTable<LivingEntityHolder> livingEntities = ConcurrentChainedUUID2ReferenceHashTable.createWithCapacity(512);
-    protected final SwapList<LivingEntityHolder> tickingEntities = new SwapList<>();
+    protected final EntityTickScheduler entityTickScheduler = new EntityTickScheduler();
     private final EntityParser entityParser = new EntityParser();
-    private int livingEntityTick;
 
     protected AbstractEntityManager(CraftEngine plugin) {
         this.plugin = plugin;
@@ -58,38 +55,34 @@ public abstract class AbstractEntityManager implements EntityManager {
     }
 
     public LivingEntityHolder trackLivingEntity(LivingEntity entity) {
-        LivingEntityHolder holder = new LivingEntityHolder(entity);
-        if (Config.enableEntityTick() || entity instanceof Player) {
-            if (VersionHelper.hasFoliaPatch) {
-
-            } else {
-                this.tickingEntities.add(holder);
-            }
+        LivingEntityHolder previous = this.livingEntities.remove(entity.uuid());
+        if (previous != null) {
+            // Do not leave the old holder visible while the replacement performs
+            // its initial equipment/potion reconciliation.
+            previous.close(false);
         }
-        return this.livingEntities.put(entity.uuid(), holder);
+        LivingEntityHolder holder = new LivingEntityHolder(entity, this.entityTickScheduler);
+        this.livingEntities.put(entity.uuid(), holder);
+        return holder;
     }
 
     public void untrackLivingEntity(UUID uuid, boolean death) {
         LivingEntityHolder removed = this.livingEntities.remove(uuid);
         if (removed != null) {
-            if (!VersionHelper.hasFoliaPatch) {
-                this.tickingEntities.swapRemove(removed);
-            }
             removed.close(death);
         }
     }
 
     public void tickLivingEntities() {
-        int tick = ++this.livingEntityTick;
-        SwapList<LivingEntityHolder> holders = this.tickingEntities;
-        boolean tickAttribute = Config.enableEntityTick();
-        for (int i = 0, size = holders.size(); i < size; i++) {
-            holders.get(i).tick(tick, tickAttribute);
-        }
+        this.entityTickScheduler.advance();
     }
 
     @Override
     public void disable() {
+        for (LivingEntityHolder holder : this.livingEntities.values()) {
+            holder.close(false);
+        }
+        this.livingEntities.clear();
         unload();
     }
 

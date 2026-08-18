@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.entity;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.momirealms.craftengine.bukkit.attribute.BukkitVanillaAttributeInstance;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.util.*;
@@ -29,7 +30,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class BukkitLivingEntity extends BukkitEntity implements net.momirealms.craftengine.core.entity.LivingEntity {
-    protected BukkitVanillaAttributeInstance attributes;
+    private Object2ObjectOpenHashMap<Key, BukkitVanillaAttributeInstance> vanillaAttributes;
 
     protected BukkitLivingEntity(WeakReference<Object> entity) {
         super(entity);
@@ -42,22 +43,18 @@ public class BukkitLivingEntity extends BukkitEntity implements net.momirealms.c
     @Nullable
     @Override
     public VanillaAttributeInstance getVanillaAttribute(Key attribute) {
-        if (this.attributes == null) {
-            if (VersionHelper.isOrAbove1_20_5) {
-                Object holder = RegistryUtils.getHolderById(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(attribute));
-                if (holder == null) return null;
-                Object instance = LivingEntityProxy.INSTANCE.getAttribute(minecraftEntity(), holder);
-                if (instance == null) return null;
-                this.attributes = new BukkitVanillaAttributeInstance(instance);
-            } else {
-                Object attributeObject = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(attribute));
-                if (attributeObject == null) return null;
-                Object instance = LivingEntityProxy.INSTANCE.getAttribute$legacy(minecraftEntity(), attributeObject);
-                if (instance == null) return null;
-                this.attributes = new BukkitVanillaAttributeInstance(instance);
-            }
+        Object instance;
+        if (VersionHelper.isOrAbove1_20_5) {
+            Object holder = RegistryUtils.getHolderById(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(attribute));
+            if (holder == null) return null;
+            instance = LivingEntityProxy.INSTANCE.getAttribute(minecraftEntity(), holder);
+        } else {
+            Object attributeObject = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.ATTRIBUTE, KeyUtils.toIdentifier(attribute));
+            if (attributeObject == null) return null;
+            instance = LivingEntityProxy.INSTANCE.getAttribute$legacy(minecraftEntity(), attributeObject);
         }
-        return this.attributes;
+        if (instance == null) return null;
+        return new BukkitVanillaAttributeInstance(instance);
     }
 
     @Override

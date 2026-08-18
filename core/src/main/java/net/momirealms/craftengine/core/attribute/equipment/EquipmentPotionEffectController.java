@@ -2,7 +2,9 @@ package net.momirealms.craftengine.core.attribute.equipment;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.momirealms.craftengine.core.entity.LivingEntity;
+import net.momirealms.craftengine.core.entity.LivingEntityHolder;
 import net.momirealms.craftengine.core.entity.effect.PotionEffectSnapshot;
+import net.momirealms.craftengine.core.entity.tick.EntityTickScheduler;
 import net.momirealms.craftengine.core.item.equipment.SetPotionEffect;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
@@ -12,23 +14,25 @@ import java.util.*;
 public final class EquipmentPotionEffectController {
     public static final int LEASE_TICKS = 600;
     private static final int REFRESH_THRESHOLD = 300;
+    private static final int AUDIT_INTERVAL = 20;
 
+    private final LivingEntityHolder holder;
     private final LivingEntity entity;
     private final EquipmentPotionEffectStateStore store;
     private final Map<Key, RuntimeState> states = new Object2ObjectArrayMap<>(8);
     private Map<Key, SetPotionEffect> desired = Map.of();
-    private int currentTick;
     private boolean mutating;
 
-    public EquipmentPotionEffectController(LivingEntity entity) {
-        this.entity = entity;
+    public EquipmentPotionEffectController(LivingEntityHolder holder) {
+        this.holder = holder;
+        this.entity = holder.entity;
         this.store = new EquipmentPotionEffectStateStore(entity);
         for (Map.Entry<Key, ManagedPotionEffectState> entry : this.store.load().entrySet()) {
             ManagedPotionEffectState persisted = entry.getValue();
             this.states.put(entry.getKey(), new RuntimeState(
                     persisted.managed(),
                     persisted.shadow(),
-                    0
+                    holder.currentTick()
             ));
         }
     }
@@ -42,41 +46,61 @@ public final class EquipmentPotionEffectController {
             }
         }
         this.desired = highest.isEmpty() ? Map.of() : highest;
-        reconcileAll();
+        long now = this.holder.currentTick();
+        reconcileAll(now);
+        this.holder.refreshPotionEffectSchedule();
     }
 
-    public void tick() {
-        this.currentTick++;
+    /** Runs only while this controller has an equipment claim or recovery state. */
+    public long runDue(long currentTick) {
+        reconcileAll(currentTick);
+        return nextRequiredTick(currentTick);
+    }
+
+    public long nextRequiredTick(long currentTick) {
+        // Paper events are wake-up hints, not a complete mutation log. Keep the
+        // fallback audit, but only while this entity actually has a claim/state.
+        return !this.holder.periodicWorkEnabled() || this.desired.isEmpty() && this.states.isEmpty()
+                ? EntityTickScheduler.NEVER
+                : currentTick + AUDIT_INTERVAL;
     }
 
     public void close(boolean death) {
         this.desired = Map.of();
         if (death) {
             this.states.clear();
-            persist();
+            persist(this.holder.currentTick());
             return;
         }
-        reconcileAll();
+        reconcileAll(this.holder.currentTick());
     }
 
     public void observeExternalEffect(PotionEffectSnapshot effect) {
         if (this.mutating) return;
+        long now = this.holder.currentTick();
         RuntimeState state = this.states.get(effect.type());
         if (state != null) {
-            PotionEffectSnapshot currentShadow = remainingShadow(state);
+            PotionEffectSnapshot currentShadow = remainingShadow(state, now);
             PotionEffectSnapshot updatedShadow = PotionEffectSnapshot.getBetterEffect(currentShadow, effect);
-            if (Objects.equals(currentShadow, updatedShadow)) return;
-            state.setShadow(updatedShadow, this.currentTick);
-            persist();
+            if (!Objects.equals(currentShadow, updatedShadow)) {
+                state.setShadow(updatedShadow, now);
+                persist(now);
+            }
+            // Paper fires the event before committing activeEffects. Reconcile next tick.
+            this.holder.wakePotionEffects();
         }
     }
 
     public void observeExternalClear(Key type) {
         if (this.mutating) return;
         RuntimeState state = this.states.get(type);
-        if (state != null && state.shadow != null) {
-            state.setShadow(null, this.currentTick);
-            persist();
+        if (state != null) {
+            long now = this.holder.currentTick();
+            if (state.shadow != null) {
+                state.setShadow(null, now);
+                persist(now);
+            }
+            this.holder.wakePotionEffects();
         }
     }
 
@@ -84,15 +108,15 @@ public final class EquipmentPotionEffectController {
         return this.mutating;
     }
 
-    private void reconcileAll() {
+    private void reconcileAll(long currentTick) {
         Set<Key> types = new HashSet<>(this.states.keySet());
         types.addAll(this.desired.keySet());
         for (Key type : types) {
-            reconcile(type);
+            reconcile(type, currentTick);
         }
     }
 
-    private void reconcile(Key type) {
+    private void reconcile(Key type, long currentTick) {
         SetPotionEffect wanted = this.desired.get(type);
         RuntimeState state = this.states.get(type);
         PotionEffectSnapshot actual = this.entity.getPotionEffect(type);
@@ -100,7 +124,7 @@ public final class EquipmentPotionEffectController {
 
         if (wanted == null) {
             if (state == null) return;
-            restoreAndForget(type, state, actual, managedVisible);
+            restoreAndForget(type, state, actual, managedVisible, currentTick);
             return;
         }
 
@@ -116,15 +140,15 @@ public final class EquipmentPotionEffectController {
             }
         }
 
-        PotionEffectSnapshot shadow = state == null ? null : remainingShadow(state);
+        PotionEffectSnapshot shadow = state == null ? null : remainingShadow(state, currentTick);
         PotionEffectSnapshot external = state == null ? actual
                 : PotionEffectSnapshot.getBetterEffect(shadow, actual);
         if (external != null && external.amplifier() >= wanted.amplifier()) {
             if (state != null) {
                 if (!Objects.equals(shadow, external) || !wanted.sameEffect(state.managed)) {
-                    state.setShadow(external, this.currentTick);
+                    state.setShadow(external, currentTick);
                     state.managed = wanted;
-                    persist();
+                    persist(currentTick);
                 }
                 if (!external.isSameEffect(actual)) {
                     apply(external);
@@ -137,40 +161,40 @@ public final class EquipmentPotionEffectController {
             state = new RuntimeState(
                     wanted,
                     actual,
-                    this.currentTick
+                    currentTick
             );
             this.states.put(type, state);
         } else {
             if (actual != null) {
-                state.setShadow(PotionEffectSnapshot.getBetterEffect(remainingShadow(state), actual), this.currentTick);
+                state.setShadow(PotionEffectSnapshot.getBetterEffect(remainingShadow(state, currentTick), actual), currentTick);
             }
             state.managed = wanted;
         }
-        installManaged(wanted, state, actual);
+        installManaged(wanted, state, actual, currentTick);
     }
 
-    private void installManaged(SetPotionEffect wanted, RuntimeState state, @Nullable PotionEffectSnapshot actual) {
+    private void installManaged(SetPotionEffect wanted, RuntimeState state, @Nullable PotionEffectSnapshot actual, long currentTick) {
         state.managed = wanted;
-        persist();
+        persist(currentTick);
         if (actual != null) {
             remove(wanted.type());
         }
         apply(wanted, LEASE_TICKS);
     }
 
-    private void restoreAndForget(Key type, RuntimeState state, @Nullable PotionEffectSnapshot actual, boolean managedVisible) {
+    private void restoreAndForget(Key type, RuntimeState state, @Nullable PotionEffectSnapshot actual, boolean managedVisible, long currentTick) {
         if (managedVisible) {
             remove(type);
             actual = this.entity.getPotionEffect(type);
         }
-        PotionEffectSnapshot shadow = remainingShadow(state);
+        PotionEffectSnapshot shadow = remainingShadow(state, currentTick);
         if (shadow != null && !shadow.isExpired()) {
             if (actual == null || actual.amplifier() <= shadow.amplifier()) {
                 apply(shadow);
             }
         }
         this.states.remove(type);
-        persist();
+        persist(currentTick);
     }
 
     private void apply(SetPotionEffect effect, int duration) {
@@ -222,14 +246,14 @@ public final class EquipmentPotionEffectController {
     }
 
     @Nullable
-    private PotionEffectSnapshot remainingShadow(RuntimeState state) {
+    private PotionEffectSnapshot remainingShadow(RuntimeState state, long currentTick) {
         PotionEffectSnapshot shadow = state.shadow;
         if (shadow == null || shadow.isInfinite()) return shadow;
-        int elapsed = Math.max(0, this.currentTick - state.shadowAnchorTick);
-        return shadow.withDuration(Math.max(0, shadow.duration() - elapsed));
+        long elapsed = Math.max(0, currentTick - state.shadowAnchorTick);
+        return shadow.withDuration((int) Math.max(0, shadow.duration() - elapsed));
     }
 
-    private void persist() {
+    private void persist(long currentTick) {
         if (this.states.isEmpty()) {
             this.store.save(Map.of());
             return;
@@ -237,8 +261,8 @@ public final class EquipmentPotionEffectController {
         Map<Key, ManagedPotionEffectState> persisted = new HashMap<>(this.states.size());
         for (Map.Entry<Key, RuntimeState> entry : this.states.entrySet()) {
             RuntimeState state = entry.getValue();
-            PotionEffectSnapshot shadow = remainingShadow(state);
-            state.setShadow(shadow, this.currentTick);
+            PotionEffectSnapshot shadow = remainingShadow(state, currentTick);
+            state.setShadow(shadow, currentTick);
             persisted.put(entry.getKey(), new ManagedPotionEffectState(
                     state.managed,
                     shadow
@@ -251,19 +275,19 @@ public final class EquipmentPotionEffectController {
         private SetPotionEffect managed;
         @Nullable
         private PotionEffectSnapshot shadow;
-        private int shadowAnchorTick;
+        private long shadowAnchorTick;
 
         private RuntimeState(
                 SetPotionEffect managed,
                 @Nullable PotionEffectSnapshot shadow,
-                int shadowAnchorTick
+                long shadowAnchorTick
         ) {
             this.managed = managed;
             this.shadow = shadow;
             this.shadowAnchorTick = shadowAnchorTick;
         }
 
-        private void setShadow(@Nullable PotionEffectSnapshot shadow, int anchorTick) {
+        private void setShadow(@Nullable PotionEffectSnapshot shadow, long anchorTick) {
             this.shadow = shadow;
             this.shadowAnchorTick = anchorTick;
         }

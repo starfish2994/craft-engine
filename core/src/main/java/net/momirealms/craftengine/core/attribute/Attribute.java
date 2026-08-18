@@ -4,7 +4,7 @@ import net.momirealms.craftengine.core.attribute.base.BaseValueSource;
 import net.momirealms.craftengine.core.attribute.derived.DerivedValue;
 import net.momirealms.craftengine.core.attribute.format.ValueFormatter;
 import net.momirealms.craftengine.core.attribute.sync.SyncTarget;
-import net.momirealms.craftengine.core.entity.Entity;
+import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +48,7 @@ public final class Attribute {
         return this.constraint.limit(value);
     }
 
-    public double defaultValue(Entity entity) {
+    public double defaultValue(LivingEntity entity) {
         return this.baseValueSource.resolve(entity);
     }
 
@@ -64,7 +64,7 @@ public final class Attribute {
         return this.operations;
     }
 
-    public boolean appliesTo(Entity entity) {
+    public boolean appliesTo(LivingEntity entity) {
         return this.applicableEntityTypes == null || this.applicableEntityTypes.contains(entity.type());
     }
 

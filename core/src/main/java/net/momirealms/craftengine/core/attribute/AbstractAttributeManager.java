@@ -160,7 +160,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     @Override
-    public double getAttributeValue(Entity entity, Attribute attribute) {
+    public double getAttributeValue(LivingEntity entity, Attribute attribute) {
         LivingEntityHolder holder = this.plugin.entityManager().getEntityHolder(entity.uuid());
         if (holder == null) {
             return attribute.defaultValue(entity);

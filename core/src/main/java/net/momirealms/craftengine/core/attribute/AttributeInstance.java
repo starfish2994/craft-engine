@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.attribute;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.momirealms.craftengine.core.attribute.base.BaseValueSource;
 import net.momirealms.craftengine.core.attribute.modifier.AttributeModifier;
 import net.momirealms.craftengine.core.attribute.sync.SyncTarget;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
@@ -20,6 +21,10 @@ import java.util.Map;
 
 public class AttributeInstance {
     private final Attribute attribute;
+    private final EntityAttributes owner;
+    private final int index;
+    private final BaseValueSource baseValueSource;
+    private final int baseUpdateInterval;
     private final Map<Key, Map<Key, AttributeModifier>> byOperation = new HashMap<>();
     private final Map<Key, AttributeModifier> byId = new Object2ObjectArrayMap<>();
     private final LivingEntityContext context;
@@ -27,8 +32,9 @@ public class AttributeInstance {
     private Map<Key, TrackedModifier> trackedById;
     @Nullable
     private SwapList<TrackedModifier> trackedList;
-    // 最早到期 tick，未到期时整表跳过
-    private volatile int nextTrackedTick = Integer.MAX_VALUE;
+    // Absolute deadlines let this instance sleep between dynamic evaluations.
+    private long nextTrackedTick = Long.MAX_VALUE;
+    private long nextBaseTick;
     private double cachedValue;
     private boolean dirty = true;
     private double lastBase;
@@ -36,14 +42,26 @@ public class AttributeInstance {
     private double lastSyncValue = Double.NaN;
     private double lastSyncBase = Double.NaN;
 
-    public AttributeInstance(Attribute attribute, LivingEntityContext context) {
+    public AttributeInstance(Attribute attribute, LivingEntityContext context, EntityAttributes owner, int index) {
         this.attribute = attribute;
         this.context = context;
-        this.lastBase = attribute.baseValueSource().resolve(context.entity);
+        this.owner = owner;
+        this.index = index;
+        this.baseValueSource = attribute.baseValueSource().bind(context.entity);
+        this.baseUpdateInterval = this.baseValueSource.updateInterval();
+        if (this.baseUpdateInterval < 0) {
+            throw new IllegalArgumentException("Base value source update interval cannot be negative");
+        }
+        this.lastBase = this.baseValueSource.resolve(context.entity);
+        this.nextBaseTick = this.baseUpdateInterval > 0 ? Long.MIN_VALUE : Long.MAX_VALUE;
     }
 
     public Attribute attribute() {
         return this.attribute;
+    }
+
+    public int index() {
+        return this.index;
     }
 
     public double getValue() {
@@ -64,6 +82,7 @@ public class AttributeInstance {
 
     public void removeModifier(Key id) {
         AttributeModifier removed = this.byId.remove(id);
+        boolean changed = removed != null;
         if (removed != null) {
             Map<Key, AttributeModifier> operations = this.getModifiersByOperation(removed.operation());
             if (operations != null) {
@@ -73,13 +92,17 @@ public class AttributeInstance {
         if (this.trackedById != null) {
             TrackedModifier removedTracked = this.trackedById.remove(id);
             if (removedTracked != null) {
+                changed = true;
                 this.trackedList.swapRemove(removedTracked);
                 if (this.trackedById.isEmpty()) {
-                    this.nextTrackedTick = Integer.MAX_VALUE;
+                    this.nextTrackedTick = Long.MAX_VALUE;
                 }
             }
         }
-        this.setDirty();
+        if (changed) {
+            this.setDirty();
+            this.owner.onScheduleChanged(this);
+        }
     }
 
     public void removeModifier(AttributeModifier modifier) {
@@ -127,32 +150,34 @@ public class AttributeInstance {
                 this.trackedList.add(tracked);
             }
             // 新条目待初始化，下一 tick 强制扫描一次
-            this.nextTrackedTick = Integer.MIN_VALUE;
+            this.nextTrackedTick = Long.MIN_VALUE;
+            this.owner.onScheduleChanged(this);
         } else if (this.trackedById != null) {
             TrackedModifier removed = this.trackedById.remove(modifier.id());
             if (removed != null) {
                 this.trackedList.swapRemove(removed);
                 if (this.trackedById.isEmpty()) {
-                    this.nextTrackedTick = Integer.MAX_VALUE;
+                    this.nextTrackedTick = Long.MAX_VALUE;
                 }
+                this.owner.onScheduleChanged(this);
             }
         }
     }
 
-    public void updateTrackedModifiers(int tick) {
+    public void updateTrackedModifiers(long tick) {
         if (tick < this.nextTrackedTick) return;
         SwapList<TrackedModifier> tracked = this.trackedList;
         if (tracked == null) {
-            this.nextTrackedTick = Integer.MAX_VALUE;
+            this.nextTrackedTick = Long.MAX_VALUE;
             return;
         }
         Object[] array = tracked.elements();
-        int size = array.length;
+        int size = tracked.size();
         if (size == 0) {
-            this.nextTrackedTick = Integer.MAX_VALUE;
+            this.nextTrackedTick = Long.MAX_VALUE;
             return;
         }
-        int nextDue = Integer.MAX_VALUE;
+        long nextDue = Long.MAX_VALUE;
         for (int i = 0; i < size; i++) {
             TrackedModifier state = (TrackedModifier) array[i];
             if (state == null || state.index() == -1) continue;
@@ -182,6 +207,7 @@ public class AttributeInstance {
 
     public void setDirty() {
         this.dirty = true;
+        this.owner.onInstanceDirty(this);
     }
 
     public boolean isDirty() {
@@ -192,12 +218,24 @@ public class AttributeInstance {
         return this.byOperation.computeIfAbsent(operation, k -> new Object2ObjectOpenHashMap<>());
     }
 
-    public void updateBaseValue() {
-        double base = this.attribute.baseValueSource().resolve(this.context.entity);
+    private void updateBaseValue() {
+        double base = this.baseValueSource.resolve(this.context.entity);
         if (base != this.lastBase) {
             this.lastBase = base;
             this.setDirty();
         }
+    }
+
+    public void runDue(long tick) {
+        if (tick >= this.nextBaseTick) {
+            this.updateBaseValue();
+            this.nextBaseTick = tick + this.baseUpdateInterval;
+        }
+        this.updateTrackedModifiers(tick);
+    }
+
+    public long nextRequiredTick() {
+        return Math.min(this.nextBaseTick, this.nextTrackedTick);
     }
 
     public double recalculate() {
@@ -264,7 +302,7 @@ public class AttributeInstance {
 
     private static final class TrackedModifier implements SwapList.Indexed {
         private final AttributeModifier modifier;
-        private int nextTick = -1;
+        private long nextTick = -1;
         private double amount;
         private boolean condition;
         private int index = -1;

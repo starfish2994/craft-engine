@@ -2,7 +2,7 @@ package net.momirealms.craftengine.core.attribute.base;
 
 import net.momirealms.craftengine.core.attribute.transform.ValueTransformer;
 import net.momirealms.craftengine.core.attribute.transform.ValueTransformers;
-import net.momirealms.craftengine.core.entity.Entity;
+import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +15,7 @@ public record ByEntityTypeBaseValueSource(Key attribute, double fallback, @Nulla
     );
 
     @Override
-    public double resolve(Entity entity) {
+    public double resolve(LivingEntity entity) {
         double baseValue = CraftEngine.instance().attributeManager().vanillaAttributeDefaultBaseValue(entity.type(), this.attribute, Double.NaN);
         if (Double.isNaN(baseValue)) return this.fallback;
         return this.transformer == null ? baseValue : this.transformer.transform(baseValue);

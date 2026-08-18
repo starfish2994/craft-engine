@@ -319,9 +319,7 @@ public final class BukkitCraftEngine extends CraftEngine {
                 for (BukkitServerPlayer serverPlayer : networkManager().onlineUsers()) {
                     serverPlayer.tick();
                 }
-                if (Config.enableAttributeSystem()) {
-                    entityManager().tickLivingEntities();
-                }
+                entityManager().tickLivingEntities();
             }, 1, 1);
         }
     }
