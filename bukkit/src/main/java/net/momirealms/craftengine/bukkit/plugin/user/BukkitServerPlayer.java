@@ -18,11 +18,13 @@ import net.momirealms.craftengine.bukkit.entity.BukkitLivingEntity;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.nms.DelegatingContainer;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.CraftEngineGUIHolder;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.plugin.network.handler.PlayerPacketHandler;
 import net.momirealms.craftengine.bukkit.util.*;
+import net.momirealms.craftengine.bukkit.world.BukkitContainer;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.attribute.damage.DamageVisibility;
@@ -89,7 +91,9 @@ import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.Att
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.AbilitiesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.InventoryProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContainerMenuProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.InventoryMenuProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.inventory.SlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemCooldownsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndLightGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.SoundTypeProxy;
@@ -679,7 +683,7 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
 
         // 更新CE UI
         if (this.gameTicks % 20 == 0) {
-            this.updateGUI();
+            this.updateGUI(serverPlayer);
         }
 
         // 家具调试模式
@@ -829,17 +833,24 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         }
     }
 
-    private void updateGUI() {
-        org.bukkit.inventory.Inventory top = !VersionHelper.isOrAbove1_21 ? LegacyInventoryUtils.getTopInventory(platformPlayer()) : platformPlayer().getOpenInventory().getTopInventory();
-        if (!InventoryUtils.isCustomContainer(top)) return;
-        InventoryHolder topHolder = top.getHolder();
-        if (topHolder instanceof CraftEngineGUIHolder holder) {
-            holder.gui().onTimer();
+    private void updateGUI(Object serverPlayer) {
+        Object containerMenu = PlayerProxy.INSTANCE.getContainerMenu(serverPlayer);
+        if (containerMenu == PlayerProxy.INSTANCE.getInventoryMenu(serverPlayer)) return;
+
+        List<Object> slots = AbstractContainerMenuProxy.INSTANCE.getSlots(containerMenu);
+        if (slots.isEmpty()) return;
+        Object container = SlotProxy.INSTANCE.getContainer(slots.getFirst());
+        if (!(container instanceof DelegatingContainer delegatingContainer)) return;
+        if (!(delegatingContainer.getContainer() instanceof BukkitContainer bukkitContainer)) return;
+
+        InventoryHolder holder = bukkitContainer.getOwner();
+        if (holder instanceof CraftEngineGUIHolder guiHolder) {
+            guiHolder.gui().onTimer();
         }
-        if (topHolder instanceof WorldlyContainerHolder itemStorage) {
+        if (holder instanceof WorldlyContainerHolder itemStorage) {
             WorldPosition pos = itemStorage.pos();
             if (!canInteractPoint(pos.toVec3d(), 4d)) {
-                closeInventory();
+                ServerPlayerProxy.INSTANCE.closeContainer(serverPlayer);
             }
         }
     }

@@ -37,6 +37,9 @@ public interface AbstractContainerMenuProxy {
     @FieldGetter(name = "dataSlots")
     List<Object> getDataSlots(Object target);
 
+    @FieldGetter(name = "slots")
+    List<Object> getSlots(Object target);
+
     @MethodInvoker(name = "getCarried")
     Object getCarried(Object target);
 }

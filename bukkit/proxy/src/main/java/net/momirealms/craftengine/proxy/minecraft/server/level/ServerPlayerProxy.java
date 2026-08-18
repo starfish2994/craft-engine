@@ -29,6 +29,9 @@ public interface ServerPlayerProxy extends PlayerProxy {
     @MethodInvoker(name = "nextContainerCounter")
     int nextContainerCounter(Object target);
 
+    @MethodInvoker(name = "closeContainer")
+    void closeContainer(Object target);
+
     @MethodInvoker(name = "drop", activeIf = "min_version=1.21.4 && has_patch=paper")
     Object drop(Object target, @Type(clazz = ItemStackProxy.class) Object droppedItem, boolean dropAround, boolean traceItem, boolean callEvent, @Nullable Consumer<Item> entityOperation);
 
