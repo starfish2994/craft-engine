@@ -113,8 +113,6 @@ public final class PrecompiledExpression {
         if (extraVariables.isEmpty()) {
             return evaluate(context);
         }
-        // Callers may omit a previously supplied extra variable. A fresh accessor
-        // preserves the old "undefined" semantics instead of leaking thread-local data.
         return evaluateBound(context, extraVariables, copyTemplate());
     }
 

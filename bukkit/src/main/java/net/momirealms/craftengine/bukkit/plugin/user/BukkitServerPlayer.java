@@ -197,6 +197,10 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     private int lastSuccessfulBreak;
     // player's game tick
     private int gameTicks;
+    // Captured before NMS resets attackStrengthTicker. One primary attack may
+    // synchronously produce several player_attack damage events through sweeping
+    private int capturedAttackStrengthTick = Integer.MIN_VALUE;
+    private float capturedAttackStrength;
     // cache interaction range here
     private int lastUpdateInteractionRangeTick;
     private double cachedInteractionRange;
@@ -303,6 +307,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     }
 
     private void initPlayStageFields() {
+        this.capturedAttackStrengthTick = Integer.MIN_VALUE;
+        this.capturedAttackStrength = 0.0F;
         this.trackedBlockEntityRenderers = new ConcurrentHashMap<>(64);
         this.trackedEntities = new ConcurrentHashMap<>(64);
         this.trackedChunks = ConcurrentChainedLong2ReferenceHashTable.createWithCapacity(128, 0.5f);
@@ -440,6 +446,16 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     @Override
     public int gameTicks() {
         return this.gameTicks;
+    }
+
+    public void captureAttackStrength(float strength) {
+        this.capturedAttackStrengthTick = this.gameTicks;
+        this.capturedAttackStrength = Math.clamp(strength, 0.0F, 1.0F);
+    }
+
+    public float capturedAttackStrength() {
+        if (this.capturedAttackStrengthTick != this.gameTicks) return 0.0F;
+        return this.capturedAttackStrength;
     }
 
     @Override

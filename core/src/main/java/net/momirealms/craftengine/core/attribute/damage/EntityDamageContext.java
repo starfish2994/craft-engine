@@ -26,6 +26,8 @@ public class EntityDamageContext extends PlayerOptionalContext {
         contexts.withParameter(DirectContextParameters.ORIGINAL_DAMAGE, event.damage());
         contexts.withParameter(DirectContextParameters.IS_CRITICAL, event.source().isCritical());
         contexts.withParameter(DirectContextParameters.IS_SWEEP, event.isSweepAttack());
+        contexts.withParameter(DirectContextParameters.IS_ATTACK_READY, event.isAttackReady());
+        contexts.withParameter(DirectContextParameters.ATTACK_STRENGTH, event.attackStrength());
         return new EntityDamageContext(event, player, contexts.build());
     }
 

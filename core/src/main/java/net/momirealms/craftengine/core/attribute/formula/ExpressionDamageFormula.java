@@ -3,6 +3,8 @@ package net.momirealms.craftengine.core.attribute.formula;
 import net.momirealms.craftengine.core.attribute.damage.DamageEvent;
 import net.momirealms.craftengine.core.plugin.context.number.PrecompiledExpression;
 
+import java.util.Map;
+
 public class ExpressionDamageFormula implements DamageFormula {
     public static final DamageFormulaFactory<ExpressionDamageFormula> FACTORY = args -> compile(args.getNonNullString("expression"));
 
@@ -22,7 +24,14 @@ public class ExpressionDamageFormula implements DamageFormula {
     @Override
     public double getValue(DamageEvent event) {
         try {
-            return this.compiled.evaluate(event.context()).getNumberValue().doubleValue();
+            float attackStrength = event.attackStrength();
+            return this.compiled.evaluate(event.context(), Map.of(
+                    "damage", event.damage(),
+                    "is_critical", event.source().isCritical(),
+                    "is_sweep", event.isSweepAttack(),
+                    "attack_strength", attackStrength,
+                    "is_attack_ready", event.isAttackReady()
+            )).getNumberValue().doubleValue();
         } catch (final RuntimeException e) {
             throw new RuntimeException("Failed to evaluate damage formula: " + this.rawExpression, e);
         }

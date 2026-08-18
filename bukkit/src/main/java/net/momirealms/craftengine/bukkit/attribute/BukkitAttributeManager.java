@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.attribute;
 
 import net.momirealms.craftengine.bukkit.attribute.damage.EntityDamageListener;
+import net.momirealms.craftengine.bukkit.attribute.damage.PaperAttackStrengthListener;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
@@ -22,6 +23,7 @@ public final class BukkitAttributeManager extends AbstractAttributeManager {
     private final BukkitCraftEngine plugin;
     private final AttributeEventListener attributeEventListener;
     private final EntityDamageListener entityDamageListener;
+    private final PaperAttackStrengthListener attackStrengthListener;
     private final Map<Key, Map<Key, Double>> vanillaDefaultAttributes;
 
     public BukkitAttributeManager(BukkitCraftEngine plugin) {
@@ -29,6 +31,7 @@ public final class BukkitAttributeManager extends AbstractAttributeManager {
         this.plugin = plugin;
         this.attributeEventListener = new AttributeEventListener();
         this.entityDamageListener = new EntityDamageListener(this);
+        this.attackStrengthListener = VersionHelper.hasPaperPatch ? new PaperAttackStrengthListener() : null;
         this.vanillaDefaultAttributes = buildVanillaDefaultAttributeTable();
     }
 
@@ -42,12 +45,18 @@ public final class BukkitAttributeManager extends AbstractAttributeManager {
         boolean enable = Config.enableAttributeSystem();
         this.attributeEventListener.setActive(enable);
         this.entityDamageListener.setActive(enable || Config.enableDamageIndicator());
+        if (this.attackStrengthListener != null) {
+            this.attackStrengthListener.setActive(enable);
+        }
     }
 
     @Override
     public void disable() {
         this.attributeEventListener.setActive(false);
         this.entityDamageListener.setActive(false);
+        if (this.attackStrengthListener != null) {
+            this.attackStrengthListener.setActive(false);
+        }
     }
 
     @Override

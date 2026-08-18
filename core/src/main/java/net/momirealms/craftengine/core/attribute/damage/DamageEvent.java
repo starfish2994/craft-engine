@@ -22,6 +22,14 @@ public interface DamageEvent {
 
     boolean isSweepAttack();
 
+    default float attackStrength() {
+        return 1.0F;
+    }
+
+    default boolean isAttackReady() {
+        return attackStrength() > 0.9F;
+    }
+
     double getAttributeValue(AttributeSide side, Attribute attribute);
 
     void recordDamagePart(String id, double amount);

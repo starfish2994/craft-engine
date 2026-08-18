@@ -155,9 +155,7 @@ public abstract class AbstractFurnitureManager implements FurnitureManager {
                 this.syncTickTask = CraftEngine.instance().scheduler().platform().runRepeating(this::syncTick, 1, 1);
         }
         if (this.asyncTickTask == null || this.asyncTickTask.cancelled())
-            this.asyncTickTask = CraftEngine.instance().scheduler().platform().runRepeating(() -> {
-                CraftEngine.instance().scheduler().async().execute(this::asyncTick);
-            }, 1, 1);
+            this.asyncTickTask = CraftEngine.instance().scheduler().platform().runAsyncRepeating(this::asyncTick, 1, 1);
     }
 
     @Override
