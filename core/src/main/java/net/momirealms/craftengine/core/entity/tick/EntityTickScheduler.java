@@ -7,11 +7,10 @@ import java.util.Objects;
 
 public final class EntityTickScheduler {
     public static final long NEVER = Long.MAX_VALUE;
-
-    // One slot represents one tick. 2048 slots cover about 102 seconds at 20 TPS
-    private static final int WHEEL_BITS = 11;
+    private static final int WHEEL_BITS = 6;  // 64 ticks
     private static final int WHEEL_SIZE = 1 << WHEEL_BITS;
     private static final int WHEEL_MASK = WHEEL_SIZE - 1;
+    private static final int BUCKET_INITIAL_CAPACITY = 256;
 
     private final WheelBucket[] wheel = new WheelBucket[WHEEL_SIZE];
     private int scheduledTaskCount;
@@ -33,18 +32,14 @@ public final class EntityTickScheduler {
         return this.currentTick;
     }
 
-    /** Registers a task in the dormant state. */
     public Registration register(Task task) {
-        return new Registration(this, Objects.requireNonNull(task, "task"));
+        return new Registration(this, task);
     }
 
-    /** Advances the shared clock and drains only the bucket for this server tick. */
     public void advance() {
         long now = ++this.currentTick;
         WheelBucket bucket = this.wheel[slot(now)];
 
-        // Swap before draining. Tasks scheduled back into this same wheel slot
-        // therefore wait for the next revolution instead of running twice now.
         RegistrationList batch = bucket.beginDrain();
         Registration registration;
         while ((registration = batch.removeLast()) != null) {
@@ -233,9 +228,7 @@ public final class EntityTickScheduler {
     }
 
     private static final class RegistrationList {
-        private static final Registration[] EMPTY = new Registration[0];
-
-        private Registration[] elements = EMPTY;
+        private Registration[] elements = new Registration[BUCKET_INITIAL_CAPACITY];
         private int size;
 
         private void add(Registration registration) {
@@ -275,7 +268,7 @@ public final class EntityTickScheduler {
 
         private void ensureCapacity(int capacity) {
             if (capacity <= this.elements.length) return;
-            int length = this.elements.length == 0 ? 4 : this.elements.length << 1;
+            int length = this.elements.length << 1;
             this.elements = Arrays.copyOf(this.elements, Math.max(length, capacity));
         }
     }
