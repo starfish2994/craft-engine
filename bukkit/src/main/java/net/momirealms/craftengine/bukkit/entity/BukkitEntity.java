@@ -51,7 +51,7 @@ public class BukkitEntity implements net.momirealms.craftengine.core.entity.Enti
     @Nullable
     @Override
     public <T> T getCustomData(CustomDataKey<T> key) {
-        Object minecraftTag = CraftPersistentDataContainerProxy.INSTANCE.getTag(persistentDataContainer(), key.id().asString());
+        Object minecraftTag = CraftPersistentDataContainerProxy.INSTANCE.getRaw(persistentDataContainer()).get(key.id().asString());
         if (minecraftTag == null) return null;
         Tag tag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, minecraftTag);
         return key.serializer().deserialize(tag);

@@ -12,9 +12,6 @@ import java.util.Map;
 public interface CraftPersistentDataContainerProxy {
     CraftPersistentDataContainerProxy INSTANCE = ASMProxyFactory.create(CraftPersistentDataContainerProxy.class);
 
-    @MethodInvoker(name = "getTag")
-    Object getTag(Object target, String key);
-
     @MethodInvoker(name = "put")
     void put(Object target, String key, @Type(clazz = TagProxy.class) Object tag);
 
