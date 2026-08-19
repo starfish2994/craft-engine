@@ -26,6 +26,8 @@ public class AttributeInstance {
     private final Attribute attribute;
     private final EntityAttributes owner;
     private final int index;
+    // Dense index in EntityAttributes.syncInstances; -1 means no supported vanilla target.
+    private int syncIndex = -1;
     private final BaseValueSource baseValueSource;
     private final int baseUpdateInterval;
     private final BoundSyncTarget[] syncTargets;
@@ -60,6 +62,14 @@ public class AttributeInstance {
 
     public int index() {
         return this.index;
+    }
+
+    int syncIndex() {
+        return this.syncIndex;
+    }
+
+    void syncIndex(int syncIndex) {
+        this.syncIndex = syncIndex;
     }
 
     public double getValue() {

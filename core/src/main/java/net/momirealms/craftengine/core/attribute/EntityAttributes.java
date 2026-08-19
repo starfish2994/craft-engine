@@ -9,8 +9,11 @@ import java.util.BitSet;
 import java.util.List;
 
 public final class EntityAttributes implements AttributeGetter {
+    private static final AttributeInstance[] EMPTY_INSTANCES = new AttributeInstance[0];
+
     private final LivingEntityHolder holder;
     private final AttributeInstance[] instances;
+    private final AttributeInstance[] syncInstances;
     private final ImmutableMap<Key, AttributeInstance> instancesById;
     private final BitSet dirtySyncInstances;
     private final BitSet scheduledInstances;
@@ -24,38 +27,45 @@ public final class EntityAttributes implements AttributeGetter {
             if (attribute.derived() == null) count++;
         }
         this.instances = new AttributeInstance[count];
-        this.dirtySyncInstances = new BitSet(count);
         this.scheduledInstances = new BitSet(count);
         int index = 0;
+        int syncCount = 0;
         for (Attribute attribute : applicable) {
             if (attribute.derived() != null) continue;
             AttributeInstance instance = new AttributeInstance(attribute, holder.context, this, index);
             this.instances[index] = instance;
             mapBuilder.put(attribute.id(), instance);
-            if (instance.needInitialVanillaSync()) {
-                // Only non-neutral initial amounts need an NMS modifier. Equipment
-                // mutations that happen after construction wake the instance normally.
-                this.dirtySyncInstances.set(index);
-            }
+            if (instance.needVanillaSync()) syncCount++;
             if (instance.nextRequiredTick() != Long.MAX_VALUE) {
                 this.scheduledInstances.set(index);
             }
             index++;
         }
         this.instancesById = mapBuilder.build();
+        this.syncInstances = syncCount == 0 ? EMPTY_INSTANCES : new AttributeInstance[syncCount];
+        this.dirtySyncInstances = new BitSet(syncCount);
+        int syncIndex = 0;
+        for (AttributeInstance instance : this.instances) {
+            if (!instance.needVanillaSync()) continue;
+            instance.syncIndex(syncIndex);
+            this.syncInstances[syncIndex] = instance;
+            if (instance.needInitialVanillaSync()) {
+                this.dirtySyncInstances.set(syncIndex);
+            }
+            syncIndex++;
+        }
         if (!this.dirtySyncInstances.isEmpty() || nextRequiredTick() != Long.MAX_VALUE) {
             this.holder.wakeAttributes();
         }
     }
 
-    /** Returns {@code null} when this entity does not support the attribute. */
     @Nullable
     public AttributeInstance getInstance(Key attribute) {
         return this.instancesById.get(attribute);
     }
 
     public void clearSyncModifiers() {
-        for (AttributeInstance instance : this.instances) {
+        for (AttributeInstance instance : this.syncInstances) {
             instance.clearSyncModifiers();
         }
     }
@@ -69,16 +79,15 @@ public final class EntityAttributes implements AttributeGetter {
         return instance == null ? 0 : instance.getValue();
     }
 
-    /** Called by an instance whenever its calculated value may have changed. */
     void onInstanceDirty(AttributeInstance instance) {
-        if (!instance.needVanillaSync()) return;
-        this.dirtySyncInstances.set(instance.index());
+        int syncIndex = instance.syncIndex();
+        if (syncIndex == -1) return;
+        this.dirtySyncInstances.set(syncIndex);
         if (!this.running) {
             this.holder.wakeAttributes();
         }
     }
 
-    /** Called when a dynamic modifier was added, removed, or rescheduled. */
     void onScheduleChanged(AttributeInstance instance) {
         this.scheduledInstances.set(instance.index(), instance.nextRequiredTick() != Long.MAX_VALUE);
         if (!this.running) {
@@ -86,13 +95,10 @@ public final class EntityAttributes implements AttributeGetter {
         }
     }
 
-    /** Runs only dynamic evaluations that are due and one-shot vanilla sync work. */
     public long runDue(long gameTick) {
         this.running = true;
         try {
-            for (int index = this.scheduledInstances.nextSetBit(0);
-                 index >= 0;
-                 index = this.scheduledInstances.nextSetBit(index + 1)) {
+            for (int index = this.scheduledInstances.nextSetBit(0); index >= 0; index = this.scheduledInstances.nextSetBit(index + 1)) {
                 AttributeInstance instance = this.instances[index];
                 if (instance.nextRequiredTick() <= gameTick) {
                     instance.runDue(gameTick);
@@ -120,7 +126,7 @@ public final class EntityAttributes implements AttributeGetter {
 
     private void flushDirtySyncInstances() {
         for (int index = this.dirtySyncInstances.nextSetBit(0); index >= 0; index = this.dirtySyncInstances.nextSetBit(index + 1)) {
-            AttributeInstance instance = this.instances[index];
+            AttributeInstance instance = this.syncInstances[index];
             instance.getValue();
             instance.syncToVanilla();
             this.dirtySyncInstances.clear(index);
