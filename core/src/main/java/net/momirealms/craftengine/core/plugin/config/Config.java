@@ -16,6 +16,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.attribute.damage.DamageIndicator;
 import net.momirealms.craftengine.core.attribute.damage.DamageIndicators;
 import net.momirealms.craftengine.core.attribute.damage.DamageVisibility;
+import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.furniture.ColliderType;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.network.encrypt.AESGCM;
@@ -227,6 +228,9 @@ public final class Config {
     private boolean recipe$inject_block_entities;
 
     private List<String> entity$id_sources;
+    private boolean entity$tracking$enable;
+    private boolean entity$tracking$whitelist;
+    private Set<Key> entity$tracking$list;
 
     private boolean image$illegal_characters_filter$command;
     private boolean image$illegal_characters_filter$chat;
@@ -746,6 +750,19 @@ public final class Config {
 
         // entity identity providers used by loot sources and other entity systems
         this.entity$id_sources = config.getStringList("entity.id-sources");
+        this.entity$tracking$enable = config.getBoolean("entity.tracking.enable", true);
+        String trackingMode = config.getString("entity.tracking.mode", "whitelist");
+        this.entity$tracking$whitelist = switch (trackingMode.toLowerCase(Locale.ROOT)) {
+            case "whitelist" -> true;
+            case "blacklist" -> false;
+            default -> {
+                this.plugin.logger().warn("Unknown entity tracking mode '" + trackingMode + "'. Falling back to whitelist.");
+                yield true;
+            }
+        };
+        this.entity$tracking$list = config.getStringList("entity.tracking.list").stream()
+                .map(Key::of)
+                .collect(Collectors.toUnmodifiableSet());
 
         // image
         this.image$illegal_characters_filter$anvil = config.getBoolean("image.illegal-characters-filter.anvil", true);
@@ -1526,6 +1543,15 @@ public final class Config {
 
     public static List<String> entityIdSources() {
         return instance.entity$id_sources;
+    }
+
+    public static boolean enableEntityTracking() {
+        return instance.entity$tracking$enable;
+    }
+
+    public static boolean shouldTrackEntity(Key entity) {
+        boolean listed = instance.entity$tracking$list.contains(entity);
+        return instance.entity$tracking$whitelist == listed;
     }
 
     public static boolean unlockOnIngredientObtained() {

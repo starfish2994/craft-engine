@@ -82,6 +82,7 @@ public abstract class AbstractEntityManager implements EntityManager {
         return entity.type();
     }
 
+    @Nullable
     public LivingEntityHolder trackLivingEntity(LivingEntity entity) {
         LivingEntityHolder previous = this.livingEntities.remove(entity.uuid());
         if (previous != null) {
@@ -103,12 +104,16 @@ public abstract class AbstractEntityManager implements EntityManager {
         this.entityTickScheduler.advance();
     }
 
-    @Override
-    public void disable() {
+    public void clearTrackedLivingEntities() {
         for (LivingEntityHolder holder : this.livingEntities.values()) {
             holder.close(false);
         }
         this.livingEntities.clear();
+    }
+
+    @Override
+    public void disable() {
+        clearTrackedLivingEntities();
         unload();
     }
 

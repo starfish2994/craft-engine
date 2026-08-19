@@ -5,8 +5,10 @@ import net.momirealms.craftengine.bukkit.entity.BukkitEntityManager;
 import net.momirealms.craftengine.bukkit.plugin.listener.AbstractListener;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
+import net.momirealms.craftengine.core.entity.EntityTypeKeys;
 import net.momirealms.craftengine.core.entity.LivingEntityHolder;
 import net.momirealms.craftengine.core.entity.effect.PotionEffectSnapshot;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.proxy.bukkit.event.entity.EntityEventProxy;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -27,7 +29,15 @@ public final class BukkitEntityListener extends AbstractListener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerJoin(PlayerJoinEvent event) {
         BukkitServerPlayer player = BukkitAdaptor.adapt(event.getPlayer());
-        if (player != null && player.isAlive()) {
+        if (player != null && player.isAlive() && Config.shouldTrackEntity(EntityTypeKeys.PLAYER)) {
+            this.manager.trackLivingEntity(player);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        BukkitServerPlayer player = BukkitAdaptor.adapt(event.getPlayer());
+        if (player != null && Config.shouldTrackEntity(EntityTypeKeys.PLAYER)) {
             this.manager.trackLivingEntity(player);
         }
     }
@@ -40,14 +50,6 @@ public final class BukkitEntityListener extends AbstractListener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onEntityDeath(EntityDeathEvent event) {
         this.manager.untrackLivingEntity(event.getEntity().getUniqueId(), true);
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onPlayerRespawn(PlayerRespawnEvent event) {
-        BukkitServerPlayer player = BukkitAdaptor.adapt(event.getPlayer());
-        if (player != null) {
-            this.manager.trackLivingEntity(player);
-        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

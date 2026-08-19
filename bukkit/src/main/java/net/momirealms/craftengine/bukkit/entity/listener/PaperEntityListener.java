@@ -7,10 +7,12 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntityManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.plugin.listener.AbstractListener;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.EquipmentSlotUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.attribute.equipment.EquipmentSetSlot;
 import net.momirealms.craftengine.core.entity.LivingEntityHolder;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -43,7 +45,9 @@ public final class PaperEntityListener extends AbstractListener {
     public void onEntityAdd(EntityAddToWorldEvent event) {
         if (event.getEntity() instanceof LivingEntity livingEntity) {
             if (livingEntity instanceof Player) return;
-            this.manager.trackLivingEntity((net.momirealms.craftengine.core.entity.LivingEntity) BukkitAdaptor.adapt(livingEntity));
+            if (Config.shouldTrackEntity(EntityUtils.getEntityType(livingEntity))) {
+                this.manager.trackLivingEntity((net.momirealms.craftengine.core.entity.LivingEntity) BukkitAdaptor.adapt(livingEntity));
+            }
         }
     }
 

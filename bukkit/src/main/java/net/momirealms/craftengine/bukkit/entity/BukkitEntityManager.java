@@ -27,9 +27,13 @@ public final class BukkitEntityManager extends AbstractEntityManager {
         instance = this;
     }
 
+    public static BukkitEntityManager instance() {
+        return instance;
+    }
+
     @Override
     public void runDelayedSyncTasks() {
-        boolean active = Config.enableAttributeSystem();
+        boolean active = Config.enableEntityTracking();
         this.entityListener.setActive(active);
         if (this.paperEntityListener != null) {
             this.paperEntityListener.setActive(active);
@@ -45,7 +49,6 @@ public final class BukkitEntityManager extends AbstractEntityManager {
         super.disable();
     }
 
-
     @Override
     public List<Key> vanillaEntityIdsByTag(Key tag) {
         Tag<EntityType> bukkitTag = Bukkit.getTag(Tag.REGISTRY_ENTITY_TYPES, KeyUtils.toNamespacedKey(tag), EntityType.class);
@@ -55,9 +58,5 @@ public final class BukkitEntityManager extends AbstractEntityManager {
             result.add(KeyUtils.namespacedKeyToKey(type.getKey()));
         }
         return result;
-    }
-
-    public static BukkitEntityManager instance() {
-        return instance;
     }
 }
