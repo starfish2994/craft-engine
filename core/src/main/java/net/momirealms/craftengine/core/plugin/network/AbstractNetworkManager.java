@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.network;
 
+import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.momirealms.craftengine.core.font.BitmapImage;
 import net.momirealms.craftengine.core.font.Image;
@@ -127,10 +128,38 @@ public abstract class AbstractNetworkManager implements NetworkManager {
         return false;
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     @Override
     public Map<String, ComponentProvider> matchNetworkTags(String text) {
-        Map<String, ComponentProvider> tags = null;
+        Map<String, ComponentProvider> tags = matchNetworkTags(text, null);
+        return tags == null ? Collections.emptyMap() : tags;
+    }
+
+    @Override
+    public Map<String, ComponentProvider> matchNetworkTags(JsonElement json) {
+        Map<String, ComponentProvider> tags = matchNetworkTags(json, null);
+        return tags == null ? Collections.emptyMap() : tags;
+    }
+
+    private Map<String, ComponentProvider> matchNetworkTags(JsonElement json, Map<String, ComponentProvider> tags) {
+        if (json == null || json.isJsonNull()) {
+            return tags;
+        }
+        if (json.isJsonArray()) {
+            for (JsonElement element : json.getAsJsonArray()) {
+                tags = matchNetworkTags(element, tags);
+            }
+        } else if (json.isJsonObject()) {
+            for (JsonElement value : json.getAsJsonObject().asMap().values()) {
+                tags = matchNetworkTags(value, tags);
+            }
+        } else if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
+            tags = matchNetworkTags(json.getAsString(), tags);
+        }
+        return tags;
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    private Map<String, ComponentProvider> matchNetworkTags(String text, Map<String, ComponentProvider> tags) {
         List<Token> root = TokenParser.tokenize(text, true);
         for (final Token token : root) {
             switch (token.type()) {
@@ -160,7 +189,7 @@ public abstract class AbstractNetworkManager implements NetworkManager {
                     throw new IllegalArgumentException("Unsupported token type " + token.type());
             }
         }
-        return tags == null ? Collections.emptyMap() : tags;
+        return tags;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.item;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier;
@@ -153,15 +154,15 @@ public interface Item extends ChainParameterSource {
 
     Optional<FireworkExplosion> fireworkExplosion();
 
-    Item customNameJson(String displayName);
+    Item customNameJson(JsonElement displayName);
 
     Item customNameComponent(Component displayName);
 
-    Optional<String> customNameJson();
+    Optional<JsonElement> customNameJson();
 
     Optional<Component> customNameComponent();
 
-    default Optional<String> hoverNameJson() {
+    default Optional<JsonElement> hoverNameJson() {
         return customNameJson().or(this::itemNameJson);
     }
 
@@ -169,11 +170,11 @@ public interface Item extends ChainParameterSource {
         return customNameComponent().or(this::itemNameComponent);
     }
 
-    Item itemNameJson(String itemName);
+    Item itemNameJson(JsonElement itemName);
 
     Item itemNameComponent(Component itemName);
 
-    Optional<String> itemNameJson();
+    Optional<JsonElement> itemNameJson();
 
     Optional<Component> itemNameComponent();
 
@@ -189,11 +190,11 @@ public interface Item extends ChainParameterSource {
 
     Optional<String> tooltipStyle();
 
-    Item loreJson(List<String> lore);
+    Item loreJson(JsonArray lore);
 
     Item loreComponent(List<Component> lore);
 
-    Optional<List<String>> loreJson();
+    Optional<JsonArray> loreJson();
 
     Optional<List<Component>> loreComponent();
 

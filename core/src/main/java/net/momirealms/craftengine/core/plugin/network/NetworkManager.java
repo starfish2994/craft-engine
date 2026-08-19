@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.network;
 
+import com.google.gson.JsonElement;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -57,6 +58,8 @@ public interface NetworkManager extends Manageable {
     boolean hasNetworkTag(String text);
 
     Map<String, ComponentProvider> matchNetworkTags(String text);
+
+    Map<String, ComponentProvider> matchNetworkTags(JsonElement json);
 
     default Map<String, ComponentProvider> matchNetworkTags(Tag nbt) {
         return matchNetworkTags(new StringValueOnlyTagVisitor().visit(nbt));

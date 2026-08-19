@@ -10,7 +10,6 @@ import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.component.value.JukeboxPlayable;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.AdventureHelper;
-import net.momirealms.craftengine.core.util.GsonHelper;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
@@ -28,17 +27,17 @@ public class ComponentItemFactory1_21_5 extends ComponentItemFactory1_21_4 {
     }
 
     @Override
-    protected void customNameJson(ComponentItemWrapper item, String json) {
+    protected void customNameJson(ComponentItemWrapper item, JsonElement json) {
         if (json == null) {
             item.resetComponent(DataComponentTypes.CUSTOM_NAME);
         } else {
-            item.setSparrowNBTComponent(DataComponentTypes.CUSTOM_NAME, AdventureHelper.componentToNbt(AdventureHelper.jsonToComponent(json)));
+            item.setJsonComponent(DataComponentTypes.CUSTOM_NAME, json);
         }
     }
 
     @Override
-    protected Optional<String> customNameJson(ComponentItemWrapper item) {
-        return item.getComponentAsJson(DataComponentTypes.CUSTOM_NAME).map(it -> GsonHelper.get().toJson(it));
+    protected Optional<JsonElement> customNameJson(ComponentItemWrapper item) {
+        return item.getComponentAsJson(DataComponentTypes.CUSTOM_NAME);
     }
 
     @Override
@@ -52,15 +51,15 @@ public class ComponentItemFactory1_21_5 extends ComponentItemFactory1_21_4 {
 
     @Override
     protected Optional<Component> customNameComponent(ComponentItemWrapper item) {
-        return customNameJson(item).map(AdventureHelper::jsonToComponent);
+        return customNameJson(item).map(AdventureHelper::jsonElementToComponent);
     }
 
     @Override
-    protected void itemNameJson(ComponentItemWrapper item, String json) {
+    protected void itemNameJson(ComponentItemWrapper item, JsonElement json) {
         if (json == null) {
             item.resetComponent(DataComponentTypes.ITEM_NAME);
         } else {
-            item.setSparrowNBTComponent(DataComponentTypes.ITEM_NAME, AdventureHelper.componentToNbt(AdventureHelper.jsonToComponent(json)));
+            item.setJsonComponent(DataComponentTypes.ITEM_NAME, json);
         }
     }
 
@@ -74,20 +73,16 @@ public class ComponentItemFactory1_21_5 extends ComponentItemFactory1_21_4 {
     }
 
     @Override
-    protected Optional<String> itemNameJson(ComponentItemWrapper item) {
-        return item.getComponentAsJson(DataComponentTypes.ITEM_NAME).map(it -> GsonHelper.get().toJson(it));
+    protected Optional<JsonElement> itemNameJson(ComponentItemWrapper item) {
+        return item.getComponentAsJson(DataComponentTypes.ITEM_NAME);
     }
 
     @Override
-    protected Optional<List<String>> loreJson(ComponentItemWrapper item) {
+    protected Optional<JsonArray> loreJson(ComponentItemWrapper item) {
         if (!item.hasComponent(DataComponentTypes.LORE)) return Optional.empty();
         Optional<JsonElement> json = item.getComponentAsJson(DataComponentTypes.LORE);
         if (json.isEmpty()) return Optional.empty();
-        List<String> lore = new ArrayList<>();
-        for (JsonElement jsonElement : (JsonArray) json.get()) {
-            lore.add(GsonHelper.get().toJson(jsonElement));
-        }
-        return Optional.of(lore);
+        return Optional.of(json.get().getAsJsonArray());
     }
 
     @Override
@@ -104,15 +99,11 @@ public class ComponentItemFactory1_21_5 extends ComponentItemFactory1_21_4 {
     }
 
     @Override
-    protected void loreJson(ComponentItemWrapper item, List<String> lore) {
+    protected void loreJson(ComponentItemWrapper item, JsonArray lore) {
         if (lore == null || lore.isEmpty()) {
             item.resetComponent(DataComponentTypes.LORE);
         } else {
-            List<Tag> loreTags = new ArrayList<>();
-            for (String json : lore) {
-                loreTags.add(AdventureHelper.componentToTag(AdventureHelper.jsonToComponent(json)));
-            }
-            item.setSparrowNBTComponent(DataComponentTypes.LORE, new ListTag(loreTags));
+            item.setJsonComponent(DataComponentTypes.LORE, lore);
         }
     }
 

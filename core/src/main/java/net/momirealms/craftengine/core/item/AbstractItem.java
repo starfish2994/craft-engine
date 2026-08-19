@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.item;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier;
@@ -245,12 +246,12 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public Optional<String> customNameJson() {
+    public Optional<JsonElement> customNameJson() {
         return this.factory.customNameJson(this.item);
     }
 
     @Override
-    public Item customNameJson(String displayName) {
+    public Item customNameJson(JsonElement displayName) {
         this.factory.customNameJson(this.item, displayName);
         return this;
     }
@@ -267,13 +268,13 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public Item loreJson(List<String> lore) {
+    public Item loreJson(JsonArray lore) {
         this.factory.loreJson(this.item, lore);
         return this;
     }
 
     @Override
-    public Optional<List<String>> loreJson() {
+    public Optional<JsonArray> loreJson() {
         return this.factory.loreJson(this.item);
     }
 
@@ -306,13 +307,13 @@ public abstract class AbstractItem<W extends ItemWrapper> implements Item {
     }
 
     @Override
-    public Item itemNameJson(String itemName) {
+    public Item itemNameJson(JsonElement itemName) {
         this.factory.itemNameJson(this.item, itemName);
         return this;
     }
 
     @Override
-    public Optional<String> itemNameJson() {
+    public Optional<JsonElement> itemNameJson() {
         return this.factory.itemNameJson(this.item);
     }
 

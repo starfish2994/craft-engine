@@ -193,8 +193,8 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                 this.plugin.logger().warn("Cannot find item " + it.icon() + " for category icon");
                 return null;
             }
-            item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(it.displayName(), ItemBuildContext.EMPTY)));
-            item.loreJson(it.displayLore().stream().map(lore -> AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(lore, ItemBuildContext.EMPTY))).toList());
+            item.customNameJson(AdventureHelper.componentToJsonElement(AdventureHelper.miniMessage().deserialize(it.displayName(), ItemBuildContext.EMPTY)));
+            item.loreComponent(it.displayLore().stream().map(lore -> AdventureHelper.miniMessage().deserialize(lore, ItemBuildContext.EMPTY)).toList());
             return new ItemWithAction(item, (element, click) -> {
                 click.cancel();
                 player.playSound(Constants.SOUND_CLICK_BUTTON);
@@ -275,7 +275,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                 Item item;
                 if (subCategory == null) {
                     item = Objects.requireNonNull(Item.byId(ItemKeys.BARRIER, player));
-                    item.customNameJson(AdventureHelper.componentToJson(Component.text(subCategoryId).color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)));
+                    item.customNameJson(AdventureHelper.componentToJsonElement(Component.text(subCategoryId).color(NamedTextColor.RED).decoration(TextDecoration.ITALIC, false)));
                 } else {
                     if (!subCategory.condition().test(PlayerOptionalContext.of(player))) {
                         return null;
@@ -284,12 +284,12 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                     if (ItemUtils.isEmpty(item)) {
                         if (!subCategory.icon().equals(ItemKeys.AIR)) {
                             item = Objects.requireNonNull(Item.byId(ItemKeys.BARRIER, player));
-                            item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(subCategory.displayName(), ItemBuildContext.EMPTY)));
-                            item.loreJson(subCategory.displayLore().stream().map(lore -> AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(lore, ItemBuildContext.EMPTY))).toList());
+                            item.customNameJson(AdventureHelper.componentToJsonElement(AdventureHelper.miniMessage().deserialize(subCategory.displayName(), ItemBuildContext.EMPTY)));
+                            item.loreComponent(subCategory.displayLore().stream().map(lore -> AdventureHelper.miniMessage().deserialize(lore, ItemBuildContext.EMPTY)).toList());
                         }
                     } else {
-                        item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(subCategory.displayName(), ItemBuildContext.EMPTY)));
-                        item.loreJson(subCategory.displayLore().stream().map(lore -> AdventureHelper.componentToJson(AdventureHelper.miniMessage().deserialize(lore, ItemBuildContext.EMPTY))).toList());
+                        item.customNameJson(AdventureHelper.componentToJsonElement(AdventureHelper.miniMessage().deserialize(subCategory.displayName(), ItemBuildContext.EMPTY)));
+                        item.loreComponent(subCategory.displayLore().stream().map(lore -> AdventureHelper.miniMessage().deserialize(lore, ItemBuildContext.EMPTY)).toList());
                     }
                 }
                 return new ItemWithAction(item, (element, click) -> {
@@ -305,7 +305,7 @@ public final class ItemBrowserManagerImpl implements ItemBrowserManager {
                 if (ItemUtils.isEmpty(item)) {
                     if (!itemId.equals(ItemKeys.AIR)) {
                         item = Item.byId(ItemKeys.BARRIER, player);
-                        item.customNameJson(AdventureHelper.componentToJson(Component.text(it).decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.RED)));
+                        item.customNameJson(AdventureHelper.componentToJsonElement(Component.text(it).decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE).color(NamedTextColor.RED)));
                     }
                     canGoFurther = false;
                 } else {

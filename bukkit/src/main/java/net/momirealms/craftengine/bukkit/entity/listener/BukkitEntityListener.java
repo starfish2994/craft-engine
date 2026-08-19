@@ -7,6 +7,7 @@ import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.entity.LivingEntityHolder;
 import net.momirealms.craftengine.core.entity.effect.PotionEffectSnapshot;
+import net.momirealms.craftengine.proxy.bukkit.event.entity.EntityEventProxy;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -51,7 +52,7 @@ public final class BukkitEntityListener extends AbstractListener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPotionEffectChange(EntityPotionEffectEvent event) {
-        LivingEntityHolder holder = this.manager.getEntityHolder(event.getEntity().getUniqueId());
+        LivingEntityHolder holder = this.manager.getEntityHolder(EntityEventProxy.INSTANCE.getEntity(event).getUniqueId());
         if (holder == null || holder.potionEffects.isMutating()) return;
         PotionEffect newEffect = event.getNewEffect();
         if (newEffect != null) {

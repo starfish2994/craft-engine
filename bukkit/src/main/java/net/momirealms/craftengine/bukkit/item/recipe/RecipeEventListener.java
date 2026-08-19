@@ -606,8 +606,12 @@ public final class RecipeEventListener implements Listener {
         int repairPenalty = wrappedFirst.repairCost().orElse(0) + wrappedSecond.repairCost().orElse(0);
 
         if (renameText != null && !renameText.isBlank()) {
-            if (!renameText.equals(ComponentProxy.INSTANCE.getString(ComponentUtils.jsonToMinecraft(wrappedFirst.hoverNameJson().orElse(AdventureHelper.EMPTY_COMPONENT))))) {
-                wrappedFirst.customNameJson(AdventureHelper.componentToJson(Component.text(renameText)));
+            String hoverName = wrappedFirst.hoverNameJson()
+                    .map(ComponentUtils::jsonElementToMinecraft)
+                    .map(ComponentProxy.INSTANCE::getString)
+                    .orElse("");
+            if (!renameText.equals(hoverName)) {
+                wrappedFirst.customNameJson(AdventureHelper.componentToJsonElement(Component.text(renameText)));
                 repairCost += 1;
             } else if (repairCost == 0) {
                 hasResult = false;
@@ -679,7 +683,11 @@ public final class RecipeEventListener implements Listener {
                     renameText = LegacyInventoryUtils.getRenameText(inventory);
                 }
                 if (renameText != null && !renameText.isBlank()) {
-                    if (!renameText.equals(ComponentProxy.INSTANCE.getString(ComponentUtils.jsonToMinecraft(wrappedFirst.hoverNameJson().orElse(AdventureHelper.EMPTY_COMPONENT))))) {
+                    String hoverName = wrappedFirst.hoverNameJson()
+                            .map(ComponentUtils::jsonElementToMinecraft)
+                            .map(ComponentProxy.INSTANCE::getString)
+                            .orElse("");
+                    if (!renameText.equals(hoverName)) {
                         event.setResult(null);
                     }
                 }

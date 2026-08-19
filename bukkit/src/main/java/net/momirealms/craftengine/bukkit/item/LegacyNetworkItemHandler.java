@@ -1,5 +1,8 @@
 package net.momirealms.craftengine.bukkit.item;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
@@ -239,13 +242,13 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
     }
 
     public static boolean processCustomName(Item item, BiConsumer<String, CompoundTag> callback, Context context) {
-        Optional<String> optionalCustomName = item.customNameJson();
+        Optional<JsonElement> optionalCustomName = item.customNameJson();
         if (optionalCustomName.isPresent()) {
-            String line = optionalCustomName.get();
-            Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(line);
+            JsonElement json = optionalCustomName.get();
+            Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(json);
             if (!tokens.isEmpty()) {
-                item.customNameJson(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens, context)));
-                callback.accept("display.Name", NetworkItemHandler.pack(Operation.ADD, new StringTag(line)));
+                item.customNameJson(AdventureHelper.componentToJsonElement(AdventureHelper.replaceText(AdventureHelper.jsonElementToComponent(json), tokens, context)));
+                callback.accept("display.Name", NetworkItemHandler.pack(Operation.ADD, new StringTag(json.toString())));
                 return true;
             }
         }
@@ -253,25 +256,25 @@ public final class LegacyNetworkItemHandler implements NetworkItemHandler {
     }
 
     private static boolean processLore(Item item, BiConsumer<String, CompoundTag> callback, Context context) {
-        Optional<List<String>> optionalLore = item.loreJson();
+        Optional<JsonArray> optionalLore = item.loreJson();
         if (optionalLore.isPresent()) {
             boolean changed = false;
-            List<String> lore = optionalLore.get();
-            List<String> newLore = new ArrayList<>(lore.size());
-            for (String line : lore) {
-                Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(line);
+            JsonArray lore = optionalLore.get();
+            JsonArray newLore = new JsonArray();
+            for (JsonElement element : lore) {
+                Map<String, ComponentProvider> tokens = CraftEngine.instance().networkManager().matchNetworkTags(element);
                 if (tokens.isEmpty()) {
-                    newLore.add(line);
+                    newLore.add(element);
                 } else {
-                    newLore.add(AdventureHelper.componentToJson(AdventureHelper.replaceText(AdventureHelper.jsonToComponent(line), tokens, context)));
+                    newLore.add(AdventureHelper.componentToJsonElement(AdventureHelper.replaceText(AdventureHelper.jsonElementToComponent(element), tokens, context)));
                     changed = true;
                 }
             }
             if (changed) {
                 item.loreJson(newLore);
                 ListTag listTag = new ListTag();
-                for (String line : lore) {
-                    listTag.add(new StringTag(line));
+                for (JsonElement element : lore) {
+                    listTag.add(new StringTag(element.toString()));
                 }
                 callback.accept("display.Lore", NetworkItemHandler.pack(Operation.ADD, listTag));
                 return true;

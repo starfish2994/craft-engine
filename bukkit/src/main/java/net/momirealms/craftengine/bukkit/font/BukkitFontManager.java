@@ -136,7 +136,7 @@ public final class BukkitFontManager extends AbstractFontManager implements List
         EmojiComponentProcessResult replaceProcessResult = replaceComponentEmoji(itemName, BukkitAdaptor.adapt(player), renameText, EmojiUseCase.ANVIL);
         if (replaceProcessResult.changed()) {
             BukkitItem wrapped = this.plugin.itemManager().wrap(result);
-            wrapped.customNameJson(AdventureHelper.componentToJson(replaceProcessResult.newText()));
+            wrapped.customNameJson(AdventureHelper.componentToJsonElement(replaceProcessResult.newText()));
             event.setResult(wrapped.getBukkitItem());
         }
     }

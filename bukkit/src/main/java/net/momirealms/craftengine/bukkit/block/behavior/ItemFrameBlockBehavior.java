@@ -114,6 +114,14 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     }
 
     @Override
+    public Item itemToPickup(World world, BlockPos pos, ImmutableBlockState state, Player player) {
+        BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
+        if (blockEntity == null) return null;
+        Item item = blockEntity.controller.let(ItemFrameBlockEntityController.class, this.controllerId, ItemFrameBlockEntityController::item);
+        return ItemUtils.isEmpty(item) ? null : item.copy();
+    }
+
+    @Override
     public InteractionResult useOnBlock(UseOnContext context, ImmutableBlockState state) {
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;

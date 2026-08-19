@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.item.factory;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.bukkit.item.ComponentItemWrapper;
@@ -337,31 +338,31 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
-    protected void customNameJson(ComponentItemWrapper item, String json) {
+    protected void customNameJson(ComponentItemWrapper item, JsonElement json) {
         if (json == null) {
             item.resetComponent(DataComponentTypes.CUSTOM_NAME);
         } else {
-            item.setJavaComponent(DataComponentTypes.CUSTOM_NAME, json);
+            item.setJsonComponent(DataComponentTypes.CUSTOM_NAME, json);
         }
     }
 
     @Override
-    protected Optional<String> customNameJson(ComponentItemWrapper item) {
-        return item.getComponentAsJava(DataComponentTypes.CUSTOM_NAME);
+    protected Optional<JsonElement> customNameJson(ComponentItemWrapper item) {
+        return item.getComponentAsJson(DataComponentTypes.CUSTOM_NAME);
     }
 
     @Override
-    protected void itemNameJson(ComponentItemWrapper item, String json) {
+    protected void itemNameJson(ComponentItemWrapper item, JsonElement json) {
         if (json == null) {
             item.resetComponent(DataComponentTypes.ITEM_NAME);
         } else {
-            item.setJavaComponent(DataComponentTypes.ITEM_NAME, json);
+            item.setJsonComponent(DataComponentTypes.ITEM_NAME, json);
         }
     }
 
     @Override
-    protected Optional<String> itemNameJson(ComponentItemWrapper item) {
-        return item.getComponentAsJava(DataComponentTypes.ITEM_NAME);
+    protected Optional<JsonElement> itemNameJson(ComponentItemWrapper item) {
+        return item.getComponentAsJson(DataComponentTypes.ITEM_NAME);
     }
 
     @Override
@@ -375,16 +376,23 @@ public class ComponentItemFactory1_20_5 extends BukkitItemFactory<ComponentItemW
     }
 
     @Override
-    protected Optional<List<String>> loreJson(ComponentItemWrapper item) {
-        return item.getComponentAsJava(DataComponentTypes.LORE);
+    protected Optional<JsonArray> loreJson(ComponentItemWrapper item) {
+        Optional<List<String>> lore = item.getComponentAsJava(DataComponentTypes.LORE);
+        return lore.map(lines -> {
+            JsonArray jsonArray = new JsonArray();
+            lines.stream().map(json -> GsonHelper.get().fromJson(json, JsonElement.class)).forEach(jsonArray::add);
+            return jsonArray;
+        });
     }
 
     @Override
-    protected void loreJson(ComponentItemWrapper item, List<String> lore) {
+    protected void loreJson(ComponentItemWrapper item, JsonArray lore) {
         if (lore == null || lore.isEmpty()) {
             item.resetComponent(DataComponentTypes.LORE);
         } else {
-            item.setJavaComponent(DataComponentTypes.LORE, lore);
+            List<String> serializedLore = new ArrayList<>(lore.size());
+            lore.forEach(element -> serializedLore.add(GsonHelper.get().toJson(element)));
+            item.setJavaComponent(DataComponentTypes.LORE, serializedLore);
         }
     }
 
