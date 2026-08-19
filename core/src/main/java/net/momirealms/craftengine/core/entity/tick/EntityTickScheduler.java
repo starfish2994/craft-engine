@@ -7,10 +7,10 @@ import java.util.Objects;
 
 public final class EntityTickScheduler {
     public static final long NEVER = Long.MAX_VALUE;
-    private static final int WHEEL_BITS = 6;  // 64 ticks
+    private static final int WHEEL_BITS = 8;  // 256 ticks
     private static final int WHEEL_SIZE = 1 << WHEEL_BITS;
     private static final int WHEEL_MASK = WHEEL_SIZE - 1;
-    private static final int BUCKET_INITIAL_CAPACITY = 256;
+    private static final int BUCKET_INITIAL_CAPACITY = 64;
 
     private final WheelBucket[] wheel = new WheelBucket[WHEEL_SIZE];
     private int scheduledTaskCount;

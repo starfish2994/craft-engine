@@ -14,13 +14,11 @@ import java.util.*;
 
 public final class EquipmentPotionEffectController {
     public static final int LEASE_TICKS = 619;
-    private static final int REFRESH_THRESHOLD = 320;
+    private static final int REFRESH_THRESHOLD = 219;
 
     private final LivingEntityHolder holder;
     private final LivingEntity entity;
     private final EquipmentPotionEffectStateStore store;
-    // Most tracked entities never own a potion shadow. The empty constructor shares
-    // fastutil's empty arrays and grows only when recovery state is actually needed.
     private final Map<Key, RuntimeState> states = new Object2ObjectArrayMap<>();
     private final CandidateTracker candidates = new CandidateTracker();
     private long nextReconcileTick = EntityTickScheduler.NEVER;
@@ -41,6 +39,26 @@ public final class EquipmentPotionEffectController {
         if (!this.states.isEmpty()) {
             this.nextReconcileTick = holder.currentTick() + 1;
         }
+    }
+
+    static boolean matchesManagedLease(@Nullable PotionEffectSnapshot actual,
+                                       Key type,
+                                       int amplifier) {
+        if (actual == null || !actual.type().equals(type)) return false;
+        return actual.amplifier() == amplifier && isPossibleManagedLease(actual);
+    }
+
+    private static boolean isPossibleManagedLease(PotionEffectSnapshot actual) {
+        return actual.duration() >= 0 && actual.duration() <= LEASE_TICKS;
+    }
+
+    static long nextManagedLeaseTick(long currentTick, int duration) {
+        return currentTick + Math.max(1, duration - REFRESH_THRESHOLD);
+    }
+
+    static long nextEffectExpiryTick(long currentTick, @Nullable PotionEffectSnapshot effect) {
+        if (effect == null || effect.isInfinite()) return EntityTickScheduler.NEVER;
+        return currentTick + Math.max(1, effect.duration());
     }
 
     public void update(Collection<SetPotionEffect> effects) {
@@ -263,26 +281,6 @@ public final class EquipmentPotionEffectController {
     private void requestReconcile() {
         this.reconcileRequested = true;
         this.holder.wakePotionEffects();
-    }
-
-    static boolean matchesManagedLease(@Nullable PotionEffectSnapshot actual,
-                                       Key type,
-                                       int amplifier) {
-        if (actual == null || !actual.type().equals(type)) return false;
-        return actual.amplifier() == amplifier && isPossibleManagedLease(actual);
-    }
-
-    private static boolean isPossibleManagedLease(PotionEffectSnapshot actual) {
-        return actual.duration() >= 0 && actual.duration() <= LEASE_TICKS;
-    }
-
-    static long nextManagedLeaseTick(long currentTick, int duration) {
-        return currentTick + Math.max(1, duration - REFRESH_THRESHOLD);
-    }
-
-    static long nextEffectExpiryTick(long currentTick, @Nullable PotionEffectSnapshot effect) {
-        if (effect == null || effect.isInfinite()) return EntityTickScheduler.NEVER;
-        return currentTick + Math.max(1, effect.duration());
     }
 
     @Nullable
