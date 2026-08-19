@@ -94,7 +94,6 @@ public final class LivingEntityHolder {
         return this.tickScheduler.currentTick();
     }
 
-    /** Coalesces any number of static mutations into one attribute flush next tick. */
     public void wakeAttributes() {
         if (this.closed) return;
         this.wakeMask |= WAKE_ATTRIBUTES;
@@ -103,7 +102,6 @@ public final class LivingEntityHolder {
         }
     }
 
-    /** Potion events are pre-commit in Paper, so reconciliation is deferred one tick. */
     public void wakePotionEffects() {
         if (this.closed) return;
         this.wakeMask |= WAKE_POTION_EFFECTS;
@@ -112,7 +110,6 @@ public final class LivingEntityHolder {
         }
     }
 
-    /** Replaces the potion deadline after a synchronous equipment reconciliation. */
     public void refreshPotionEffectSchedule() {
         if (this.closed) return;
         this.potionEffectDeadline = this.potionEffects.nextRequiredTick(currentTick());

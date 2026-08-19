@@ -14,15 +14,15 @@ import java.util.*;
 
 public final class EquipmentPotionEffectController {
     public static final int LEASE_TICKS = 619;
-    private static final int REFRESH_THRESHOLD = 317;
+    private static final int REFRESH_THRESHOLD = 320;
 
     private final LivingEntityHolder holder;
     private final LivingEntity entity;
     private final EquipmentPotionEffectStateStore store;
-    private final Map<Key, RuntimeState> states = new Object2ObjectArrayMap<>(8);
+    // Most tracked entities never own a potion shadow. The empty constructor shares
+    // fastutil's empty arrays and grows only when recovery state is actually needed.
+    private final Map<Key, RuntimeState> states = new Object2ObjectArrayMap<>();
     private final CandidateTracker candidates = new CandidateTracker();
-    // Conditions own their evaluation deadlines. This deadline is only for work
-    // that cannot emit an event: managed lease refreshes and finite effect expiry.
     private long nextReconcileTick = EntityTickScheduler.NEVER;
     private boolean reconcileRequested;
     private boolean mutating;
@@ -30,7 +30,7 @@ public final class EquipmentPotionEffectController {
     public EquipmentPotionEffectController(LivingEntityHolder holder) {
         this.holder = holder;
         this.entity = holder.entity;
-        this.store = new EquipmentPotionEffectStateStore(entity);
+        this.store = new EquipmentPotionEffectStateStore(this.entity);
         for (Map.Entry<Key, PotionEffectSnapshot> entry : this.store.load().entrySet()) {
             this.states.put(entry.getKey(), new RuntimeState(
                     null,
@@ -45,7 +45,8 @@ public final class EquipmentPotionEffectController {
 
     public void update(Collection<SetPotionEffect> effects) {
         long now = this.holder.currentTick();
-        this.candidates.replace(effects, this.holder.context, now, this.entity.uuid().hashCode());
+        // 立刻更新重建
+        this.candidates.replace(effects, this.holder.context, now);
         reconcileAll(now);
         this.holder.refreshPotionEffectSchedule();
     }
@@ -113,11 +114,24 @@ public final class EquipmentPotionEffectController {
     }
 
     private void reconcileAll(long currentTick) {
-        Set<Key> types = new HashSet<>(this.states.keySet());
-        types.addAll(this.candidates.desired().keySet());
+        Map<Key, SetPotionEffect> desired = this.candidates.desired();
+        List<Key> staleTypes = null;
+        for (Key type : this.states.keySet()) {
+            if (desired.containsKey(type)) continue;
+            if (staleTypes == null) {
+                staleTypes = new ArrayList<>(this.states.size());
+            }
+            staleTypes.add(type);
+        }
+
         long next = EntityTickScheduler.NEVER;
-        for (Key type : types) {
+        for (Key type : desired.keySet()) {
             next = Math.min(next, reconcile(type, currentTick));
+        }
+        if (staleTypes != null) {
+            for (Key type : staleTypes) {
+                next = Math.min(next, reconcile(type, currentTick));
+            }
         }
         this.nextReconcileTick = next;
     }
@@ -126,20 +140,10 @@ public final class EquipmentPotionEffectController {
         SetPotionEffect wanted = this.candidates.desired().get(type);
         RuntimeState state = this.states.get(type);
         PotionEffectSnapshot actual = this.entity.getPotionEffect(type);
-        boolean managedVisible = state != null
-                && state.managed != null
-                && matchesManagedLease(
-                        actual,
-                        state.managed.type(),
-                        state.managed.amplifier()
-                );
-
+        // 猜测是否是插件管理的药水效果
+        boolean managedVisible = state != null && state.managed != null && matchesManagedLease(actual, state.managed.type(), state.managed.amplifier());
         if (state != null && state.managed == null && actual != null && isPossibleManagedLease(actual)) {
-            if (wanted != null && matchesManagedLease(
-                    actual,
-                    wanted.type(),
-                    wanted.amplifier()
-            )) {
+            if (wanted != null && matchesManagedLease(actual, wanted.type(), wanted.amplifier())) {
                 // After a restart the current equipment can adopt an identical residual lease.
                 state.managed = wanted;
                 managedVisible = true;
@@ -169,8 +173,7 @@ public final class EquipmentPotionEffectController {
         }
 
         PotionEffectSnapshot shadow = state == null ? null : remainingShadow(state, currentTick);
-        PotionEffectSnapshot external = state == null ? actual
-                : PotionEffectSnapshot.getBetterEffect(shadow, actual);
+        PotionEffectSnapshot external = state == null ? actual : PotionEffectSnapshot.getBetterEffect(shadow, actual);
         if (external != null && external.amplifier() >= wanted.amplifier()) {
             if (state != null) {
                 state.managed = null;
@@ -186,11 +189,7 @@ public final class EquipmentPotionEffectController {
         }
 
         if (state == null) {
-            state = new RuntimeState(
-                    wanted,
-                    actual,
-                    currentTick
-            );
+            state = new RuntimeState(wanted, actual, currentTick);
             this.states.put(type, state);
         } else {
             if (actual != null) {
@@ -269,10 +268,6 @@ public final class EquipmentPotionEffectController {
     static boolean matchesManagedLease(@Nullable PotionEffectSnapshot actual,
                                        Key type,
                                        int amplifier) {
-        // Vanilla copies ambient/particle/icon flags from a lower, longer effect onto
-        // the visible higher effect while keeping that lower effect hidden. Those
-        // presentation fields therefore describe current NMS state, not ownership.
-        // Type, amplifier and our bounded lease are the stable in-process fingerprint.
         if (actual == null || !actual.type().equals(type)) return false;
         return actual.amplifier() == amplifier && isPossibleManagedLease(actual);
     }
@@ -303,16 +298,19 @@ public final class EquipmentPotionEffectController {
             this.store.save(Map.of());
             return;
         }
-        Map<Key, PotionEffectSnapshot> persisted = new HashMap<>(this.states.size());
+        Map<Key, PotionEffectSnapshot> persisted = null;
         for (Map.Entry<Key, RuntimeState> entry : this.states.entrySet()) {
             RuntimeState state = entry.getValue();
             PotionEffectSnapshot shadow = remainingShadow(state, currentTick);
             state.setShadow(shadow, currentTick);
             if (shadow != null && !shadow.isExpired()) {
+                if (persisted == null) {
+                    persisted = new Object2ObjectArrayMap<>(this.states.size());
+                }
                 persisted.put(entry.getKey(), shadow);
             }
         }
-        this.store.save(persisted);
+        this.store.save(persisted == null ? Map.of() : persisted);
     }
 
     static final class CandidateTracker {
@@ -322,8 +320,7 @@ public final class EquipmentPotionEffectController {
 
         void replace(Collection<SetPotionEffect> effects,
                      Context context,
-                     long currentTick,
-                     int phaseHash) {
+                     long currentTick) {
             if (effects.isEmpty()) {
                 clear();
                 return;
@@ -335,7 +332,7 @@ public final class EquipmentPotionEffectController {
                 boolean active = interval == 0 || effect.test(context);
                 long deadline = interval == 0
                         ? EntityTickScheduler.NEVER
-                        : currentTick + 1L + Math.floorMod(phaseHash, interval);
+                        : currentTick + interval;
                 tracked.add(new CandidateState(effect, interval, active, deadline));
                 earliest = Math.min(earliest, deadline);
             }
@@ -380,7 +377,7 @@ public final class EquipmentPotionEffectController {
         }
 
         private boolean rebuildDesired() {
-            Map<Key, SetPotionEffect> highest = new Object2ObjectArrayMap<>(8);
+            Map<Key, SetPotionEffect> highest = new Object2ObjectArrayMap<>(this.states.size());
             for (CandidateState state : this.states) {
                 if (!state.active) continue;
                 SetPotionEffect effect = state.effect;

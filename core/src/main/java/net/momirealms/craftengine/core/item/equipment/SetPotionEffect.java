@@ -15,7 +15,6 @@ public final class SetPotionEffect {
     private static final String[] SHOW_ICON = ConfigKeys.of("show_icon");
     private static final String[] CONDITIONS = ConfigKeys.of("condition(s)");
     private static final String[] UPDATE_INTERVAL = ConfigKeys.of("update_interval");
-    private static final Predicate<Context> ALWAYS_TRUE = ignored -> true;
     private final Key type;
     private final int amplifier;
     private final boolean ambient;
@@ -24,10 +23,6 @@ public final class SetPotionEffect {
     private final Predicate<Context> condition;
     private final int updateInterval;
 
-    public SetPotionEffect(Key type, int amplifier, boolean ambient, boolean particles, boolean icon) {
-        this(type, amplifier, ambient, particles, icon, ALWAYS_TRUE, 0);
-    }
-
     public SetPotionEffect(Key type,
                            int amplifier,
                            boolean ambient,
@@ -35,9 +30,6 @@ public final class SetPotionEffect {
                            boolean icon,
                            Predicate<Context> condition,
                            int updateInterval) {
-        if (updateInterval < 0) {
-            throw new IllegalArgumentException("Potion effect update interval cannot be negative");
-        }
         this.type = type;
         this.amplifier = amplifier;
         this.ambient = ambient;
@@ -49,17 +41,14 @@ public final class SetPotionEffect {
 
     public static SetPotionEffect fromConfig(ConfigSection section) {
         List<Predicate<Context>> conditions = section.getList(CONDITIONS, CommonConditions::fromConfig);
-        int updateInterval = conditions.isEmpty() ? 0 : section.getInt(UPDATE_INTERVAL, 20);
-        if (!conditions.isEmpty() && updateInterval <= 0) {
-            throw new IllegalArgumentException("Potion effect update interval must be positive at " + section.assemblePath(UPDATE_INTERVAL[0]));
-        }
+        int updateInterval = conditions.isEmpty() ? 0 : section.getValue(UPDATE_INTERVAL, v -> v.getAsInt(1), 20);
         return new SetPotionEffect(
                 section.getNonNullIdentifier("type"),
                 section.getInt("amplifier", 0),
                 section.getBoolean("ambient"),
                 section.getBoolean("particles", true),
                 section.getBoolean(SHOW_ICON, true),
-                conditions.isEmpty() ? ALWAYS_TRUE : MiscUtils.allOf(conditions),
+                MiscUtils.allOf(conditions),
                 updateInterval
         );
     }

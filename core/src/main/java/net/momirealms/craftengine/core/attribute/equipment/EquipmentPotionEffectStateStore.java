@@ -45,6 +45,7 @@ public final class EquipmentPotionEffectStateStore {
     );
 
     private final Entity entity;
+    private boolean hasStoredData;
 
     public EquipmentPotionEffectStateStore(Entity entity) {
         this.entity = entity;
@@ -73,14 +74,18 @@ public final class EquipmentPotionEffectStateStore {
 
     public Map<Key, PotionEffectSnapshot> load() {
         Map<Key, PotionEffectSnapshot> states = this.entity.getCustomData(DATA_KEY);
+        this.hasStoredData = states != null;
         return states == null ? Map.of() : states;
     }
 
     public void save(Map<Key, PotionEffectSnapshot> states) {
         if (states.isEmpty()) {
+            if (!this.hasStoredData) return;
             this.entity.removeCustomData(DATA_KEY);
+            this.hasStoredData = false;
         } else {
             this.entity.setCustomData(DATA_KEY, states);
+            this.hasStoredData = true;
         }
     }
 }
