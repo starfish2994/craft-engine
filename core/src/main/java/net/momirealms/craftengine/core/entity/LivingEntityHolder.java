@@ -30,7 +30,6 @@ public final class LivingEntityHolder {
     public final LivingEntityContext context;
     private final EntityTickScheduler tickScheduler;
     private final EntityTickScheduler.Registration tickRegistration;
-    private final boolean periodicWorkEnabled;
     private long attributeDeadline;
     private long potionEffectDeadline;
     private int wakeMask;
@@ -39,13 +38,12 @@ public final class LivingEntityHolder {
     public LivingEntityHolder(LivingEntity entity, EntityTickScheduler tickScheduler) {
         this.entity = entity;
         this.tickScheduler = tickScheduler;
-        this.periodicWorkEnabled = entity instanceof Player || Config.enableEntityTick();
         this.context = new LivingEntityContext(entity, ContextHolder.builder()
                 .withParameter(DirectContextParameters.ENTITY, entity)
                 .withOptionalParameter(DirectContextParameters.PLAYER, entity instanceof Player player ? player : null)
                 .immutable(true)
                 .build());
-        List<Attribute> attributeList = Config.enableAttributeSystem() ? CraftEngine.instance().attributeManager().attributesByEntityType(entity.id()) : List.of();
+        List<Attribute> attributeList = Config.enableAttributeSystem() ? CraftEngine.instance().attributeManager().attributesByEntityId(entity.id()) : List.of();
         this.attributes = attributeList.isEmpty() ? EmptyAttributeHolder.INSTANCE : new EntityAttributes(this, attributeList);
         this.potionEffects = new EquipmentPotionEffectController(this);
         this.equipments = new EntityEquipments(this);
@@ -97,11 +95,6 @@ public final class LivingEntityHolder {
 
     public long currentTick() {
         return this.tickScheduler.currentTick();
-    }
-
-    /** Mirrors attribute.entity-tick: players always run, non-players are optional. */
-    public boolean periodicWorkEnabled() {
-        return this.periodicWorkEnabled;
     }
 
     /** Coalesces any number of static mutations into one attribute flush next tick. */

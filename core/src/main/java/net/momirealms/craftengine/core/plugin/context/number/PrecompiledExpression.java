@@ -20,7 +20,6 @@ public final class PrecompiledExpression {
     private final String raw;
     private final Expression template;
     private final List<Snippet> snippets;
-    private final ThreadLocal<ThreadExpression> threadExpression;
 
     public PrecompiledExpression(String expression) {
         this(expression, StringTags::has);
@@ -65,7 +64,6 @@ public final class PrecompiledExpression {
         }
         this.template = template;
         this.snippets = snippets;
-        this.threadExpression = ThreadLocal.withInitial(() -> new ThreadExpression(copyTemplate()));
     }
 
     private static Object toValue(Object value) {
@@ -94,26 +92,14 @@ public final class PrecompiledExpression {
     }
 
     public EvaluationValue evaluate(Context context) {
-        if (this.snippets.isEmpty()) {
-            return this.evaluate();
-        }
-        final ThreadExpression local = this.threadExpression.get();
-        if (local.evaluating) {
-            return evaluateBound(context, Map.of(), copyTemplate());
-        }
-        local.evaluating = true;
-        try {
-            return evaluateBound(context, Map.of(), local.expression);
-        } finally {
-            local.evaluating = false;
-        }
+        return this.evaluate(context, Map.of());
     }
 
     public EvaluationValue evaluate(Context context, Map<String, ?> extraVariables) {
-        if (extraVariables.isEmpty()) {
-            return evaluate(context);
+        if (this.snippets.isEmpty() && extraVariables.isEmpty()) {
+            return this.evaluate();
         }
-        return evaluateBound(context, extraVariables, copyTemplate());
+        return evaluateBound(context, extraVariables, this.copyTemplate());
     }
 
     private EvaluationValue evaluateBound(Context context, Map<String, ?> extraVariables, Expression instance) {
@@ -160,14 +146,5 @@ public final class PrecompiledExpression {
     }
 
     private record Snippet(String raw, StringTag tag, String[] args) {
-    }
-
-    private static final class ThreadExpression {
-        private final Expression expression;
-        private boolean evaluating;
-
-        private ThreadExpression(Expression expression) {
-            this.expression = expression;
-        }
     }
 }

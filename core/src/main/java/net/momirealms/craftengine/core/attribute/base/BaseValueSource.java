@@ -1,12 +1,12 @@
 package net.momirealms.craftengine.core.attribute.base;
 
-import net.momirealms.craftengine.core.entity.LivingEntity;
+import net.momirealms.craftengine.core.entity.Entity;
 
 public interface BaseValueSource {
 
-    double resolve(LivingEntity entity);
+    double resolve(Entity entity);
 
-    default BaseValueSource bind(LivingEntity entity) {
+    default BaseValueSource bind(Entity entity) {
         return this;
     }
 
@@ -15,6 +15,6 @@ public interface BaseValueSource {
     }
 
     default int updateInterval() {
-        return isDynamic() ? 1 : 0;
+        return isDynamic() ? 20 : 0;
     }
 }

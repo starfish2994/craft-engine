@@ -1,12 +1,13 @@
 package net.momirealms.craftengine.bukkit.attribute.damage;
 
+import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.core.attribute.damage.DamageSource;
-import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.proxy.minecraft.world.damagesource.DamageSourceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
+import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
 public final class BukkitDamageSource implements DamageSource {
@@ -27,7 +28,7 @@ public final class BukkitDamageSource implements DamageSource {
 
     @Nullable
     @Override
-    public Entity causingEntity() {
+    public BukkitEntity causingEntity() {
         Object causingEntity = DamageSourceProxy.INSTANCE.getCausingEntity(this.source);
         if (causingEntity == null) {
             return null;
@@ -36,7 +37,7 @@ public final class BukkitDamageSource implements DamageSource {
     }
 
     @Nullable
-    public org.bukkit.entity.Entity causingBukkitEntity() {
+    public Entity causingBukkitEntity() {
         Object causingEntity = DamageSourceProxy.INSTANCE.getCausingEntity(this.source);
         if (causingEntity == null) {
             return null;
@@ -50,7 +51,7 @@ public final class BukkitDamageSource implements DamageSource {
 
     @Nullable
     @Override
-    public Entity directEntity() {
+    public BukkitEntity directEntity() {
         Object directEntity = directNmsEntity();
         if (directEntity == null) {
             return null;

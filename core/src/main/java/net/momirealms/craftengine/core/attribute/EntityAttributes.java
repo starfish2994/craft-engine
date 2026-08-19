@@ -97,16 +97,14 @@ public final class EntityAttributes implements AttributeGetter {
     public long runDue(long gameTick) {
         this.running = true;
         try {
-            if (this.holder.periodicWorkEnabled()) {
-                for (int index = this.scheduledInstances.nextSetBit(0);
-                     index >= 0;
-                     index = this.scheduledInstances.nextSetBit(index + 1)) {
-                    AttributeInstance instance = this.instances[index];
-                    if (instance.nextRequiredTick() <= gameTick) {
-                        instance.runDue(gameTick);
-                        if (instance.nextRequiredTick() == Long.MAX_VALUE) {
-                            this.scheduledInstances.clear(index);
-                        }
+            for (int index = this.scheduledInstances.nextSetBit(0);
+                 index >= 0;
+                 index = this.scheduledInstances.nextSetBit(index + 1)) {
+                AttributeInstance instance = this.instances[index];
+                if (instance.nextRequiredTick() <= gameTick) {
+                    instance.runDue(gameTick);
+                    if (instance.nextRequiredTick() == Long.MAX_VALUE) {
+                        this.scheduledInstances.clear(index);
                     }
                 }
             }
@@ -118,7 +116,6 @@ public final class EntityAttributes implements AttributeGetter {
     }
 
     public long nextRequiredTick() {
-        if (!this.holder.periodicWorkEnabled()) return Long.MAX_VALUE;
         long next = Long.MAX_VALUE;
         for (int index = this.scheduledInstances.nextSetBit(0);
              index >= 0;

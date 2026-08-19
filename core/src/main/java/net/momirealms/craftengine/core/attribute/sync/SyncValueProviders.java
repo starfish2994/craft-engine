@@ -14,6 +14,8 @@ import java.util.Map;
 
 public final class SyncValueProviders {
     public static final SyncValueProviderType<ExpressionSyncValueProvider> EXPRESSION = register(Key.ce("expression"), ExpressionSyncValueProvider.FACTORY);
+    public static final SyncValueProviderType<DeltaSyncValueProvider> DELTA = register(Key.ce("delta"), DeltaSyncValueProvider.FACTORY);
+    public static final SyncValueProviderType<RatioSyncValueProvider> RATIO = register(Key.ce("ratio"), RatioSyncValueProvider.FACTORY);
 
     private SyncValueProviders() {}
 

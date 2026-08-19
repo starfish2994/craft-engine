@@ -62,7 +62,6 @@ public final class EquipmentPotionEffectController {
     }
 
     public long nextRequiredTick(long currentTick) {
-        if (!this.holder.periodicWorkEnabled()) return EntityTickScheduler.NEVER;
         return Math.min(this.candidates.nextTick(), this.nextReconcileTick);
     }
 

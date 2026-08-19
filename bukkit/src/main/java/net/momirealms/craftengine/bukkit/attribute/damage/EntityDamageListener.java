@@ -31,7 +31,7 @@ public final class EntityDamageListener extends AbstractListener {
     public void onEntityDamage(EntityDamageEvent event) {
         BukkitDamageEvent damageEvent = null;
         if (Config.enableAttributeSystem()) {
-            damageEvent = new BukkitDamageEvent(this.manager, event);
+            damageEvent = new BukkitDamageEvent(event);
             this.manager.processDamageEvent(damageEvent);
         }
         if (Config.enableDamageIndicator()
@@ -58,7 +58,7 @@ public final class EntityDamageListener extends AbstractListener {
             }
             if (viewers.isEmpty()) return;
             if (damageEvent == null) {
-                damageEvent = new BukkitDamageEvent(this.manager, event);
+                damageEvent = new BukkitDamageEvent(event);
             }
             damageEvent.initFinalDamage();
             net.momirealms.craftengine.core.entity.Entity coreVictim = BukkitAdaptor.adapt(victim);

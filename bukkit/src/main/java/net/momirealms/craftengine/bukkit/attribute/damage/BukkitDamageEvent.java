@@ -3,6 +3,8 @@ package net.momirealms.craftengine.bukkit.attribute.damage;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.attribute.AttributeEventListener;
 import net.momirealms.craftengine.bukkit.attribute.BukkitAttributeManager;
+import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
+import net.momirealms.craftengine.bukkit.entity.BukkitEntityManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.attribute.*;
@@ -16,7 +18,6 @@ import net.momirealms.craftengine.core.entity.LivingEntityHolder;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.setting.value.AttributeModifiers;
-import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
@@ -38,27 +39,30 @@ public final class BukkitDamageEvent implements DamageEvent {
 
     private final EntityDamageEvent event;
     private final BukkitDamageSource source;
-    private final BukkitAttributeManager manager;
     private final Entity victim;
     private final AttributeGetter victimAttributes;
     private final AttributeGetter attackerAttributes;
     private final EntityDamageContext context;
     private final Item activeWeapon;
     private final float attackStrength;
-    private final Map<String, Double> damageParts = new LinkedHashMap<>();
+    private Map<String, Double> damageParts;
     @Nullable
     private List<SlotAttributeModifierConfig> activeWeaponModifiers;
 
-    public BukkitDamageEvent(BukkitAttributeManager manager, EntityDamageEvent event) {
-        this.manager = manager;
+    public BukkitDamageEvent(EntityDamageEvent event) {
         this.event = event;
         this.source = new BukkitDamageSource(CraftDamageSourceProxy.INSTANCE.getHandle(event.getDamageSource()));
-        org.bukkit.entity.Entity victimEntity = this.event.getEntity();
-        this.victim = BukkitAdaptor.adapt(victimEntity);
-        LivingEntityHolder victimHolder = CraftEngine.instance().entityManager().getEntityHolder(victimEntity.getUniqueId());
-        this.victimAttributes = victimHolder == null ? EmptyAttributeHolder.INSTANCE : victimHolder.attributes();
-        this.attackerAttributes = causingEntityAttributes();
-        this.attackStrength = resolveAttackStrength();
+        org.bukkit.entity.Entity victim = event.getEntity();
+        LivingEntityHolder victimHolder = BukkitEntityManager.instance().getEntityHolder(victim.getUniqueId());
+        if (victimHolder == null) {
+            this.victim = BukkitAdaptor.adapt(victim);
+            this.victimAttributes = new NotTrackedHolder(this.victim);
+        } else {
+            this.victim = victimHolder.entity;
+            this.victimAttributes = victimHolder.attributes();
+        }
+        this.attackerAttributes = this.causingEntityAttributes();
+        this.attackStrength = this.resolveAttackStrength();
         Item weapon = this.resolveActiveWeapon();
         this.activeWeapon = weapon == null || weapon.isEmpty() ? null : weapon;
         this.context = EntityDamageContext.of(this,
@@ -103,7 +107,7 @@ public final class BukkitDamageEvent implements DamageEvent {
 
     @Override
     public void recordDamagePart(String id, double amount) {
-        this.damageParts.put(id, amount);
+        this.damageParts().put(id, amount);
         this.context.contexts().withParameter(ContextKey.direct("damage_" + id), amount);
     }
 
@@ -113,6 +117,9 @@ public final class BukkitDamageEvent implements DamageEvent {
 
     @Override
     public Map<String, Double> damageParts() {
+        if (this.damageParts == null) {
+            this.damageParts = new LinkedHashMap<>();
+        }
         return this.damageParts;
     }
 
@@ -125,20 +132,20 @@ public final class BukkitDamageEvent implements DamageEvent {
 
     @SuppressWarnings("deprecation")
     public AttributeGetter causingEntityAttributes() {
-        org.bukkit.entity.Entity entity = this.source.causingBukkitEntity();
+        BukkitEntity entity = this.source.causingEntity();
         if (entity == null) {
             return EmptyAttributeHolder.INSTANCE;
         }
-        LivingEntityHolder holder = CraftEngine.instance().entityManager().getEntityHolder(entity.getUniqueId());
+        LivingEntityHolder holder = BukkitEntityManager.instance().getEntityHolder(entity.uuid());
         AttributeGetter attributes = holder == null ? null : holder.attributes();
         if (attributes == null) {
-            List<MetadataValue> attribute = entity.getMetadata(AttributeManager.META_KEY);
+            List<MetadataValue> attribute = entity.platformEntity().getMetadata(AttributeManager.META_KEY);
             if (!attribute.isEmpty()) {
                 MetadataValue first = attribute.getFirst();
                 attributes = (AttributeGetter) first.value();
             }
         }
-        return attributes == null ? EmptyAttributeHolder.INSTANCE : attributes;
+        return attributes == null ? new NotTrackedHolder(entity) : attributes;
     }
 
     @Override
@@ -157,7 +164,7 @@ public final class BukkitDamageEvent implements DamageEvent {
         Item weapon = this.activeWeapon;
         if (weapon == null || weapon.isEmpty()) return 0;
         if (this.activeWeaponModifiers == null) {
-            this.activeWeaponModifiers = this.manager.getItemAttributeModifiers(weapon);
+            this.activeWeaponModifiers = BukkitAttributeManager.instance().getItemAttributeModifiers(weapon);
         }
         return AttributeModifiers.weaponValue(this.activeWeaponModifiers, attribute, this.context);
     }

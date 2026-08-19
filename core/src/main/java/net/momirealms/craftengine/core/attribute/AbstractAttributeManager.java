@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.attribute.sync.SyncTarget;
 import net.momirealms.craftengine.core.attribute.sync.SyncValueProvider;
 import net.momirealms.craftengine.core.attribute.sync.SyncValueProviders;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier.Operation;
+import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.EntityDefinition;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.entity.LivingEntityHolder;
@@ -154,7 +155,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     @Override
-    public List<Attribute> attributesByEntityType(Key entityType) {
+    public List<Attribute> attributesByEntityId(Key entityType) {
         return this.attributesByEntityType.getOrDefault(entityType, this.globalAttributes);
     }
 
@@ -195,7 +196,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     @Override
-    public double vanillaAttributeDefaultBaseValue(LivingEntity living, Key attribute, double fallback) {
+    public double vanillaAttributeDefaultBaseValue(Entity living, Key attribute, double fallback) {
         EntityDefinition definition = this.plugin.entityManager().entityDefinition(living.id());
         if (definition != null) {
             Double value = definition.settings().attributeValue(attribute);

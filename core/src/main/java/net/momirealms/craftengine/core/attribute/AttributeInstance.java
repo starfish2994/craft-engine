@@ -49,9 +49,6 @@ public class AttributeInstance {
         this.index = index;
         this.baseValueSource = attribute.baseValueSource().bind(context.entity);
         this.baseUpdateInterval = this.baseValueSource.updateInterval();
-        if (this.baseUpdateInterval < 0) {
-            throw new IllegalArgumentException("Base value source update interval cannot be negative");
-        }
         this.lastBase = this.baseValueSource.resolve(context.entity);
         this.nextBaseTick = this.baseUpdateInterval > 0 ? Long.MIN_VALUE : Long.MAX_VALUE;
     }

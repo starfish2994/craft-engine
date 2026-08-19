@@ -188,7 +188,6 @@ public final class Config {
     private boolean chunk_system$generation$feature;
 
     private boolean attribute$enable;
-    private boolean attribute$entity_tick;
     private boolean attribute$health_scaling$enable;
     private double attribute$health_scaling$threshold;
     private double attribute$health_scaling$visual_max_health;
@@ -612,7 +611,6 @@ public final class Config {
         // attribute
         if (this.firstTime) {
             this.attribute$enable = config.getBoolean("attribute.enable", true);
-            this.attribute$entity_tick = config.getBoolean("attribute.entity-tick", true);
         }
         this.attribute$health_scaling$enable = config.getBoolean("attribute.health-scaling.enable", false);
         this.attribute$health_scaling$threshold = config.getDouble("attribute.health-scaling.threshold", 20d);
@@ -1732,10 +1730,6 @@ public final class Config {
 
     public static boolean enableAttributeSystem() {
         return instance.attribute$enable;
-    }
-
-    public static boolean enableEntityTick() {
-        return instance.attribute$entity_tick;
     }
 
     public static boolean enableDamageIndicator() {

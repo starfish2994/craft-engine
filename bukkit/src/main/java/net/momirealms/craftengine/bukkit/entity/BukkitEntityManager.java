@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class BukkitEntityManager extends AbstractEntityManager {
+    private static BukkitEntityManager instance;
     private final BukkitEntityListener entityListener;
     private final PaperEntityListener paperEntityListener;
 
@@ -23,6 +24,7 @@ public final class BukkitEntityManager extends AbstractEntityManager {
         super(plugin);
         this.entityListener = new BukkitEntityListener(this);
         this.paperEntityListener = VersionHelper.hasPaperPatch ? new PaperEntityListener(this) : null;
+        instance = this;
     }
 
     @Override
@@ -53,5 +55,9 @@ public final class BukkitEntityManager extends AbstractEntityManager {
             result.add(KeyUtils.namespacedKeyToKey(type.getKey()));
         }
         return result;
+    }
+
+    public static BukkitEntityManager instance() {
+        return instance;
     }
 }

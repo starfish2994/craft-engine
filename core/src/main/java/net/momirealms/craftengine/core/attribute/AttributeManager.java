@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.attribute.damage.DamageEvent;
 import net.momirealms.craftengine.core.attribute.formula.DamageFormula;
 import net.momirealms.craftengine.core.attribute.modifier.ItemAttributeModifiersProvider;
 import net.momirealms.craftengine.core.attribute.modifier.SlotAttributeModifierConfig;
+import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.equipment.EquipmentSet;
@@ -25,7 +26,7 @@ public interface AttributeManager extends Manageable {
 
     Collection<Attribute> getAttributes();
 
-    List<Attribute> attributesByEntityType(Key entityType);
+    List<Attribute> attributesByEntityId(Key entityType);
 
     double getAttributeValue(LivingEntity entity, Attribute attribute);
 
@@ -50,5 +51,5 @@ public interface AttributeManager extends Manageable {
 
     void processDamageEvent(DamageEvent event);
 
-    double vanillaAttributeDefaultBaseValue(LivingEntity living, Key attribute, double fallback);
+    double vanillaAttributeDefaultBaseValue(Entity living, Key attribute, double fallback);
 }

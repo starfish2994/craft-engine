@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class BukkitAttributeManager extends AbstractAttributeManager {
+    private static BukkitAttributeManager instance;
     private final BukkitCraftEngine plugin;
     private final AttributeEventListener attributeEventListener;
     private final EntityDamageListener entityDamageListener;
@@ -33,6 +34,11 @@ public final class BukkitAttributeManager extends AbstractAttributeManager {
         this.entityDamageListener = new EntityDamageListener(this);
         this.attackStrengthListener = VersionHelper.hasPaperPatch ? new PaperAttackStrengthListener() : null;
         this.vanillaDefaultAttributes = buildVanillaDefaultAttributeTable();
+        instance = this;
+    }
+
+    public static BukkitAttributeManager instance() {
+        return instance;
     }
 
     @Override

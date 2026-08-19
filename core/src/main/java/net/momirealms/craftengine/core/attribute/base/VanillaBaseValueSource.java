@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.attribute.base;
 import net.momirealms.craftengine.core.attribute.transform.ValueTransformer;
 import net.momirealms.craftengine.core.attribute.transform.ValueTransformers;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
+import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.util.Key;
@@ -27,7 +28,7 @@ public record VanillaBaseValueSource(
     }
 
     @Override
-    public double resolve(LivingEntity entity) {
+    public double resolve(Entity entity) {
         if (entity instanceof LivingEntity livingEntity) {
             VanillaAttributeInstance attribute = livingEntity.getVanillaAttribute(this.attribute);
             if (attribute != null) {
@@ -38,7 +39,7 @@ public record VanillaBaseValueSource(
     }
 
     @Override
-    public BaseValueSource bind(LivingEntity entity) {
+    public BaseValueSource bind(Entity entity) {
         if (entity instanceof LivingEntity livingEntity) {
             VanillaAttributeInstance attribute = livingEntity.getVanillaAttribute(this.attribute);
             if (attribute != null) {
@@ -64,7 +65,7 @@ public record VanillaBaseValueSource(
     ) implements BaseValueSource {
 
         @Override
-        public double resolve(LivingEntity entity) {
+        public double resolve(Entity entity) {
             return transform(this.attribute.getBaseValue(), this.transformer);
         }
 

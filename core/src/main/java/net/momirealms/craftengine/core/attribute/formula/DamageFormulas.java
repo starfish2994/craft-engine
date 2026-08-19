@@ -14,6 +14,7 @@ import java.util.Map;
 public final class DamageFormulas {
     public static final DamageFormulaType<ExpressionDamageFormula> EXPRESSION = register(Key.ce("expression"), ExpressionDamageFormula.FACTORY);
     public static final DamageFormulaType<CompositionDamageFormula> COMPOSITION = register(Key.ce("composition"), CompositionDamageFormula.FACTORY);
+    public static final DamageFormulaType<JsDamageFormula> JS = register(Key.ce("js"), JsDamageFormula.FACTORY);
 
     private DamageFormulas() {}
 
