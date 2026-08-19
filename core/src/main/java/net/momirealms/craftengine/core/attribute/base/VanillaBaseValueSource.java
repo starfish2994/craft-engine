@@ -39,6 +39,17 @@ public record VanillaBaseValueSource(
     }
 
     @Override
+    public double resolveCurrent(Entity entity) {
+        if (entity instanceof LivingEntity livingEntity) {
+            VanillaAttributeInstance attribute = livingEntity.getVanillaAttribute(this.attribute);
+            if (attribute != null) {
+                return transform(attribute.getValue(), this.transformer);
+            }
+        }
+        return this.fallback;
+    }
+
+    @Override
     public BaseValueSource bind(Entity entity) {
         if (entity instanceof LivingEntity livingEntity) {
             VanillaAttributeInstance attribute = livingEntity.getVanillaAttribute(this.attribute);
@@ -67,6 +78,11 @@ public record VanillaBaseValueSource(
         @Override
         public double resolve(Entity entity) {
             return transform(this.attribute.getBaseValue(), this.transformer);
+        }
+
+        @Override
+        public double resolveCurrent(Entity entity) {
+            return transform(this.attribute.getValue(), this.transformer);
         }
 
         @Override

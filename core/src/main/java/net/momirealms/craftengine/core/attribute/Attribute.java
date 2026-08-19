@@ -60,6 +60,10 @@ public final class Attribute {
         return this.baseValueSource.resolve(entity);
     }
 
+    public double currentValue(Entity entity) {
+        return this.limit(this.baseValueSource.resolveCurrent(entity));
+    }
+
     public BaseValueSource baseValueSource() {
         return this.baseValueSource;
     }

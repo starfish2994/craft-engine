@@ -163,9 +163,16 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     public double getAttributeValue(LivingEntity entity, Attribute attribute) {
         LivingEntityHolder holder = this.plugin.entityManager().getEntityHolder(entity.uuid());
         if (holder == null) {
-            return attribute.defaultValue(entity);
+            return resolveUntrackedValue(entity, attribute);
         }
         return holder.attributes().getAttributeValue(attribute);
+    }
+
+    private double resolveUntrackedValue(LivingEntity entity, Attribute attribute) {
+        if (attribute.derived() != null) {
+            return attribute.derive(dependency -> resolveUntrackedValue(entity, dependency));
+        }
+        return attribute.currentValue(entity);
     }
 
     @Override

@@ -6,6 +6,10 @@ public interface BaseValueSource {
 
     double resolve(Entity entity);
 
+    default double resolveCurrent(Entity entity) {
+        return resolve(entity);
+    }
+
     default BaseValueSource bind(Entity entity) {
         return this;
     }

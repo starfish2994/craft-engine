@@ -76,7 +76,7 @@ public final class EntityAttributes implements AttributeGetter {
             return attribute.derive(this::getAttributeValue);
         }
         AttributeInstance instance = getInstance(attribute.id());
-        return instance == null ? 0 : instance.getValue();
+        return instance == null ? attribute.currentValue(this.holder.entity) : instance.getValue();
     }
 
     void onInstanceDirty(AttributeInstance instance) {

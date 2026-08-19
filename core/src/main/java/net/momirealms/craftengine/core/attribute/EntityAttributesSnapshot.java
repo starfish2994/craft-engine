@@ -17,6 +17,6 @@ public final class EntityAttributesSnapshot implements AttributeGetter {
 
     @Override
     public double getAttributeValue(Attribute attribute) {
-        return this.snapshots.get(attribute.id());
+        return this.snapshots.getOrDefault(attribute.id(), 0.0);
     }
 }
