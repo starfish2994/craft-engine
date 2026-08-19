@@ -28,8 +28,8 @@ public final class SwapList<T extends SwapList.Indexed> extends ObjectArrayList<
     public T set(int index, T t) {
         T old = this.a[index];
         super.set(index, t);
-        t.index(index);
         old.index(-1);
+        t.index(index);
         return old;
     }
 

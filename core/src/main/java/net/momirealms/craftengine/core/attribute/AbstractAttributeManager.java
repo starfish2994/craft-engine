@@ -155,7 +155,7 @@ public abstract class AbstractAttributeManager implements AttributeManager {
     }
 
     @Override
-    public List<Attribute> attributesByEntityId(Key entityType) {
+    public List<Attribute> attributesByEntityType(Key entityType) {
         return this.attributesByEntityType.getOrDefault(entityType, this.globalAttributes);
     }
 

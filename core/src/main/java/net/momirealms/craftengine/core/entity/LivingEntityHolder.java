@@ -1,9 +1,6 @@
 package net.momirealms.craftengine.core.entity;
 
-import net.momirealms.craftengine.core.attribute.Attribute;
-import net.momirealms.craftengine.core.attribute.AttributeGetter;
-import net.momirealms.craftengine.core.attribute.EmptyAttributeHolder;
-import net.momirealms.craftengine.core.attribute.EntityAttributes;
+import net.momirealms.craftengine.core.attribute.*;
 import net.momirealms.craftengine.core.attribute.equipment.EntityEquipments;
 import net.momirealms.craftengine.core.attribute.equipment.EquipmentPotionEffectController;
 import net.momirealms.craftengine.core.attribute.equipment.EquipmentSetSlot;
@@ -43,8 +40,8 @@ public final class LivingEntityHolder {
                 .withOptionalParameter(DirectContextParameters.PLAYER, entity instanceof Player player ? player : null)
                 .immutable(true)
                 .build());
-        List<Attribute> attributeList = Config.enableAttributeSystem() ? CraftEngine.instance().attributeManager().attributesByEntityId(entity.id()) : List.of();
-        this.attributes = attributeList.isEmpty() ? EmptyAttributeHolder.INSTANCE : new EntityAttributes(this, attributeList);
+        List<Attribute> attributeList = Config.enableAttributeSystem() ? CraftEngine.instance().attributeManager().attributesByEntityType(entity.type()) : List.of();
+        this.attributes = attributeList.isEmpty() ? new NotTrackedHolder(entity) : new EntityAttributes(this, attributeList);
         this.potionEffects = new EquipmentPotionEffectController(this);
         this.equipments = new EntityEquipments(this);
         for (EquipmentSlot slot : EquipmentSlot.values()) {

@@ -36,7 +36,6 @@ public class AttributeInstance {
     private Map<Key, TrackedModifier> trackedById;
     @Nullable
     private SwapList<TrackedModifier> trackedList;
-    // Absolute deadlines let this instance sleep between dynamic evaluations.
     private long nextTrackedTick = Long.MAX_VALUE;
     private long nextBaseTick;
     private double cachedValue;
@@ -155,6 +154,7 @@ public class AttributeInstance {
             TrackedModifier removed = this.trackedById.remove(modifier.id());
             if (removed != null) {
                 this.trackedList.swapRemove(removed);
+                // 不再有活跃的条目，无需要更新
                 if (this.trackedById.isEmpty()) {
                     this.nextTrackedTick = Long.MAX_VALUE;
                 }
@@ -183,8 +183,7 @@ public class AttributeInstance {
             AttributeModifier modifier = state.modifier;
             int interval = modifier.updateInterval();
             if (state.nextTick == -1) {
-                // 首次调度按 id 哈希错开，避免批量刷新后同 interval 的修饰符挤在同一 tick 求值
-                state.nextTick = tick + interval + Math.floorMod(modifier.id().hashCode(), interval);
+                state.nextTick = tick + interval;
             }
             if (tick < state.nextTick) {
                 nextDue = Math.min(nextDue, state.nextTick);
@@ -264,7 +263,6 @@ public class AttributeInstance {
         return this.syncTargets.length != 0;
     }
 
-    /** Returns whether an unmodified instance has a non-neutral value to write. */
     public boolean needInitialVanillaSync() {
         if (this.syncTargets.length == 0) return false;
         double value = getValue();
@@ -293,7 +291,6 @@ public class AttributeInstance {
         }
     }
 
-    /** Removes only modifiers that this instance actually installed. */
     public void clearSyncModifiers() {
         for (BoundSyncTarget target : this.syncTargets) {
             if (!target.applied) continue;

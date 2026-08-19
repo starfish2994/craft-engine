@@ -11,6 +11,7 @@ public class NotTrackedHolder implements AttributeGetter {
 
     @Override
     public double getAttributeValue(Attribute attribute) {
+        // 如果没被跟踪，但是不一定是默认值
         return attribute.defaultValue(this.entity);
     }
 }

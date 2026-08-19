@@ -26,7 +26,7 @@ public interface AttributeManager extends Manageable {
 
     Collection<Attribute> getAttributes();
 
-    List<Attribute> attributesByEntityId(Key entityType);
+    List<Attribute> attributesByEntityType(Key entityType);
 
     double getAttributeValue(LivingEntity entity, Attribute attribute);
 
