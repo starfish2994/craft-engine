@@ -15,16 +15,20 @@ import net.momirealms.craftengine.core.util.SwapList;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class AttributeInstance {
+    private static final BoundSyncTarget[] EMPTY_SYNC_TARGETS = new BoundSyncTarget[0];
+
     private final Attribute attribute;
     private final EntityAttributes owner;
     private final int index;
     private final BaseValueSource baseValueSource;
     private final int baseUpdateInterval;
+    private final BoundSyncTarget[] syncTargets;
     private final Map<Key, Map<Key, AttributeModifier>> byOperation = new HashMap<>();
     private final Map<Key, AttributeModifier> byId = new Object2ObjectArrayMap<>();
     private final LivingEntityContext context;
@@ -38,9 +42,6 @@ public class AttributeInstance {
     private double cachedValue;
     private boolean dirty = true;
     private double lastBase;
-    // 上次写回原版时的 (value, base)，用于变化检测
-    private double lastSyncValue = Double.NaN;
-    private double lastSyncBase = Double.NaN;
 
     public AttributeInstance(Attribute attribute, LivingEntityContext context, EntityAttributes owner, int index) {
         this.attribute = attribute;
@@ -51,6 +52,7 @@ public class AttributeInstance {
         this.baseUpdateInterval = this.baseValueSource.updateInterval();
         this.lastBase = this.baseValueSource.resolve(context.entity);
         this.nextBaseTick = this.baseUpdateInterval > 0 ? Long.MIN_VALUE : Long.MAX_VALUE;
+        this.syncTargets = bindSyncTargets(attribute.syncTargets(), context.entity);
     }
 
     public Attribute attribute() {
@@ -259,34 +261,83 @@ public class AttributeInstance {
     }
 
     public boolean needVanillaSync() {
-        return !this.attribute.syncTargets().isEmpty();
+        return this.syncTargets.length != 0;
+    }
+
+    /** Returns whether an unmodified instance has a non-neutral value to write. */
+    public boolean needInitialVanillaSync() {
+        if (this.syncTargets.length == 0) return false;
+        double value = getValue();
+        for (BoundSyncTarget target : this.syncTargets) {
+            if (target.syncTarget.evaluate(value, this.lastBase) != 0.0d) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void syncToVanilla() {
-        List<SyncTarget> targets = this.attribute.syncTargets();
-        if (targets.isEmpty()) return;
-        LivingEntity living = this.context.entity;
+        if (this.syncTargets.length == 0) return;
         double value = this.cachedValue;
         double base = this.lastBase;
-        if (Double.compare(value, this.lastSyncValue) == 0 && Double.compare(base, this.lastSyncBase) == 0) return;
-        this.lastSyncValue = value;
-        this.lastSyncBase = base;
+        for (BoundSyncTarget target : this.syncTargets) {
+            double amount = target.syncTarget.evaluate(value, base);
+            if (target.applied) {
+                if (Double.compare(amount, target.lastAmount) == 0) continue;
+            } else if (amount == 0.0d) {
+                continue;
+            }
+            updateVanillaModifier(target, amount);
+            target.lastAmount = amount;
+            target.applied = amount != 0.0d;
+        }
+    }
+
+    /** Removes only modifiers that this instance actually installed. */
+    public void clearSyncModifiers() {
+        for (BoundSyncTarget target : this.syncTargets) {
+            if (!target.applied) continue;
+            target.attribute.removeModifier(this.attribute.syncModifierId());
+            target.lastAmount = 0.0d;
+            target.applied = false;
+        }
+    }
+
+    private void updateVanillaModifier(BoundSyncTarget target, double amount) {
+        LivingEntity living = this.context.entity;
+        if (isMaxHealth(target.syncTarget.target())) {
+            double oldMaxHealth = target.attribute.getValue();
+            double health = living.health();
+            setVanillaModifier(target, amount);
+            double newMaxHealth = target.attribute.getValue();
+            if (oldMaxHealth > 0 && newMaxHealth > 0 && newMaxHealth != oldMaxHealth) {
+                living.setHealth(health * newMaxHealth / oldMaxHealth);
+            }
+        } else {
+            setVanillaModifier(target, amount);
+        }
+    }
+
+    private void setVanillaModifier(BoundSyncTarget target, double amount) {
+        if (amount == 0.0d) {
+            target.attribute.removeModifier(this.attribute.syncModifierId());
+        } else {
+            target.attribute.addOrUpdateTransientModifier(this.attribute.syncModifierId(), target.syncTarget.operation(), amount);
+        }
+    }
+
+    private static BoundSyncTarget[] bindSyncTargets(List<SyncTarget> targets, LivingEntity entity) {
+        if (targets.isEmpty()) return EMPTY_SYNC_TARGETS;
+        BoundSyncTarget[] bound = new BoundSyncTarget[targets.size()];
+        int size = 0;
         for (SyncTarget target : targets) {
-            VanillaAttributeInstance vanillaAttribute = living.getVanillaAttribute(target.target());
-            if (vanillaAttribute != null) {
-                if (isMaxHealth(target.target())) {
-                    double oldMaxHealth = vanillaAttribute.getValue();
-                    double health = living.health();
-                    vanillaAttribute.addOrUpdateTransientModifier(this.attribute.id(), target.operation(), target.evaluate(value, base));
-                    double newMaxHealth = vanillaAttribute.getValue();
-                    if (oldMaxHealth > 0 && newMaxHealth > 0 && newMaxHealth != oldMaxHealth) {
-                        living.setHealth(health * newMaxHealth / oldMaxHealth);
-                    }
-                } else {
-                    vanillaAttribute.addOrUpdateTransientModifier(this.attribute.id(), target.operation(), target.evaluate(value, base));
-                }
+            VanillaAttributeInstance attribute = entity.getVanillaAttribute(target.target());
+            if (attribute != null) {
+                bound[size++] = new BoundSyncTarget(target, attribute);
             }
         }
+        if (size == 0) return EMPTY_SYNC_TARGETS;
+        return size == bound.length ? bound : Arrays.copyOf(bound, size);
     }
 
     private boolean isMaxHealth(Key id) {
@@ -294,6 +345,18 @@ public class AttributeInstance {
             return VanillaAttributes1_21.MAX_HEALTH.equals(id);
         } else {
             return VanillaAttributes.MAX_HEALTH.equals(id);
+        }
+    }
+
+    private static final class BoundSyncTarget {
+        private final SyncTarget syncTarget;
+        private final VanillaAttributeInstance attribute;
+        private double lastAmount;
+        private boolean applied;
+
+        private BoundSyncTarget(SyncTarget target, VanillaAttributeInstance attribute) {
+            this.syncTarget = target;
+            this.attribute = attribute;
         }
     }
 

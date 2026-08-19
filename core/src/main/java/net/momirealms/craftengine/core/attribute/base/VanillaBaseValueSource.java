@@ -46,7 +46,7 @@ public record VanillaBaseValueSource(
                 return new Bound(attribute, this.transformer, this.updateInterval);
             }
         }
-        return this;
+        return new ConstantBaseValueSource(this.fallback);
     }
 
     @Override

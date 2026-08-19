@@ -16,9 +16,11 @@ import java.util.Set;
 import java.util.function.Function;
 
 public final class Attribute {
+    private static final String SYNC_MODIFIER_PREFIX = "ce_sync/";
     // 派生属性解析栈，检测循环引用（A 派生自 B、B 派生自 A），对所有 DerivedValue 实现生效
     private static final ThreadLocal<Deque<Key>> DERIVATION_STACK = ThreadLocal.withInitial(ArrayDeque::new);
     public final Key id;
+    private final Key syncModifierId;
     public final BaseValueSource baseValueSource;
     public final ValueConstraint constraint;
     public final List<AttributeOperation> operations;
@@ -32,6 +34,7 @@ public final class Attribute {
 
     public Attribute(Key id, BaseValueSource baseValueSource, ValueConstraint constraint, List<AttributeOperation> operations, @Nullable Set<Key> applicableEntityTypes, List<SyncTarget> syncTargets, @Nullable ValueFormatter formatter, @Nullable DerivedValue derived) {
         this.id = id;
+        this.syncModifierId = Key.of(id.namespace(), SYNC_MODIFIER_PREFIX + id.value());
         this.baseValueSource = baseValueSource;
         this.constraint = constraint;
         this.operations = operations;
@@ -43,6 +46,10 @@ public final class Attribute {
 
     public Key id() {
         return this.id;
+    }
+
+    Key syncModifierId() {
+        return this.syncModifierId;
     }
 
     public double limit(double value) {

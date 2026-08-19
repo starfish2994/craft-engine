@@ -1,8 +1,6 @@
 package net.momirealms.craftengine.core.attribute;
 
 import com.google.common.collect.ImmutableMap;
-import net.momirealms.craftengine.core.attribute.sync.SyncTarget;
-import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
 import net.momirealms.craftengine.core.entity.LivingEntityHolder;
 import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.Nullable;
@@ -34,8 +32,9 @@ public final class EntityAttributes implements AttributeGetter {
             AttributeInstance instance = new AttributeInstance(attribute, holder.context, this, index);
             this.instances[index] = instance;
             mapBuilder.put(attribute.id(), instance);
-            if (instance.needVanillaSync()) {
-                // Static synced attributes need one initial flush, then can sleep.
+            if (instance.needInitialVanillaSync()) {
+                // Only non-neutral initial amounts need an NMS modifier. Equipment
+                // mutations that happen after construction wake the instance normally.
                 this.dirtySyncInstances.set(index);
             }
             if (instance.nextRequiredTick() != Long.MAX_VALUE) {
@@ -57,13 +56,7 @@ public final class EntityAttributes implements AttributeGetter {
 
     public void clearSyncModifiers() {
         for (AttributeInstance instance : this.instances) {
-            Attribute attribute = instance.attribute();
-            for (SyncTarget target : attribute.syncTargets()) {
-                VanillaAttributeInstance vanillaAttribute = this.holder.entity.getVanillaAttribute(target.target());
-                if (vanillaAttribute != null) {
-                    vanillaAttribute.removeModifier(attribute.id());
-                }
-            }
+            instance.clearSyncModifiers();
         }
     }
 
