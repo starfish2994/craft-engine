@@ -35,7 +35,6 @@ import net.momirealms.craftengine.bukkit.plugin.proxy.BukkitProxyMessageManager;
 import net.momirealms.craftengine.bukkit.plugin.scheduler.BukkitSchedulerAdapter;
 import net.momirealms.craftengine.bukkit.plugin.script.BukkitScriptEventManager;
 import net.momirealms.craftengine.bukkit.plugin.script.BukkitScriptPlaceholderManager;
-import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.sound.BukkitSoundManager;
 import net.momirealms.craftengine.bukkit.util.EventUtils;
 import net.momirealms.craftengine.bukkit.util.ServerUtils;
@@ -315,12 +314,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         }
         // tick task
         if (!VersionHelper.hasFoliaPatch) {
-            this.tickTask = this.scheduler().platform().runRepeating(() -> {
-                for (BukkitServerPlayer serverPlayer : networkManager().onlineUsers()) {
-                    serverPlayer.tick();
-                }
-                entityManager().tickLivingEntities();
-            }, 1, 1);
+            this.tickTask = this.scheduler().platform().runRepeating(new MainTickTask(this), 1, 1);
         }
     }
 
