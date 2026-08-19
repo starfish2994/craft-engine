@@ -663,7 +663,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 }
 
                 // 设置
-                ItemSettings settings = ItemSettings.of().disableVanillaBehavior(!isVanillaItem).triggerAdvancement(isVanillaItem);
+                ItemSettings settings = ItemSettings.forItem(isVanillaItem);
                 try {
                     ItemSettings.applyModifiers(settings, section.getSection("settings"));
                 } catch (KnownResourceException e) {

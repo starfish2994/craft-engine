@@ -116,6 +116,17 @@ public final class ItemSettings {
         return new ItemSettings();
     }
 
+    public static ItemSettings forItem(boolean isVanillaItem) {
+        return of()
+                .disableVanillaBehavior(!isVanillaItem)
+                .triggerAdvancement(isVanillaItem)
+                .respectRepairableComponent(respectsRepairableComponentByDefault(isVanillaItem));
+    }
+
+    static boolean respectsRepairableComponentByDefault(boolean isVanillaItem) {
+        return isVanillaItem;
+    }
+
     public static ItemSettings fromConfig(@Nullable ConfigSection section) {
         ItemSettings itemSettings = ItemSettings.of();
         if (section == null) return itemSettings;
