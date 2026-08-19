@@ -157,9 +157,7 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
                         item,
                         null
                 );
-                if (!player.canInstabuild()) {
-                    player.setItemInHand(InteractionHand.MAIN_HAND, item); // 然后给玩家
-                }
+                player.setItemInHand(InteractionHand.MAIN_HAND, item); // 然后给玩家
                 playSound(world, pos, this.takeSound);
                 player.swingHand(context.getHand());
                 return InteractionResult.SUCCESS_AND_CANCEL;
