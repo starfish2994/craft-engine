@@ -166,7 +166,6 @@ public final class BukkitCraftEngine extends CraftEngine {
 
     @Override
     public void onPluginLoad() {
-        RuntimePatcher.installEquipmentChangeHook(this);
         // 普通bukkit插件会到这里才注册自定义方块
         if (super.blockManager == null) {
             this.injectRegistries();
@@ -226,6 +225,8 @@ public final class BukkitCraftEngine extends CraftEngine {
         super.attributeManager = new BukkitAttributeManager(this);
         // 初始化实体管理器
         super.entityManager = new BukkitEntityManager(this);
+        // 重定义 LivingEntity
+        RuntimePatcher.installEquipmentChangeHook(this);
         // 注册默认的parser
         this.registerDefaultParsers();
         // 脚本事件订阅挂到 Bukkit 事件总线
