@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.compatibility.skript.expression;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.classes.Changer;
 import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.expressions.base.PropertyExpression;
@@ -24,8 +25,10 @@ import java.util.Optional;
 
 @Name("CraftEngine Item ID")
 @Description({"Get CraftEngine item id."})
+@Example("set {_id} to custom item id of player's tool")
 @Since("1.0")
 public final class ExprItemCustomItemID extends SimpleExpression<String> {
+    private Expression<?> itemStackExpr;
 
     public static void register(SkriptAddon addon) {
         DefaultSyntaxInfos.Expression<ExprItemCustomItemID, String> expression = DefaultSyntaxInfos.Expression.builder(ExprItemCustomItemID.class, String.class)
@@ -35,8 +38,6 @@ public final class ExprItemCustomItemID extends SimpleExpression<String> {
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
     }
-
-    private Expression<?> itemStackExpr;
 
     @Override
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {

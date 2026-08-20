@@ -6,6 +6,7 @@ public enum GameMode {
     ADVENTURE(2),
     SPECTATOR(3);
 
+    public static final GameMode[] VALUES = values();
     private final int id;
 
     GameMode(int id) {

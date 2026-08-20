@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.plugin.context.function;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -78,7 +79,7 @@ public final class CycleBlockPropertyFunction<CTX extends Context> extends Abstr
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, CycleBlockPropertyFunction<CTX>> {
-        private static final String[] UPDATE_FLAGS = new String[]{"update_flags", "update-flags"};
+        private static final String[] UPDATE_FLAGS = ConfigKeys.of("update_flags");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

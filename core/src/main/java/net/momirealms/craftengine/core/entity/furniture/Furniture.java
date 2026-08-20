@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.momirealms.craftengine.core.entity.AbstractEntity;
 import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
@@ -18,10 +17,14 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxCo
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxPart;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.entity.seat.Seat;
+import net.momirealms.craftengine.core.entity.seat.SeatOwner;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.context.ChainParameterSource;
+import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.parameter.FurnitureParameterProvider;
 import net.momirealms.craftengine.core.util.CustomDataType;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.LazyReference;
@@ -40,7 +43,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-public abstract class Furniture implements Cullable {
+public abstract class Furniture implements Cullable, ChainParameterSource {
     public final FurnitureDefinition config;
     /** Accessor for persistent furniture data */
     public final FurniturePersistentData persistentData;
@@ -61,6 +64,11 @@ public abstract class Furniture implements Cullable {
     protected int[] colliderEntityIds;
     private boolean hasExternalModel;
     protected volatile boolean unsaved;
+
+    @Override
+    public <T> Optional<T> getParameter(ContextKey<T> key) {
+        return FurnitureParameterProvider.INSTANCE.getOptionalParameter(key, this);
+    }
 
     protected Furniture(Entity metaDataEntity, FurniturePersistentData data, FurnitureDefinition config) {
         this.config = config;
@@ -284,6 +292,8 @@ public abstract class Furniture implements Cullable {
         }
 
         // 行为提供的元素
+        // 变体切换时行为会重新创建元素（全新 entityId），记录追加前的下标，事后补发 show 包
+        int behaviorElementStart = elements.size();
         this.controller.gatherElements(element -> {
             elements.add(element);
             element.gatherInteractableEntityId(interactableEntityIds::addLast);
@@ -295,7 +305,7 @@ public abstract class Furniture implements Cullable {
         List<FurnitureHitBox> hitboxes = new ObjectArrayList<>(furnitureHitBoxConfigs.size());
 
         // 辅助map，用于排除重复的座椅
-        LazyReference<Map<Vector3f, Seat<FurnitureHitBox>>> seatMap = LazyReference.lazyReference(HashMap::new);
+        LazyReference<Map<Vector3f, Seat<SeatOwner>>> seatMap = LazyReference.untilNotNull(HashMap::new);
         for (FurnitureHitBoxConfig<?> furnitureHitBoxConfig : furnitureHitBoxConfigs) {
             FurnitureHitBox hitbox = furnitureHitBoxConfig.create(this);
             hitboxes.add(hitbox);
@@ -306,9 +316,9 @@ public abstract class Furniture implements Cullable {
             for (FurnitureHitboxPart part : hitbox.parts()) {
                 hitboxMap.put(part.entityId(), hitbox);
             }
-            Seat<FurnitureHitBox>[] seats = hitbox.seats();
+            Seat<SeatOwner>[] seats = hitbox.seats();
             for (int index = 0; index < seats.length; index++) {
-                Map<Vector3f, Seat<FurnitureHitBox>> tempMap = seatMap.get();
+                Map<Vector3f, Seat<SeatOwner>> tempMap = seatMap.get();
                 Vector3f seatPos = seats[index].config().position();
                 if (tempMap.containsKey(seatPos)) {
                     seats[index] = tempMap.get(seatPos);
@@ -332,7 +342,7 @@ public abstract class Furniture implements Cullable {
             Optional.ofNullable(externalModel.get()).ifPresent(model -> {
                 this.hasExternalModel = true;
                 try {
-                    model.bindModel((AbstractEntity) this.metaDataEntity);
+                    model.bindModel(this.metaDataEntity);
                 } catch (Throwable e) {
                     CraftEngine.instance().logger().warn("Failed to load external model for furniture " + id(), e);
                 }
@@ -343,6 +353,23 @@ public abstract class Furniture implements Cullable {
 
         // 触发变体变化
         if (previousVariant != null) {
+            // 行为元素在变体切换时被重建，旧实例已在 updateElements 中 hide，
+            // 这里给正在观察的玩家补发新实例的 show，否则只有重新加载家具才能看到它们
+            if (behaviorElementStart < elements.size()) {
+                List<Player> trackedBy = trackedBy();
+                if (!trackedBy.isEmpty()) {
+                    boolean culling = Config.enableEntityCulling();
+                    for (Player player : trackedBy) {
+                        if (culling) {
+                            CullableHolder holder = player.getTrackedEntity(this.metaDataEntityId);
+                            if (holder == null || !holder.isShown) continue;
+                        }
+                        for (int i = behaviorElementStart; i < elements.size(); i++) {
+                            elements.get(i).show(player);
+                        }
+                    }
+                }
+            }
             this.controller.onVariantChange(previousVariant);
         }
     }

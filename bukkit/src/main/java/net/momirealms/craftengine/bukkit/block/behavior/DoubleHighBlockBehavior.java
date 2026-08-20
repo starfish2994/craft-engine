@@ -26,6 +26,8 @@ import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidsProxy;
 
 import java.util.Optional;
 
@@ -51,23 +53,30 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
         DoubleBlockHalf half = customState.get(this.halfProperty);
         Object direction = args[updateShape$direction];
         if (DirectionProxy.INSTANCE.getAxis(direction) == AxisProxy.Y && half == DoubleBlockHalf.LOWER == (direction == DirectionProxy.UP)) {
+            Object emptyState = this.getReplacementState(level, blockPos);
             ImmutableBlockState neighborState = BlockStateUtils.getOptionalCustomBlockState(args[updateShape$neighborState]).orElse(null);
-            if (neighborState == null || neighborState.isEmpty()) return BlocksProxy.AIR$defaultState;
+            if (neighborState == null || neighborState.isEmpty()) return emptyState;
             DoubleHighBlockBehavior anotherDoorBehavior = neighborState.behavior().getFirst(DoubleHighBlockBehavior.class);
-            if (anotherDoorBehavior == null) return BlocksProxy.AIR$defaultState;
+            if (anotherDoorBehavior == null) return emptyState;
             if (neighborState.get(anotherDoorBehavior.halfProperty) != half) {
                 return neighborState.with(anotherDoorBehavior.halfProperty, half).customBlockState().minecraftState();
             }
-            return BlocksProxy.AIR$defaultState;
+            return emptyState;
         } else if (half == DoubleBlockHalf.LOWER && direction == DirectionProxy.DOWN && !canSurvive(thisBlock, blockState, level, blockPos)) {
             BlockPos pos = LocationUtils.fromBlockPos(blockPos);
             World world = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(level));
             WorldPosition position = new WorldPosition(world, Vec3d.atCenterOf(pos));
             world.playBlockSound(position, customState.settings().sounds().breakSound());
             LevelAccessorProxy.INSTANCE.levelEvent(level, WorldEvents.BLOCK_BREAK_EFFECT, blockPos, customState.customBlockState().registryId());
-            return BlocksProxy.AIR$defaultState;
+            return this.getReplacementState(level, blockPos);
         }
         return blockState;
+    }
+
+    private Object getReplacementState(Object level, Object blockPos) {
+        return FluidStateProxy.INSTANCE.getType(BlockGetterProxy.INSTANCE.getFluidState(level, blockPos)) == FluidsProxy.WATER
+                ? BlocksProxy.WATER$defaultState
+                : BlocksProxy.AIR$defaultState;
     }
 
     @Override
@@ -99,7 +108,7 @@ public final class DoubleHighBlockBehavior extends AbstractCanSurviveBlockBehavi
         if (belowState == null || belowState.isEmpty()) return;
         DoubleHighBlockBehavior belowDoubleHighBlockBehavior = belowState.behavior().getFirst(DoubleHighBlockBehavior.class);
         if (belowDoubleHighBlockBehavior == null || belowState.get(belowDoubleHighBlockBehavior.halfProperty) != DoubleBlockHalf.LOWER) return;
-        LevelWriterProxy.INSTANCE.setBlock(level, blockPos, BlocksProxy.AIR$defaultState, UPDATE_NEIGHBORS | UPDATE_CLIENTS | UPDATE_SUPPRESS_DROPS);
+        LevelWriterProxy.INSTANCE.setBlock(level, blockPos, this.getReplacementState(level, blockPos), UPDATE_NEIGHBORS | UPDATE_CLIENTS | UPDATE_SUPPRESS_DROPS);
         LevelUtils.levelEvent(level, player, WorldEvents.BLOCK_BREAK_EFFECT, blockPos, belowState.customBlockState().registryId());
     }
 

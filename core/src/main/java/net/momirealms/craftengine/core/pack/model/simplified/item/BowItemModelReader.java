@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.pack.model.simplified.item;
 
+import net.momirealms.craftengine.core.pack.model.bbmodel.BBModelConverter;
 import net.momirealms.craftengine.core.pack.model.definition.BaseItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.ConditionItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.ItemModel;
@@ -18,10 +19,13 @@ import java.util.Optional;
 
 public final class BowItemModelReader implements SimplifiedItemModelReader {
     public static final BowItemModelReader INSTANCE = new BowItemModelReader();
-    private static final Key BOW = Key.of("item/bow");
-    private static final Key BOW_PULLING_0 = Key.of("item/bow_pulling_0");
-    private static final Key BOW_PULLING_1 = Key.of("item/bow_pulling_1");
-    private static final Key BOW_PULLING_2 = Key.of("item/bow_pulling_2");
+    private static final Key[] PARENTS = new Key[] {
+            Key.of("item/bow"),
+            Key.of("item/bow_pulling_0"),
+            Key.of("item/bow_pulling_1"),
+            Key.of("item/bow_pulling_2")
+    };
+    private static final String[] AUTO_SUFFIXES = new String[]{"", "_pulling_0", "_pulling_1", "_pulling_2"};
 
     private BowItemModelReader() {}
 
@@ -30,47 +34,16 @@ public final class BowItemModelReader implements SimplifiedItemModelReader {
     public ItemModel read(ConfigValue textureValue, Optional<ConfigValue> optionalModelValue, Key id) {
         List<Key> textures = textureValue.getAsFixedSizeList(4, ConfigValue::getAsAssetPath);
         List<Key> models = optionalModelValue.map(it -> it.getAsFixedSizeList(4, ConfigValue::getAsAssetPath)).orElse(null);
-        boolean autoModel = models == null;
-        return new ConditionItemModel(
-                UsingItemConditionProperty.INSTANCE,
-                new RangeDispatchItemModel(
-                        new UseDurationRangeDispatchProperty(false),
-                        0.05f,
-                        Map2.of(
-                                0.65f, new BaseItemModel(
-                                        autoModel ? Key.of(id.namespace(), "item/" + id.value() + "_pulling_1") : models.get(1),
-                                        List.of(),
-                                        ModelGeneration.builder()
-                                                .parentModelPath(BOW_PULLING_1)
-                                                .texturesOverride(Map.of("layer0", textures.get(2).asMinimalString()))
-                                                .build()
-                                ),
-                                0.9f, new BaseItemModel(
-                                        autoModel ? Key.of(id.namespace(), "item/" + id.value() + "_pulling_2") : models.get(1),
-                                        List.of(),
-                                        ModelGeneration.builder()
-                                                .parentModelPath(BOW_PULLING_2)
-                                                .texturesOverride(Map.of("layer0", textures.get(3).asMinimalString()))
-                                                .build()
-                                )
-                        ), new BaseItemModel(
-                                autoModel ? Key.of(id.namespace(), "item/" + id.value() + "_pulling_0") : models.get(1),
-                                List.of(),
-                                ModelGeneration.builder()
-                                        .parentModelPath(BOW_PULLING_0)
-                                        .texturesOverride(Map.of("layer0", textures.get(1).asMinimalString()))
-                                        .build()
-                        )
-                ),
-                new BaseItemModel(
-                        autoModel ? Key.of(id.namespace(), "item/" + id.value()) : models.get(0),
-                        List.of(),
-                        ModelGeneration.builder()
-                                .parentModelPath(BOW)
-                                .texturesOverride(Map.of("layer0", textures.get(0).asMinimalString()))
-                                .build()
-                )
-        );
+        Key[] paths = new Key[4];
+        ModelGeneration[] generations = new ModelGeneration[4];
+        for (int i = 0; i < 4; i++) {
+            paths[i] = models != null ? models.get(i) : Key.of(id.namespace(), "item/" + id.value() + AUTO_SUFFIXES[i]);
+            generations[i] = ModelGeneration.builder()
+                    .parentModelPath(PARENTS[i])
+                    .texturesOverride(Map.of("layer0", textures.get(i).asMinimalString()))
+                    .build();
+        }
+        return build(paths, generations);
     }
 
     @Override
@@ -88,6 +61,39 @@ public final class BowItemModelReader implements SimplifiedItemModelReader {
                         new BaseItemModel(models.get(1))
                 ),
                 new BaseItemModel(models.get(0))
+        );
+    }
+
+    @Override
+    public int modelCount() {
+        return 4;
+    }
+
+    @Override
+    public ItemModel buildFromBlueprints(List<BBModelConverter.Converted> blueprints) {
+        Key[] paths = new Key[4];
+        ModelGeneration[] generations = new ModelGeneration[4];
+        for (int i = 0; i < 4; i++) {
+            BBModelConverter.Converted converted = blueprints.get(i);
+            paths[i] = converted.model();
+            generations[i] = ModelGeneration.raw(converted.json(), converted.textures());
+        }
+        return build(paths, generations);
+    }
+
+    private ItemModel build(Key[] paths, ModelGeneration[] generations) {
+        return new ConditionItemModel(
+                UsingItemConditionProperty.INSTANCE,
+                new RangeDispatchItemModel(
+                        new UseDurationRangeDispatchProperty(false),
+                        0.05f,
+                        Map2.of(
+                                0.65f, new BaseItemModel(paths[2], List.of(), generations[2]),
+                                0.9f, new BaseItemModel(paths[3], List.of(), generations[3])
+                        ),
+                        new BaseItemModel(paths[1], List.of(), generations[1])
+                ),
+                new BaseItemModel(paths[0], List.of(), generations[0])
         );
     }
 }

@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.item.behavior.ItemBehaviorFactory;
 import net.momirealms.craftengine.core.pack.Pack;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
@@ -143,7 +144,7 @@ public final class RangeMiningItemBehavior extends ItemBehavior {
     }
 
     private static class Factory implements ItemBehaviorFactory<RangeMiningItemBehavior> {
-        private static final String[] CONDITIONS = new String[]{"conditions", "condition"};
+        private static final String[] CONDITIONS = ConfigKeys.of("condition(s)");
 
         @Override
         public RangeMiningItemBehavior create(Pack pack, Path path, Key key, ConfigSection section) {

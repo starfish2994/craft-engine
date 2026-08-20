@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -49,7 +50,7 @@ public final class DamageItemFunction<CTX extends Context> extends AbstractCondi
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, DamageItemFunction<CTX>> {
-        private static final String[] AMOUNT = new String[] {"amount", "damage"};
+        private static final String[] AMOUNT = ConfigKeys.of("amount|damage");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

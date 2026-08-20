@@ -2,12 +2,16 @@ package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
+import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.PacketUtils;
+import net.momirealms.craftengine.bukkit.util.RegistryUtils;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
+import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.core.IdMapProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
@@ -18,6 +22,7 @@ import net.momirealms.craftengine.proxy.minecraft.network.codec.StreamEncoderPro
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackTemplateProxy;
 
 public final class LevelParticleListener implements ByteBufferPacketListener {
+    private static final int DAMAGE_INDICATOR = RegistryProxy.INSTANCE.getId(BuiltInRegistriesProxy.PARTICLE_TYPE, RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.PARTICLE_TYPE, KeyUtils.toIdentifier(Key.minecraft("damage_indicator"))));
     private final int[] blockStateMapper;
     private final int[] modBlockStateMapper;
     private final Internal internal;
@@ -43,7 +48,12 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
         @Override
         public void handleSend(NetWorkUser user, ByteBufPacketEvent event) {
             FriendlyByteBuf buf = event.getBuffer();
-            Object particleType = IdMapProxy.INSTANCE.byId(BuiltInRegistriesProxy.PARTICLE_TYPE, buf.readVarInt());
+            int particleTypeId = buf.readVarInt();
+            if (Config.disableVanillaDamageParticles() && particleTypeId == DAMAGE_INDICATOR) {
+                event.setCancelled(true);
+                return;
+            }
+            Object particleType = IdMapProxy.INSTANCE.byId(BuiltInRegistriesProxy.PARTICLE_TYPE, particleTypeId);
             boolean overrideLimiter = buf.readBoolean();
             double x = buf.readDouble();
             double y = buf.readDouble();
@@ -104,6 +114,13 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
             float zDist = buf.readFloat();
             float maxSpeed = buf.readFloat();
             int count = buf.readInt();
+            // 1.20.5+ 的 ParticleOptions 流式编码以 VarInt 类型 id 开头，先窥探判定
+            int optionStart = buf.readerIndex();
+            if (Config.disableVanillaDamageParticles() && buf.readVarInt() == DAMAGE_INDICATOR) {
+                event.setCancelled(true);
+                return;
+            }
+            buf.readerIndex(optionStart);
             Object option = StreamDecoderProxy.INSTANCE.decode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()));
             if (option == null) return;
             Object newOption;
@@ -155,6 +172,13 @@ public final class LevelParticleListener implements ByteBufferPacketListener {
             float zDist = buf.readFloat();
             float maxSpeed = buf.readFloat();
             int count = buf.readInt();
+            // 1.20.5+ 的 ParticleOptions 流式编码以 VarInt 类型 id 开头，先窥探判定
+            int optionStart = buf.readerIndex();
+            if (Config.disableVanillaDamageParticles() && buf.readVarInt() == DAMAGE_INDICATOR) {
+                event.setCancelled(true);
+                return;
+            }
+            buf.readerIndex(optionStart);
             Object option = StreamDecoderProxy.INSTANCE.decode(ParticleTypesProxy.STREAM_CODEC, PacketUtils.ensureNMSFriendlyByteBuf(buf.source()));
             if (option == null) return;
             Object newOption;

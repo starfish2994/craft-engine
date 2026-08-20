@@ -6,6 +6,7 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.PrioritizedFallOnHandler;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -83,9 +84,9 @@ public final class BouncingBlockBehavior extends BukkitBlockBehavior implements 
     }
 
     private static class Factory implements BlockBehaviorFactory<BouncingBlockBehavior> {
-        private static final String[] BOUNCE_HEIGHT = new String[] {"bounce_height", "bounce-height"};
-        private static final String[] SYNC_PLAYER_POSITION = new String[] {"sync_player_position", "sync-player-position"};
-        private static final String[] FALL_DAMAGE_MULTIPLIER = new String[] {"fall_damage_multiplier", "fall-damage-multiplier"};
+        private static final String[] BOUNCE_HEIGHT = ConfigKeys.of("bounce_height");
+        private static final String[] SYNC_PLAYER_POSITION = ConfigKeys.of("sync_player_position");
+        private static final String[] FALL_DAMAGE_MULTIPLIER = ConfigKeys.of("fall_damage_multiplier");
 
         @Override
         public BouncingBlockBehavior create(BlockDefinition block, ConfigSection section) {

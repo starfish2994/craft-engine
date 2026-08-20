@@ -1,49 +1,85 @@
 package net.momirealms.craftengine.bukkit.loot;
 
-import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
-import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
+import net.momirealms.craftengine.bukkit.loot.source.*;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
-import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
-import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
-import net.momirealms.craftengine.core.entity.player.InteractionHand;
+import net.momirealms.craftengine.core.entity.Entity;
+import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.AbstractLootManager;
 import net.momirealms.craftengine.core.loot.Loot;
+import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.loot.LootTableReference;
-import net.momirealms.craftengine.core.loot.VanillaLoot;
-import net.momirealms.craftengine.core.pack.Pack;
-import net.momirealms.craftengine.core.plugin.compatibility.EntityProvider;
-import net.momirealms.craftengine.core.plugin.config.*;
-import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
-import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
+import net.momirealms.craftengine.core.loot.source.LootSourceType;
+import net.momirealms.craftengine.core.loot.source.LootSources;
+import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
+import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
-import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.LazyReference;
+import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.world.ExistingBlock;
 import net.momirealms.craftengine.core.world.WorldPosition;
-import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlocksProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.damagesource.DamageSourceProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.LootParamsProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.storage.loot.parameters.LootContextParamsProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.phys.Vec3Proxy;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Supplier;
 
-// note: block listeners are in BlockEventListener to reduce performance cost
-public final class BukkitLootManager extends AbstractLootManager implements Listener {
+public final class BukkitLootManager extends AbstractLootManager {
+    private static final Map<ContextKey<?>, MinecraftLootParamMapper> MINECRAFT_LOOT_PARAM_MAPPERS = Map.of(
+            DirectContextParameters.POSITION, (builder, value, contexts) -> {
+                WorldPosition position = (WorldPosition) value;
+                LootParamsProxy.BuilderProxy.INSTANCE.withParameter(builder, LootContextParamsProxy.ORIGIN, Vec3Proxy.INSTANCE.newInstance(position.x(), position.y(), position.z()));
+            },
+            DirectContextParameters.BLOCK, (builder, value, contexts) -> {
+                ExistingBlock block = (ExistingBlock) value;
+                LootParamsProxy.BuilderProxy.INSTANCE.withParameter(builder, LootContextParamsProxy.BLOCK_STATE, block.blockState().minecraftState());
+            },
+            DirectContextParameters.ITEM_IN_HAND, (builder, value, contexts) ->
+                    LootParamsProxy.BuilderProxy.INSTANCE.withParameter(builder, LootContextParamsProxy.TOOL, ((Item) value).minecraftItem()),
+            DirectContextParameters.ENTITY, (builder, value, contexts) ->
+                    LootParamsProxy.BuilderProxy.INSTANCE.withParameter(builder, LootContextParamsProxy.THIS_ENTITY, ((Entity) value).minecraftEntity()),
+            // 伤害源是死亡类上下文的标志, 原版仅实体死亡参数集包含伤害相关参数
+            BukkitLootContextParameters.DAMAGE_SOURCE, (builder, value, contexts) -> {
+                LootParamsProxy.BuilderProxy.INSTANCE.withParameter(builder, LootContextParamsProxy.DAMAGE_SOURCE, value);
+                if (VersionHelper.isOrAbove1_21_9) {
+                    LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(builder, LootContextParamsProxy.ATTACKING_ENTITY, DamageSourceProxy.INSTANCE.getCausingEntity(value));
+                    LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(builder, LootContextParamsProxy.DIRECT_ATTACKING_ENTITY, DamageSourceProxy.INSTANCE.getDirectEntity(value));
+                }
+                // 显式传入的玩家(击杀者)优先, 否则从主体实体推导最近伤害玩家, 与 Map 遍历顺序无关
+                if (!contexts.has(DirectContextParameters.PLAYER)) {
+                    Entity entity = contexts.getOrNull(DirectContextParameters.ENTITY);
+                    if (entity != null) {
+                        Object serverEntity = entity.minecraftEntity();
+                        if (LivingEntityProxy.CLASS.isInstance(serverEntity)) {
+                            Object lastHurtByPlayer = VersionHelper.isOrAbove1_21_5 ?
+                                    LivingEntityProxy.INSTANCE.getLastHurtByPlayer(serverEntity) :
+                                    LivingEntityProxy.INSTANCE.getLastHurtByPlayerField(serverEntity);
+                            LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(builder, LootContextParamsProxy.LAST_DAMAGE_PLAYER, lastHurtByPlayer);
+                        }
+                    }
+                }
+            },
+            // 仅死亡类上下文(存在伤害源)中的玩家才是击杀者, 对应原版 LAST_DAMAGE_PLAYER
+            DirectContextParameters.PLAYER, (builder, value, contexts) -> {
+                if (contexts.has(BukkitLootContextParameters.DAMAGE_SOURCE)) {
+                    LootParamsProxy.BuilderProxy.INSTANCE.withParameter(builder, LootContextParamsProxy.LAST_DAMAGE_PLAYER, ((Player) value).minecraftPlayer());
+                }
+            },
+            DirectContextParameters.EXPLOSION_RADIUS, (builder, value, contexts) ->
+                    LootParamsProxy.BuilderProxy.INSTANCE.withOptionalParameter(builder, LootContextParamsProxy.EXPLOSION_RADIUS, value)
+    );
     private static BukkitLootManager instance;
     private final BukkitCraftEngine plugin;
-    private final VanillaLootParser vanillaLootParser;
-    private EntityProvider[] entitySources;
+    private final Map<LootSourceType<?>, List<Supplier<Listener>>> listenerFactories = new HashMap<>();
+    private final Map<LootSourceType<?>, List<Listener>> activeListeners = new HashMap<>();
 
     public BukkitLootManager(BukkitCraftEngine plugin) {
         if (instance != null) {
@@ -51,171 +87,95 @@ public final class BukkitLootManager extends AbstractLootManager implements List
         }
         instance = this;
         this.plugin = plugin;
-        this.vanillaLootParser = new VanillaLootParser();
+        this.registerSourceListener(LootSources.BLOCK_BREAK, BlockBreakLootListener::new);
+        if (VersionHelper.hasPaperPatch) {
+            this.registerSourceListener(LootSources.BLOCK_BREAK, PaperBlockBreakLootListener::new);
+            this.registerSourceListener(LootSources.SHEAR_BLOCK, ShearBlockLootListener::new);
+            this.registerSourceListener(LootSources.VAULT, VaultLootListener::new);
+            this.registerSourceListener(LootSources.ENTITY_SHEAR, () -> new EntityShearLootListener(this.plugin.entityManager()));
+        }
+        this.registerSourceListener(LootSources.ENTITY_DEATH, () -> new EntityDeathLootListener(this.plugin.entityManager()));
+        this.registerSourceListener(LootSources.FISHING, FishingLootListener::new);
+        this.registerSourceListener(LootSources.CONTAINER, ContainerLootListener::new);
+        this.registerSourceListener(LootSources.PIGLIN_BARTER, PiglinBarterLootListener::new);
+        this.registerSourceListener(LootSources.ARCHAEOLOGY, ArchaeologyLootListener::new);
+        this.registerSourceListener(LootSources.ENTITY_DROP, () -> new EntityDropLootListener(this.plugin.entityManager()));
+        this.registerSourceListener(LootSources.HARVEST, HarvestBlockLootListener::new);
+        this.registerSourceListener(LootSources.ADVANCEMENT, AdvancementLootListener::new);
     }
 
     public static BukkitLootManager instance() {
         return instance;
     }
 
+    public void registerSourceListener(LootSourceType<?> lootSourceType, Supplier<Listener> factory) {
+        this.listenerFactories.computeIfAbsent(lootSourceType, k -> new ArrayList<>()).add(factory);
+    }
+
     @Override
-    public void delayedInit() {
-        Bukkit.getPluginManager().registerEvents(this, plugin.javaPlugin());
+    public void runDelayedSyncTasks() {
+        for (Map.Entry<LootSourceType<?>, List<Supplier<Listener>>> entry : this.listenerFactories.entrySet()) {
+            LootSourceType<?> type = entry.getKey();
+            boolean hasSources = type.hasSources();
+            List<Listener> active = this.activeListeners.get(type);
+            if (hasSources && active == null) {
+                List<Listener> listeners = new ArrayList<>(entry.getValue().size());
+                for (Supplier<Listener> factory : entry.getValue()) {
+                    Listener listener = factory.get();
+                    Bukkit.getPluginManager().registerEvents(listener, this.plugin.javaPlugin());
+                    listeners.add(listener);
+                }
+                this.activeListeners.put(type, listeners);
+            } else if (!hasSources && active != null) {
+                for (Listener listener : active) {
+                    HandlerList.unregisterAll(listener);
+                }
+                this.activeListeners.remove(type);
+            }
+        }
     }
 
     @Override
     public void disable() {
-        HandlerList.unregisterAll(this);
-    }
-
-    @Override
-    public void delayedLoad() {
-        List<EntityProvider> entityProviders = new ArrayList<>();
-        for (String source : Config.lootEntitySources()) {
-            Optional.ofNullable(this.plugin.compatibilityManager().getEntityProvider(source)).ifPresent(entityProviders::add);
-        }
-        this.entitySources = entityProviders.toArray(new EntityProvider[0]);
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onEntityDeath(EntityDeathEvent event) {
-        Entity entity = event.getEntity();
-        BukkitEntity bukkitEntity = BukkitAdaptor.adapt(entity);
-        Key key = getEntityId(bukkitEntity);
-        Optional.ofNullable(this.entityLoots.get(key)).ifPresent(vanillaLoot -> {
-            if (vanillaLoot.override()) {
-                event.getDrops().clear();
-                event.setDroppedExp(0);
-            }
-            Location location = entity.getLocation();
-            net.momirealms.craftengine.core.world.World world = BukkitAdaptor.adapt(entity.getWorld());
-            WorldPosition position = new WorldPosition(world, location.getX(), location.getY(), location.getZ());
-            ContextHolder.Builder builder = ContextHolder.builder()
-                    .withParameter(DirectContextParameters.ENTITY, bukkitEntity)
-                    .withParameter(DirectContextParameters.POSITION, position);
-            BukkitServerPlayer optionalPlayer = null;
-            float luck = 1.0f;
-            if (VersionHelper.isOrAbove1_20_5) {
-                if (event.getDamageSource().getCausingEntity() instanceof Player player) {
-                    optionalPlayer = BukkitAdaptor.adapt(player);
-                    builder.withOptionalParameter(DirectContextParameters.PLAYER, optionalPlayer);
-                    if (optionalPlayer != null) {
-                        luck = (float) optionalPlayer.luck();
-                        Item itemInHand = optionalPlayer.getItemInHand(InteractionHand.MAIN_HAND);
-                        builder.withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand);
-                    }
-                }
-            }
-            ContextHolder contextHolder = builder.build();
-            EntityLootContext entityLootContext = new EntityLootContext(world, optionalPlayer, luck, contextHolder, entity);
-            for (Loot loot : vanillaLoot.loots()) {
-                for (Item item : loot.getRandomItems(entityLootContext)) {
-                    world.dropItemNaturally(position, item);
-                }
-            }
-        });
-    }
-
-    @ApiStatus.Experimental
-    private Key getEntityId(BukkitEntity bukkitEntity) {
-        if (this.entitySources != null && this.entitySources.length > 0) {
-            for (EntityProvider entityProvider : this.entitySources) {
-                String entityId = entityProvider.getEntityId(bukkitEntity);
-                if (entityId != null) {
-                    return Key.of(entityProvider.plugin(), StringUtils.normalizeString(entityId));
-                }
+        for (List<Listener> listeners : this.activeListeners.values()) {
+            for (Listener listener : listeners) {
+                HandlerList.unregisterAll(listener);
             }
         }
-        return bukkitEntity.type();
+        this.activeListeners.clear();
+    }
+
+    // 遍历上下文元素, 将可识别的参数映射为原版战利品参数
+    public Object createMinecraftLootParamsBuilder(LootContext context) {
+        ContextHolder contexts = context.contexts();
+        Object lootParamsBuilder = LootParamsProxy.BuilderProxy.INSTANCE.newInstance(context.world().minecraftWorld());
+        for (Map.Entry<ContextKey<?>, Supplier<Object>> entry : contexts.params().entrySet()) {
+            MinecraftLootParamMapper mapper = MINECRAFT_LOOT_PARAM_MAPPERS.get(entry.getKey());
+            if (mapper == null) continue;
+            Object value = entry.getValue().get();
+            if (value == null) continue;
+            mapper.accept(lootParamsBuilder, value, contexts);
+        }
+        LootParamsProxy.BuilderProxy.INSTANCE.withLuck(lootParamsBuilder, context.luck());
+        return lootParamsBuilder;
     }
 
     @Override
     public ConfigParser[] parsers() {
-        return new ConfigParser[] {this.vanillaLootParser, super.lootParser};
+        return new ConfigParser[]{this.lootParser, this.lootSourceParser};
     }
 
     @Override
     public LootTableReference createReference(Key key) {
-        LazyReference<Loot> lazyReference = LazyReference.lazyReference(() -> {
+        LazyReference<Loot> lazyReference = LazyReference.untilNotNull(() -> {
             Optional<Loot> lootTable = BukkitLootManager.instance().getLoot(key);
             return lootTable.orElseGet(() -> new DatapackLootTable(key));
         });
         return new LootTableReference(lazyReference);
     }
 
-    private final class VanillaLootParser extends IdSectionConfigParser {
-        private static final String[] CONFIG_SECTION_NAME = new String[] {"vanilla-loots", "vanilla-loot", "vanilla_loots", "vanilla_loot"};
-        private static final String[] LOOT_SECTION = new String[] {"loot", "loots"};
-        private int count;
-
-        @Override
-        public boolean async() {
-            return Config.multiThreadedConfigLoad();
-        }
-
-        @Override
-        public String[] sectionId() {
-            return CONFIG_SECTION_NAME;
-        }
-
-        @Override
-        public int count() {
-            return this.count;
-        }
-
-        @Override
-        public void preProcess() {
-            this.count = 0;
-        }
-
-        @Override
-        public LoadingStage loadingStage() {
-            return LoadingStages.VANILLA_LOOT;
-        }
-
-        @Override
-        public List<LoadingStage> dependencies() {
-            return List.of(LoadingStages.LOOT_TABLE);
-        }
-
-        @Override
-        public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
-            VanillaLoot.Type typeEnum = section.getNonNullEnum("type", VanillaLoot.Type.class);
-            boolean override = section.getBoolean("override");
-            Loot loot = section.getValue(LOOT_SECTION, ConfigValue::getAsLoot);
-            switch (typeEnum) {
-                case BLOCK -> {
-                    List<String> targets = section.getStringList("target");
-                    for (String target : targets) {
-                        if (target.endsWith("]") && target.contains("[")) {
-                            java.lang.Object blockState = BlockStateUtils.blockDataToBlockState(Bukkit.createBlockData(target));
-                            if (blockState == BlocksProxy.AIR$defaultState) {
-                                throw new KnownResourceException("resource.vanilla_loot.block.invalid_target", target);
-                            }
-                            VanillaLoot vanillaLoot = BukkitLootManager.this.blockLoots.computeIfAbsent(BlockStateUtils.blockStateToId(blockState), k -> new VanillaLoot(VanillaLoot.Type.BLOCK));
-                            vanillaLoot.addLootTable(loot);
-                        } else {
-                            for (Object blockState : BlockStateUtils.getPossibleBlockStates(Key.of(target))) {
-                                if (blockState == BlocksProxy.AIR$defaultState) {
-                                    throw new KnownResourceException("resource.vanilla_loot.block.invalid_target", target);
-                                }
-                                VanillaLoot vanillaLoot = BukkitLootManager.this.blockLoots.computeIfAbsent(BlockStateUtils.blockStateToId(blockState), k -> new VanillaLoot(VanillaLoot.Type.BLOCK));
-                                if (override) vanillaLoot.override(true);
-                                vanillaLoot.addLootTable(loot);
-                            }
-                        }
-                    }
-                }
-                case ENTITY -> {
-                    List<Key> entityTypes = section.getList("target", ConfigValue::getAsIdentifier);
-                    for (Key key : entityTypes) {
-                        VanillaLoot vanillaLoot = BukkitLootManager.this.entityLoots.computeIfAbsent(key, k -> new VanillaLoot(VanillaLoot.Type.ENTITY));
-                        vanillaLoot.addLootTable(loot);
-                        if (override) vanillaLoot.override(true);
-                    }
-                }
-            }
-            this.count++;
-        }
+    @FunctionalInterface
+    private interface MinecraftLootParamMapper {
+        void accept(Object lootParamsBuilder, Object value, ContextHolder contexts);
     }
 }

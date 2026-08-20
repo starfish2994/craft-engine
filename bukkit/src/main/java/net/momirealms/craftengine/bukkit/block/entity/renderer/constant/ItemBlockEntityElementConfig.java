@@ -10,6 +10,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -107,11 +108,11 @@ public final class ItemBlockEntityElementConfig implements BlockEntityElementCon
     }
 
     private static class Factory implements BlockEntityElementConfigFactory<ItemBlockEntityElement> {
-        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
+        private static final String[] TINT_SOURCE = ConfigKeys.of("tint_source");
 
         @Override
         public ItemBlockEntityElementConfig create(ConfigSection section) {
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             return new ItemBlockEntityElementConfig(
                     section.getNonNullIdentifier("item"),
                     section.getVector3f("position", ConfigConstants.CENTER_VECTOR3),

@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,7 @@ import java.util.function.Predicate;
 
 public final class ItemDisplayFurnitureElementConfig implements FurnitureElementConfig<ItemDisplayFurnitureElement> {
     public static final FurnitureElementConfigFactory<ItemDisplayFurnitureElement> FACTORY = new Factory();
-    public final BiFunction<Player, FurnitureTintSource, List<Object>> metadata;
+    public final FurnitureMetadataProvider metadata;
     public final Key itemId;
     public final Vector3f scale;
     public final Vector3f position;
@@ -102,24 +102,29 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
             }
             return Optional.ofNullable(wrappedItem).orElseGet(() -> Item.byId(ItemKeys.BARRIER));
         };
-        this.metadata = (player, source) -> {
+        this.metadata = (player, source, force) -> {
             List<Object> dataValues = new ArrayList<>();
             if (glowColor != null) {
                 DisplayData.ItemDisplayData.SharedFlags.addEntityData((byte) 0x40, dataValues);
                 DisplayData.ItemDisplayData.GlowColorOverride.addEntityData(glowColor.color(), dataValues);
+            } else {
+                DisplayData.ItemDisplayData.SharedFlags.addEntityData((byte) 0x0, dataValues, force);
+                DisplayData.ItemDisplayData.GlowColorOverride.addEntityData(-1, dataValues, force);
             }
             DisplayData.ItemDisplayData.ItemStack.addEntityData(itemFunction.apply(player, source).minecraftItem(), dataValues);
-            DisplayData.ItemDisplayData.Scale.addEntityDataIfNotDefaultValue(this.scale, dataValues);
-            DisplayData.ItemDisplayData.LeftRotation.addEntityDataIfNotDefaultValue(this.rotation, dataValues);
-            DisplayData.ItemDisplayData.BillboardConstraints.addEntityDataIfNotDefaultValue(this.billboard.id(), dataValues);
-            DisplayData.ItemDisplayData.Translation.addEntityDataIfNotDefaultValue(this.translation, dataValues);
-            DisplayData.ItemDisplayData.ItemTransform.addEntityDataIfNotDefaultValue(this.displayContext.id(), dataValues);
-            DisplayData.ItemDisplayData.ShadowRadius.addEntityDataIfNotDefaultValue(this.shadowRadius, dataValues);
-            DisplayData.ItemDisplayData.ShadowStrength.addEntityDataIfNotDefaultValue(this.shadowStrength, dataValues);
+            DisplayData.ItemDisplayData.Scale.addEntityData(this.scale, dataValues, force);
+            DisplayData.ItemDisplayData.LeftRotation.addEntityData(this.rotation, dataValues, force);
+            DisplayData.ItemDisplayData.BillboardConstraints.addEntityData(this.billboard.id(), dataValues, force);
+            DisplayData.ItemDisplayData.Translation.addEntityData(this.translation, dataValues, force);
+            DisplayData.ItemDisplayData.ItemTransform.addEntityData(this.displayContext.id(), dataValues, force);
+            DisplayData.ItemDisplayData.ShadowRadius.addEntityData(this.shadowRadius, dataValues, force);
+            DisplayData.ItemDisplayData.ShadowStrength.addEntityData(this.shadowStrength, dataValues, force);
             if (this.blockLight != -1 && this.skyLight != -1) {
                 DisplayData.ItemDisplayData.BrightnessOverride.addEntityData(this.blockLight << 4 | this.skyLight << 20, dataValues);
+            } else {
+                DisplayData.ItemDisplayData.BrightnessOverride.addEntityData(-1, dataValues, force);
             }
-            DisplayData.ItemDisplayData.ViewRange.addEntityDataIfNotDefaultValue((float) (this.viewRange * player.displayEntityViewDistance()), dataValues);
+            DisplayData.ItemDisplayData.ViewRange.addEntityData((float) (this.viewRange * player.displayEntityViewDistance()), dataValues, force);
             return dataValues;
         };
     }
@@ -130,13 +135,13 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
     }
 
     @Override
-    public ItemDisplayFurnitureElement create(@NotNull Furniture furniture, @NonNull ItemDisplayFurnitureElement previous) {
+    public ItemDisplayFurnitureElement create(@NotNull Furniture furniture, @NotNull ItemDisplayFurnitureElement previous) {
         WorldPosition pos = getPos(furniture);
         return new ItemDisplayFurnitureElement(furniture, this, pos, previous.entityId, !pos.equals(previous.position));
     }
 
     @Override
-    public ItemDisplayFurnitureElement createExact(@NotNull Furniture furniture, @NonNull ItemDisplayFurnitureElement previous) {
+    public ItemDisplayFurnitureElement createExact(@NotNull Furniture furniture, @NotNull ItemDisplayFurnitureElement previous) {
         WorldPosition pos = getPos(furniture);
         if (!pos.equals(previous.position)) {
             return null;
@@ -160,20 +165,20 @@ public final class ItemDisplayFurnitureElementConfig implements FurnitureElement
     }
 
     private static class Factory implements FurnitureElementConfigFactory<ItemDisplayFurnitureElement> {
-        private static final String[] DISPLAY_CONTEXT = new String[] {"display_context", "display_transform", "display-context", "display-transform"};
-        private static final String[] SHADOW_RADIUS = new String[] {"shadow_radius", "shadow-radius"};
-        private static final String[] SHADOW_STRENGTH = new String[] {"shadow_strength", "shadow-strength"};
-        private static final String[] APPLY_DYED_COLOR = new String[] {"apply_dyed_color", "apply-dyed-color"};
-        private static final String[] GLOW_COLOR = new String[] {"glow_color", "glow-color"};
-        private static final String[] BLOCK_LIGHT = new String[] {"block_light", "block-light"};
-        private static final String[] SKY_LIGHT = new String[] {"sky_light", "sky-light"};
-        private static final String[] VIEW_RANGE = new String[] {"view_range", "view-range"};
-        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
+        private static final String[] DISPLAY_CONTEXT = ConfigKeys.of("display_(context|transform)");
+        private static final String[] SHADOW_RADIUS = ConfigKeys.of("shadow_radius");
+        private static final String[] SHADOW_STRENGTH = ConfigKeys.of("shadow_strength");
+        private static final String[] APPLY_DYED_COLOR = ConfigKeys.of("apply_dyed_color");
+        private static final String[] GLOW_COLOR = ConfigKeys.of("glow_color");
+        private static final String[] BLOCK_LIGHT = ConfigKeys.of("block_light");
+        private static final String[] SKY_LIGHT = ConfigKeys.of("sky_light");
+        private static final String[] VIEW_RANGE = ConfigKeys.of("view_range");
+        private static final String[] TINT_SOURCE = ConfigKeys.of("tint_source");
 
         @Override
         public ItemDisplayFurnitureElementConfig create(ConfigSection section) {
             ConfigSection brightness = section.getSection("brightness");
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             boolean legacyTintSource = section.getBoolean(APPLY_DYED_COLOR, false);
             return new ItemDisplayFurnitureElementConfig(
                     section.getNonNullIdentifier("item"),

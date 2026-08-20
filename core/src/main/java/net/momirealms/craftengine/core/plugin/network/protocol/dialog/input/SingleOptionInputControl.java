@@ -30,7 +30,7 @@ public final class SingleOptionInputControl implements DialogInputControl {
         List<Entry> entries = new ArrayList<>();
         ListTag optionsTag = tag.getList("options");
         for (int i = 0; i < optionsTag.size(); i++) {
-            entries.add(Entry.read(optionsTag.get(i), i == 0));
+            entries.add(Entry.read(optionsTag.get(i)));
         }
         Component label = AdventureHelper.nbtToComponent(tag.get("label"));
         boolean labelVisible = tag.getBoolean("label_visible", true);
@@ -95,7 +95,7 @@ public final class SingleOptionInputControl implements DialogInputControl {
             }
         }
 
-        public static Entry read(Tag tag, boolean first) {
+        public static Entry read(Tag tag) {
             if (tag instanceof StringTag stringTag) {
                 return new Entry(stringTag.value(), Optional.empty(), false);
             }
@@ -103,7 +103,7 @@ public final class SingleOptionInputControl implements DialogInputControl {
             return new Entry(
                     compoundTag.getString("id"),
                     Optional.ofNullable(compoundTag.get("display")).map(AdventureHelper::nbtToComponent),
-                    compoundTag.getBoolean("initial", first)
+                    compoundTag.getBoolean("initial", false)
             );
         }
 

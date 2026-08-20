@@ -84,6 +84,7 @@ command.locale.unset.success: <white>重置了 <arg:0> 的區域設定</white>
 command.display_entity_view_distance_scale.set.success: <white>已將 <arg:1> 的展示實體可見距離百分比設為 <arg:0></white>
 command.entity_culling_distance_scale.set.success: <white>已將 <arg:1> 的實體剔除距離百分比設為 <arg:0></white>
 command.entity_culling.toggle.success: <white>已將 <arg:1> 的實體剔除狀態設為 <arg:0></white>
+command.damage_visibility.set.success: <white>已將 <arg:1> 的傷害數字可見性設為 <arg:0></white>
 command.place_feature.failed: <red>放置地物失敗</red>
 command.place_feature.success: <white>已在 <arg:1>, <arg:2>, <arg:3> 處放置 '<arg:0>'</white>
 command.place_feature.invalid: <red>沒有類型為 '<arg:0>' 的地物</red>
@@ -161,6 +162,7 @@ resource_pack.malformatted_json: Json 檔案 '<arg:0>' 的格式不正確
 resource_pack.not_a_json_object: Json 檔案 '<arg:0>' 不是一個 json 物件
 resource_pack.conflict_resolution.unknown_type: 未知的檔案衝突解決方案類型 '<arg:0>'
 resource_pack.model_generation.conflict: 無法生成模型，因為模型檔案 '<arg:0>' 已存在
+resource_pack.texture_generation.conflict: 無法生成貼圖,因為貼圖檔案 '<arg:0>' 已存在
 resource_pack.item_model.conflict: 無法生成物品模型映射 '<arg:0>'，因為檔案 '<arg:1>' 已存在
 resource_pack.missing_font_texture: 字型 '<arg:0>' 缺少紋理 '<arg:1>'
 resource_pack.missing_model_texture: 模型 '<arg:0>' 缺少紋理 '<arg:1>'
@@ -236,6 +238,7 @@ resource.emoji.unknown_image: 未知的圖像 '<arg:0>'
 resource.equipment.unknown_type: 未知的裝備類型 '<arg:0>'
 resource.equipment.unknown_layer_type: 未知的預設模型類型 '<arg:0>'
 resource.equipment.invalid_sacrificed_armor: 無效的原版盔甲類型 '<arg:0>'
+resource.equipment_set.invalid_slot_name: 無效的套裝欄位名稱 '<arg:0>'
 resource.furniture.element.unknown_type: 未知的傢俱元素類型 '<arg:0>'
 resource.furniture.element.tint_source.unknown_type: 未知的傢俱染色源類型 '<arg:0>'
 resource.furniture.hitbox.unknown_type: 未知的傢俱判定箱類型 '<arg:0>'
@@ -276,6 +279,9 @@ resource.item.missing_model_id: 缺少 'custom_model_data' 或 'item_model'，�
 resource.item.occupied_vanilla_item_model: 物品模型 '<arg:0>' 已被原版物品佔用
 resource.item.invalid_material: 無效的物品類型 '<arg:0>'
 resource.model.generation.conflict: 無法為 '<arg:0>' 生成模型，因為有兩個或多個配置試圖使用相同的路徑生成不同的 json 模型
+resource.texture.generation.conflict: 無法為 '<arg:0>' 生成貼圖,因為有兩個或多個配置試圖使用相同的路徑生成不同的貼圖
+resource.model.bbmodel.invalid_file: 無法讀取或解析 bbmodel 檔案 '<arg:0>'
+resource.model.bbmodel.invalid_name: bbmodel 檔名 '<arg:0>' 不是有效的資源路徑,請僅使用小寫字母、數字、_、-、.、/ 重新命名
 resource.recipe.transform_processor.unknown_type: 未知的鍛造配方後處理器類型 '<arg:0>'
 resource.recipe.ingredient.invalid_tag: 物品標籤 '<arg:0>' 不包含任何物品
 resource.recipe.ingredient.item_not_exist: 原料物品 '<arg:0>' 不存在
@@ -284,4 +290,3 @@ resource.recipe.shaped.invalid_pattern: 無效的合成圖案 '<arg:0>'
 resource.recipe.shaped.invalid_symbol: 無效的合成圖案符號 '<arg:0>'
 resource.recipe.post_processor.unknown_type: 未知的配方結果後處理器類型 '<arg:0>'
 resource.recipe.unknown_type: 未知的配方類型 '<arg:0>'
-resource.vanilla_loot.block.invalid_target: 無效的方塊目標 '<arg:0>'

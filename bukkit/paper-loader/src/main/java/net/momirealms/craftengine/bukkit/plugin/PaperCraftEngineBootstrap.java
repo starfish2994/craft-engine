@@ -62,15 +62,13 @@ public final class PaperCraftEngineBootstrap implements PluginBootstrap {
         this.plugin.applyDependencies();
         this.plugin.setupProxy();
         this.plugin.setUpConfigAndLocale();
-        if (isDatapackDiscoveryAvailable()) {
+        if (RuntimePatcher.isDatapackDiscoveryAvailable()) {
             new ModernEventHandler(context, this.plugin).register();
-        } else {
-            try {
-                logger.info("Patching the server...");
-                RuntimePatcher.patch(this.plugin);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to patch server", e);
-            }
+        }
+        try {
+            RuntimePatcher.patch(this.plugin);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to patch server", e);
         }
         this.backupWorldData(logger, context);
     }
@@ -188,13 +186,7 @@ public final class PaperCraftEngineBootstrap implements PluginBootstrap {
     }
 
     private static boolean isDatapackDiscoveryAvailable() {
-        try {
-            Class<?> eventsClass = Class.forName("io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents");
-            eventsClass.getField("DATAPACK_DISCOVERY");
-            return true;
-        } catch (ClassNotFoundException | NoSuchFieldException e) {
-            return false;
-        }
+        return RuntimePatcher.isDatapackDiscoveryAvailable();
     }
 
     @Override

@@ -4,11 +4,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import net.momirealms.craftengine.bukkit.block.behavior.*;
 import net.momirealms.craftengine.bukkit.block.listener.BlockEventListener;
-import net.momirealms.craftengine.bukkit.block.listener.PaperBlockEventListener;
-import net.momirealms.craftengine.bukkit.nms.FastNMS;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.injector.BlockGenerator;
 import net.momirealms.craftengine.bukkit.plugin.injector.MaterialInjector;
+import net.momirealms.craftengine.bukkit.plugin.injector.StatePredicateGenerator;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.block.*;
 import net.momirealms.craftengine.core.block.behavior.BlockBehavior;
@@ -60,13 +59,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class BukkitBlockManager extends AbstractBlockManager {
     public static final Set<Object> CLIENT_SIDE_NOTE_BLOCKS = new HashSet<>(2048, 0.6f);
-    private static final Object ALWAYS_FALSE = FastNMS.INSTANCE.createAlwaysStatePredicate(false);
-    private static final Object ALWAYS_TRUE = FastNMS.INSTANCE.createAlwaysStatePredicate(true);
+    private static final Object ALWAYS_FALSE = StatePredicateGenerator.alwaysFalse();
+    private static final Object ALWAYS_TRUE = StatePredicateGenerator.alwaysTrue();
     private static BukkitBlockManager instance;
     private final BukkitCraftEngine plugin;
     // 事件监听器
     private final BlockEventListener blockEventListener;
-    private final PaperBlockEventListener paperBlockEventListener;
     // 用于缓存string形式的方块状态到原版方块状态
     private final Map<String, BlockStateWrapper> blockStateCache = new ConcurrentHashMap<>(1024);
     // 用于临时存储可燃烧自定义方块的列表
@@ -75,8 +73,8 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     private Map<Object, Integer> igniteOdds;
     private Map<Object, Integer> burnOdds;
     // 自定义客户端侧原版方块标签
-    private Map<Integer, List<Key>> clientBoundTags = Map.of();
-    private Map<Integer, List<Key>> previousClientBoundTags = Map.of();
+    private Map<Integer, Collection<Key>> clientBoundTags = Map.of();
+    private Map<Integer, Collection<Key>> previousClientBoundTags = Map.of();
     // 缓存的原版方块tag包
     private List<TagUtils.TagEntry> cachedUpdateTags = List.of();
     // 被移除声音的原版方块
@@ -90,7 +88,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         super(plugin, RegistryUtils.currentBlockRegistrySize(), Config.serverSideBlocks());
         this.plugin = plugin;
         this.blockEventListener = new BlockEventListener(plugin, this);
-        this.paperBlockEventListener = VersionHelper.hasPaperPatch ? new PaperBlockEventListener() : null;
         this.registerServerSideCustomBlocks(Config.serverSideBlocks());
         EmptyBlockDefinition.init();
         EmptyBlockDefinition.STATE.setBehavior(EmptyBlockBehavior.INSTANCE);
@@ -107,6 +104,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         this.findViewBlockingVanillaBlocks();
         Arrays.fill(this.immutableBlockStates, EmptyBlockDefinition.INSTANCE.defaultState());
         this.registerBlockStatePacketListener(); // 一定要预先初始化一次，预防id超出上限
+        TagUtils.blockTagNesting();
     }
 
     public static BukkitBlockManager instance() {
@@ -116,7 +114,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     @Override
     public void delayedInit() {
         Bukkit.getPluginManager().registerEvents(this.blockEventListener, this.plugin.javaPlugin());
-        if (this.paperBlockEventListener != null) Bukkit.getPluginManager().registerEvents(this.paperBlockEventListener, this.plugin.javaPlugin());
     }
 
     @Override
@@ -144,7 +141,6 @@ public final class BukkitBlockManager extends AbstractBlockManager {
     public void disable() {
         this.unload();
         HandlerList.unregisterAll(this.blockEventListener);
-        if (this.paperBlockEventListener != null) HandlerList.unregisterAll(this.paperBlockEventListener);
     }
 
     @Override
@@ -214,7 +210,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         // if there's no change
         if (this.clientBoundTags.equals(this.previousClientBoundTags)) return;
         List<TagUtils.TagEntry> list = new ArrayList<>();
-        for (Map.Entry<Integer, List<Key>> entry : this.clientBoundTags.entrySet()) {
+        for (Map.Entry<Integer, Collection<Key>> entry : this.clientBoundTags.entrySet()) {
             list.add(new TagUtils.TagEntry(entry.getKey(), entry.getValue()));
         }
         this.cachedUpdateTags = list;
@@ -364,7 +360,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
 
             Object holder = BukkitCraftEngine.instance().blockManager().getMinecraftBlockHolder(state.customBlockState().registryId());
             Set<Object> tags = new HashSet<>();
-            for (Key tag : settings.tags()) {
+            for (Key tag : TagUtils.expandBlockTags(settings.tags())) {
                 tags.add(TagKeyProxy.INSTANCE.create(RegistriesProxy.BLOCK, KeyUtils.toIdentifier(tag)));
             }
             HolderProxy.ReferenceProxy.INSTANCE.setTags(holder, tags);
@@ -424,6 +420,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
                 HolderProxy.ReferenceProxy.INSTANCE.setTags(blockHolder, Set.of());
                 DelegatingBlockState newBlockState = (DelegatingBlockState) BlockProxy.INSTANCE.getDefaultBlockState(customBlock);
                 this.customBlockStates[i] = newBlockState;
+                BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.initCache(newBlockState);
                 IdMapperProxy.INSTANCE.add(BlockProxy.BLOCK_STATE_REGISTRY, newBlockState);
                 if (injectBukkitMaterial) {
                     newMaterial[length + i] = MaterialInjector.createMaterial(customBlockId, length + i, customBlock);
@@ -484,7 +481,7 @@ public final class BukkitBlockManager extends AbstractBlockManager {
         if (blockId == -1) {
             throw new IllegalStateException("Block " + id + " not found");
         }
-        this.clientBoundTags.put(blockId, tags);
+        this.clientBoundTags.put(blockId, TagUtils.expandBlockTags(tags));
     }
 
     public boolean isPlaceSoundMissing(Object sound) {

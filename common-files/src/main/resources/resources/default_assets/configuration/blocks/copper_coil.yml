@@ -21,8 +21,8 @@ items:
             map_color: 15
             tags:
               - minecraft:mineable/pickaxe
-            correct_tools:
-              template: default:pickaxe_power/level_1
+            correct_tools: ["#minecraft:pickaxes"]
+            required_break_power: 1
         behavior:
           type: lamp_block
         states:

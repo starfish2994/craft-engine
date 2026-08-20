@@ -5,11 +5,11 @@ import cn.gtemc.itembridge.core.BukkitItemBridge;
 import cn.gtemc.levelerbridge.core.BukkitLevelerBridge;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.bukkit.block.entity.renderer.constant.BukkitBlockEntityElementConfigs;
 import net.momirealms.craftengine.bukkit.compatibility.axiom.AxiomCraftEngineDisplay;
 import net.momirealms.craftengine.bukkit.compatibility.bedrock.FloodgateUtils;
 import net.momirealms.craftengine.bukkit.compatibility.bedrock.GeyserUtils;
+import net.momirealms.craftengine.bukkit.compatibility.denizen.DenizenHook;
 import net.momirealms.craftengine.bukkit.compatibility.entity.MythicMobsEntityProvider;
 import net.momirealms.craftengine.bukkit.compatibility.item.ItemBridgeSource;
 import net.momirealms.craftengine.bukkit.compatibility.legacy.slimeworld.LegacySlimeFormatStorageAdaptor;
@@ -29,35 +29,41 @@ import net.momirealms.craftengine.bukkit.compatibility.packetevents.WrappedBlock
 import net.momirealms.craftengine.bukkit.compatibility.papi.PlaceholderAPIUtils;
 import net.momirealms.craftengine.bukkit.compatibility.permission.LuckPermsEventListeners;
 import net.momirealms.craftengine.bukkit.compatibility.permission.LuckPermsUtils;
+import net.momirealms.craftengine.bukkit.compatibility.protection.CoreProtectProtectionLogger;
 import net.momirealms.craftengine.bukkit.compatibility.quickshop.QuickShopItemExpressionHandler;
 import net.momirealms.craftengine.bukkit.compatibility.skript.SkriptHook;
 import net.momirealms.craftengine.bukkit.compatibility.slimeworld.SlimeFormatStorageAdaptor;
+import net.momirealms.craftengine.bukkit.compatibility.vault.GiveMoneyFunction;
+import net.momirealms.craftengine.bukkit.compatibility.vault.HasMoneyCondition;
+import net.momirealms.craftengine.bukkit.compatibility.vault.TakeMoneyFunction;
+import net.momirealms.craftengine.bukkit.compatibility.vault.VaultUtils;
 import net.momirealms.craftengine.bukkit.compatibility.viaversion.ViaVersionUtils;
 import net.momirealms.craftengine.bukkit.compatibility.worldedit.WorldEditBlockRegister;
 import net.momirealms.craftengine.bukkit.compatibility.worldguard.WorldGuardRegionCondition;
 import net.momirealms.craftengine.bukkit.entity.furniture.element.BukkitFurnitureElementConfigs;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
+import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockManager;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.furniture.ExternalModel;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.compatibility.*;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
-import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.condition.AlwaysFalseCondition;
+import net.momirealms.craftengine.core.plugin.context.function.DummyFunction;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
-import net.momirealms.craftengine.core.plugin.text.minimessage.FormattedLine;
-import net.momirealms.craftengine.core.util.GsonHelper;
-import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.VersionHelper;
-import net.momirealms.craftengine.core.world.WorldManager;
+import net.momirealms.craftengine.core.util.*;
+import net.momirealms.craftengine.core.world.WorldPosition;
+import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -75,9 +81,11 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     private final Map<String, ItemSource> itemSources;
     private final Map<String, LevelerProvider> levelerProviders;
     private final Map<String, EntityProvider> entityProviders;
+    private final Map<String, ProtectionLogger> protectionLoggers;
     private final Set<String> loggedPlugins;
     private ModelProvider[] modelProviderArray;
     private TagResolverProvider[] tagResolverProviderArray = null;
+    private ProtectionLogger[] protectionLoggerArray;
     private AxiomCraftEngineDisplay axiomCraftEngineDisplay;
     private JsonObject blueMapBlockColors = new JsonObject();
     private boolean hasPlaceholderAPI;
@@ -90,10 +98,12 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         this.itemSources = new HashMap<>();
         this.levelerProviders = new HashMap<>();
         this.entityProviders = new HashMap<>();
+        this.protectionLoggers = new HashMap<>();
         this.modelProviders = new HashMap<>();
         this.tagResolverProviders = new HashMap<>();
         this.loggedPlugins = new HashSet<>();
         this.modelProviderArray = new ModelProvider[0];
+        this.protectionLoggerArray = new ProtectionLogger[0];
     }
 
     @Override
@@ -148,7 +158,38 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     }
 
     @Override
-    public void onLoad() {
+    public void registerProtectionLogger(ProtectionLogger logger) {
+        this.protectionLoggers.put(logger.plugin(), logger);
+        this.protectionLoggerArray = this.protectionLoggers.values().toArray(new ProtectionLogger[0]);
+    }
+
+    @Override
+    public void logSingleSlotContainerTransaction(Player player,
+                                                  WorldPosition position,
+                                                  @Nullable Item oldItem,
+                                                  @Nullable Item newItem) {
+        for (ProtectionLogger logger : this.protectionLoggerArray) {
+            try {
+                logger.logContainerTransaction(player, position, oldItem, newItem);
+            } catch (Throwable e) {
+                this.plugin.logger().warn("Failed to log container transaction with " + logger.plugin(), e);
+            }
+        }
+    }
+
+    @Override
+    public void logItemFrameTransaction(Player player,
+                                        WorldPosition position,
+                                        Direction direction,
+                                        @Nullable Item oldItem,
+                                        @Nullable Item newItem) {
+        for (ProtectionLogger logger : this.protectionLoggerArray) {
+            try {
+                logger.logItemFrameTransaction(player, position, direction, oldItem, newItem);
+            } catch (Throwable e) {
+                this.plugin.logger().warn("Failed to log item frame transaction with " + logger.plugin(), e);
+            }
+        }
     }
 
     @Override
@@ -210,7 +251,22 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     }
 
     @Override
+    public void onInitialResourcesLoaded() {
+        // 初始资源加载完成后（早于 Denizen 首个 tick 的脚本解析），登记命名空间供事件匹配器使用
+        if (this.isPluginEnabled("Denizen")) {
+            try {
+                DenizenHook.registerNamespacesAsNotSwitches();
+            } catch (Throwable e) {
+                this.plugin.logger().warn("Failed to register CraftEngine namespaces to Denizen", e);
+            }
+        }
+    }
+
+    @Override
     public void onDelayedEnable() {
+        if (this.isPluginEnabled("CoreProtect")) {
+            runCatchingHook(() -> registerProtectionLogger(new CoreProtectProtectionLogger()), "CoreProtect");
+        }
         if (this.isPluginEnabled("PlaceholderAPI")) {
             runCatchingHook(() -> {
                 PlaceholderAPIUtils.registerExpansions(this.plugin);
@@ -222,6 +278,26 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         }
         if (this.isPluginEnabled("Skript")) {
             runCatchingHook(SkriptHook::register, "Skript");
+        }
+        if (this.isPluginEnabled("Vault")) {
+            runCatchingHook(() -> {
+                VaultUtils.init();
+                if (VaultUtils.hasEconomy()) {
+                    CommonConditions.register(Key.ce("has_money"), HasMoneyCondition.factory());
+                    CommonFunctions.register(Key.ce("take_money"), TakeMoneyFunction.factory(CommonConditions::fromConfig));
+                    CommonFunctions.register(Key.ce("give_money"), GiveMoneyFunction.factory(CommonConditions::fromConfig));
+                } else {
+                    registerVaultFallbacks();
+                }
+            }, "Vault");
+        } else {
+            registerVaultFallbacks();
+        }
+        // 必须在 onDelayedEnable 注册：CraftEngine 是 paper 插件，先于 legacy 插件 Denizen 完成 enable，
+        // 此时尚无法检测到 Denizen；而本方法在首个 tick 执行（Denizen 已 enable），
+        // 且本任务的排队早于 Denizen 同 tick 的脚本解析任务，事件索引构建前注册完成
+        if (this.isPluginEnabled("Denizen")) {
+            runCatchingHook(DenizenHook::register, "Denizen");
         }
         if (this.isPluginEnabled("MythicMobs")) {
             runCatchingHook(() -> {
@@ -294,7 +370,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     public void registerTagResolverProvider(TagResolverProvider provider) {
         this.tagResolverProviders.put(provider.name(), provider);
         this.tagResolverProviderArray = this.tagResolverProviders.values().toArray(new TagResolverProvider[0]);
-        FormattedLine.Companion.resetWithCustomResolvers(new ArrayList<>(this.tagResolverProviders.keySet()));
+        AdventureHelper.refreshExternalTagResolvers();
     }
 
     private void logHook(String plugin) {
@@ -318,8 +394,14 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
         this.hasLuckPerms = true;
     }
 
+    private void registerVaultFallbacks() {
+        CommonConditions.register(Key.ce("has_money"), AlwaysFalseCondition.factory());
+        CommonFunctions.register(Key.ce("take_money"), section -> DummyFunction.INSTANCE);
+        CommonFunctions.register(Key.ce("give_money"), section -> DummyFunction.INSTANCE);
+    }
+
     private void initSlimeWorldHook() {
-        WorldManager worldManager = this.plugin.worldManager();
+        BukkitWorldManager worldManager = this.plugin.worldManager();
         if (VersionHelper.isOrAbove1_21_4) {
             try {
                 Class.forName("com.infernalsuite.asp.api.AdvancedSlimePaperAPI");
@@ -434,12 +516,12 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
     }
 
     @Override
-    public TagResolver[] createExternalTagResolvers(Context context) {
+    public TagResolver[] createExternalTagResolvers() {
         if (this.tagResolverProviderArray == null) return null;
         int length = this.tagResolverProviderArray.length;
         TagResolver[] resolvers = new TagResolver[length];
         for (int i = 0; i < length; i++) {
-            resolvers[i] = this.tagResolverProviderArray[i].getTagResolver(context);
+            resolvers[i] = this.tagResolverProviderArray[i].getTagResolver();
         }
         return resolvers;
     }
@@ -458,7 +540,7 @@ public final class BukkitCompatibilityManager implements CompatibilityManager {
 
     @Override
     public boolean hasPermission(NetWorkUser user, String permission) {
-        if (user.platformPlayer() instanceof org.bukkit.entity.Player player) {
+        if (((Player) user).platformPlayer() instanceof org.bukkit.entity.Player player) {
             return player.hasPermission(permission);
         }
         if (this.hasLuckPerms) {

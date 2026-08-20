@@ -49,6 +49,7 @@ public final class CommonFunctions {
     public static final CommonFunctionType<RotateFurnitureFunction<Context>> ROTATE_FURNITURE = register(Key.ce("rotate_furniture"), RotateFurnitureFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<SetFurnitureVariantFunction<Context>> SET_FURNITURE_VARIANT = register(Key.ce("set_furniture_variant"), SetFurnitureVariantFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<TeleportFunction<Context>> TELEPORT = register(Key.ce("teleport"), TeleportFunction.factory(CommonConditions::fromConfig));
+    public static final CommonFunctionType<TransferFunction<Context>> TRANSFER = register(Key.ce("transfer"), TransferFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<SetVariableFunction<Context>> SET_VARIABLE = register(Key.ce("set_variable"), SetVariableFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<ToastFunction<Context>> TOAST = register(Key.ce("toast"), ToastFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<DamageFunction<Context>> DAMAGE = register(Key.ce("damage"), DamageFunction.factory(CommonConditions::fromConfig));
@@ -65,6 +66,7 @@ public final class CommonFunctions {
     public static final CommonFunctionType<PlayTotemAnimationFunction<Context>> PLAY_TOTEM_ANIMATION = register(Key.ce("play_totem_animation"), PlayTotemAnimationFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<CloseInventoryFunction<Context>> CLOSE_INVENTORY = register(Key.ce("close_inventory"), CloseInventoryFunction.factory(CommonConditions::fromConfig));
     public static final CommonFunctionType<ClearItemFunction<Context>> CLEAR_ITEM = register(Key.ce("clear_item"), ClearItemFunction.factory(CommonConditions::fromConfig));
+    public static final CommonFunctionType<JsFunction<Context>> JS = register(Key.ce("js"), JsFunction.factory(CommonConditions::fromConfig));
 
     private CommonFunctions() {}
 

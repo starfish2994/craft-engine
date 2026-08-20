@@ -5,6 +5,7 @@ import net.momirealms.craftengine.core.item.component.value.Enchantment;
 import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.loot.function.formula.Formula;
 import net.momirealms.craftengine.core.loot.function.formula.Formulas;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -41,7 +42,7 @@ public final class ApplyBonusCountFunction extends AbstractLootConditionalFuncti
         @Override
         public ApplyBonusCountFunction create(ConfigSection section) {
             return new ApplyBonusCountFunction(
-                    section.getList("conditions", CommonConditions::fromConfig),
+                    section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig),
                     section.getNonNullIdentifier("enchantment"),
                     Formulas.fromConfig(section.getNonNullSection("formula"))
             );

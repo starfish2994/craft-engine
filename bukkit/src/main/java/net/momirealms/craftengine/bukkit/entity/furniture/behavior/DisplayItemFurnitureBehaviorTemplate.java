@@ -21,6 +21,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSource;
@@ -309,8 +310,8 @@ public final class DisplayItemFurnitureBehaviorTemplate extends FurnitureBehavio
 
     // 工厂类
     private static class Factory implements FurnitureBehaviorFactory<DisplayItemFurnitureBehaviorTemplate> {
-        private static final String[] ITEM_POSITION = new String[] {"item_position", "item-position"};
-        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
+        private static final String[] ITEM_POSITION = ConfigKeys.of("item_position");
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
 
         @Override
         public DisplayItemFurnitureBehaviorTemplate create(FurnitureDefinition furniture, ConfigSection section) {

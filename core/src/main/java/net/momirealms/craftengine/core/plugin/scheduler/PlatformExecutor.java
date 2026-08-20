@@ -46,4 +46,8 @@ public interface PlatformExecutor extends Executor {
     SchedulerTask runRepeating(Runnable r, long delay, long period, World world, int x, int z);
 
     SchedulerTask runRepeating(Runnable r, Runnable retired, long delay, long period, Entity entity);
+
+    SchedulerTask runAsyncLater(Runnable r, long delayTicks);
+
+    SchedulerTask runAsyncRepeating(Runnable r, long delayTicks, long periodTicks);
 }

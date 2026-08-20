@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.block.entity.render.display;
 import net.momirealms.craftengine.core.entity.display.Billboard;
 import net.momirealms.craftengine.core.entity.display.ItemDisplayContext;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
@@ -13,10 +14,10 @@ import org.joml.Vector3f;
 import java.util.List;
 
 public final class DestroyStageDisplayEntitySetting {
-    private static final String[] DISPLAY_CONTEXT = new String[]{"display_context", "display_transform", "display-context", "display-transform"};
-    private static final String[] VIEW_RANGE = new String[]{"view_range", "view-range"};
-    private static final String[] BLOCK_LIGHT = new String[]{"block_light", "block-light"};
-    private static final String[] SKY_LIGHT = new String[]{"sky_light", "sky-light"};
+    private static final String[] DISPLAY_CONTEXT = ConfigKeys.of("display_(context|transform)");
+    private static final String[] VIEW_RANGE = ConfigKeys.of("view_range");
+    private static final String[] BLOCK_LIGHT = ConfigKeys.of("block_light");
+    private static final String[] SKY_LIGHT = ConfigKeys.of("sky_light");
 
     public final List<Key> items;
     public final Vector3f position;

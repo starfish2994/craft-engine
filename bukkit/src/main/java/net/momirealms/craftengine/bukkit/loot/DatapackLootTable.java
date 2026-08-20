@@ -32,7 +32,7 @@ public class DatapackLootTable implements Loot {
     public LazyReference<Object> minecraftLootTable;
 
     public DatapackLootTable(Key identifier) {
-        this.minecraftLootTable = LazyReference.lazyReference(() -> {
+        this.minecraftLootTable = LazyReference.untilNotNull(() -> {
             Object minecraftServer = MinecraftServerProxy.INSTANCE.getServer();
             // 1.20.5 +
             if (VersionHelper.isOrAbove1_20_5) {
@@ -75,14 +75,12 @@ public class DatapackLootTable implements Loot {
 
     @Override
     public void getRandomItems(LootContext context, Consumer<Item> lootConsumer) {
-        if (context instanceof BukkitLootContext bukkitLootContext) {
-            Object minecraftLootParamsBuilder = bukkitLootContext.getMinecraftLootParamsBuilder();
-            Object lootParams = LootParamsProxy.BuilderProxy.INSTANCE.create(minecraftLootParamsBuilder, ALL_OPTIONAL_PARAMS);
-            Object lootTable = minecraftLootTable.get();
-            List<Object> dropItems = LootTableProxy.INSTANCE.getRandomItems(lootTable, lootParams);
-            for (int i = 0; i < dropItems.size(); i++) {
-                lootConsumer.accept(ItemStackUtils.wrap(dropItems.get(i)));
-            }
+        Object minecraftLootParamsBuilder = BukkitLootManager.instance().createMinecraftLootParamsBuilder(context);
+        Object lootParams = LootParamsProxy.BuilderProxy.INSTANCE.create(minecraftLootParamsBuilder, ALL_OPTIONAL_PARAMS);
+        Object lootTable = minecraftLootTable.get();
+        List<Object> dropItems = LootTableProxy.INSTANCE.getRandomItems(lootTable, lootParams);
+        for (int i = 0; i < dropItems.size(); i++) {
+            lootConsumer.accept(ItemStackUtils.wrap(dropItems.get(i)));
         }
     }
 

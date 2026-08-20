@@ -21,7 +21,7 @@ public final class ModelEngineBlockEntityElement extends AbstractConstantBlockEn
         super(config.predicate, config.hasCondition);
         this.config = config;
         Vector3f position = config.position();
-        this.location = new Location((org.bukkit.World) world.platformWorld(), pos.x() + position.x, pos.y() + position.y, pos.z() + position.z, config.yaw(), config.pitch());
+        this.location = new Location((org.bukkit.World) world.platformWorld(), pos.x() + (double) position.x, pos.y() + (double) position.y, pos.z() + (double) position.z, config.yaw(), config.pitch());
         this.dummy = createDummy();
     }
 

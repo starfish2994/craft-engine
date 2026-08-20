@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import net.momirealms.craftengine.core.pack.host.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.GsonHelper;
@@ -163,7 +164,7 @@ public final class OpenListHost implements ResourcePackHost {
                 HttpClientManager.get().sendAsync(request, HttpResponse.BodyHandlers.ofString())
                         .thenAccept(resp -> {
                             if (resp.statusCode() == 200) {
-                                this.cachedSha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
+                                this.cachedSha1 = HashUtils.sha1(resourcePackPath);
                                 saveCacheToDisk();
                                 future.complete(null);
                             } else {
@@ -274,13 +275,13 @@ public final class OpenListHost implements ResourcePackHost {
     }
 
     private static class Factory implements ResourcePackHostFactory<OpenListHost> {
-        private static final String[] USE_ENVIRONMENT_VARIABLES = new String[] {"use_environment_variables", "use-environment-variables"};
-        private static final String[] API_URL = new String[] {"api_url", "api-url"};
-        private static final String[] JWT_TOKEN_EXPIRATION = new String[] {"jwt_token_expiration", "jwt-token-expiration"};
-        private static final String[] UPLOAD_PATH = new String[] {"upload_path", "upload-path"};
-        private static final String[] DISABLE_UPLOAD = new String[] {"disable_upload", "disable-upload"};
-        private static final String[] OPT_CODE = new String[] {"otp_code", "otp-code"};
-        private static final String[] CACHE_FILE_NAME = new String[] {"cache_file_name", "cache-file-name"};
+        private static final String[] USE_ENVIRONMENT_VARIABLES = ConfigKeys.of("use_environment_variables");
+        private static final String[] API_URL = ConfigKeys.of("api_url");
+        private static final String[] JWT_TOKEN_EXPIRATION = ConfigKeys.of("jwt_token_expiration");
+        private static final String[] UPLOAD_PATH = ConfigKeys.of("upload_path");
+        private static final String[] DISABLE_UPLOAD = ConfigKeys.of("disable_upload");
+        private static final String[] OPT_CODE = ConfigKeys.of("otp_code");
+        private static final String[] CACHE_FILE_NAME = ConfigKeys.of("cache_file_name");
 
         @Override
         public OpenListHost create(ConfigSection section) {

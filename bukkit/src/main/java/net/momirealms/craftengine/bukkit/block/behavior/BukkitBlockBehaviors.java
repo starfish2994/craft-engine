@@ -61,6 +61,7 @@ public final class BukkitBlockBehaviors extends BlockBehaviors {
     public static final BlockBehaviorType<VineCropHeadBlockBehavior> VINE_CROP_HEAD_BLOCK = register(Key.ce("vine_crop_head_block"), VineCropHeadBlockBehavior.FACTORY);
     public static final BlockBehaviorType<VineCropBodyBlockBehavior> VINE_CROP_BODY_BLOCK = register(Key.ce("vine_crop_body_block"), VineCropBodyBlockBehavior.FACTORY);
     public static final BlockBehaviorType<DecayBlockBehavior> DECAY_BLOCK = register(Key.ce("decay_block"), DecayBlockBehavior.FACTORY);
+    public static final BlockBehaviorType<SeagrassLikeBlockBehavior> SEAGRASS_LIKE_BLOCK = register(Key.ce("seagrass_like_block"), SeagrassLikeBlockBehavior.FACTORY);
 
     public static void init() {
     }

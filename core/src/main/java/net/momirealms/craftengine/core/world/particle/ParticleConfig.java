@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.world.particle;
 
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.util.Key;
@@ -43,9 +44,9 @@ public final class ParticleConfig {
         this.particleData = particleData;
     }
 
-    private static final String[] OFFSET_X = new String[] {"offset_x", "offset-x"};
-    private static final String[] OFFSET_Y = new String[] {"offset_y", "offset-y"};
-    private static final String[] OFFSET_Z = new String[] {"offset_z", "offset-z"};
+    private static final String[] OFFSET_X = ConfigKeys.of("offset_x");
+    private static final String[] OFFSET_Y = ConfigKeys.of("offset_y");
+    private static final String[] OFFSET_Z = ConfigKeys.of("offset_z");
 
     public static ParticleConfig fromConfig$function(ConfigSection section) {
         Key particleType = section.getNonNullIdentifier("particle");

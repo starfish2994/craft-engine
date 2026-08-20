@@ -19,6 +19,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.SimpleContext;
@@ -240,13 +241,13 @@ public final class CropBlockBehavior extends BukkitBlockBehavior implements Bone
     }
 
     private static class Factory implements BlockBehaviorFactory<CropBlockBehavior> {
-        private static final String[] GROW_SPEED = new String[]{"grow_speed", "grow-speed"};
-        private static final String[] LIGHT_REQUIREMENT = new String[]{"light_requirement", "light-requirement"};
-        private static final String[] MAX_LIGHT_REQUIREMENT = new String[]{"max_light_requirement", "max-light-requirement"};
-        private static final String[] IS_BONE_MEAL_TARGET = new String[]{"is_bone_meal_target", "is-bone-meal-target"};
-        private static final String[] AGE_BONUS = new String[]{"bone_meal_age_bonus", "bone-meal-age-bonus"};
-        private static final String[] SPAWN_LIGHT_REQUIREMENT = new String[]{"spawn_light_requirement", "spawn-light-requirement"};
-        private static final String[] MAX_SPAWN_LIGHT_REQUIREMENT = new String[]{"max_spawn_light_requirement", "max-spawn-light-requirement"};
+        private static final String[] GROW_SPEED = ConfigKeys.of("grow_speed");
+        private static final String[] LIGHT_REQUIREMENT = ConfigKeys.of("light_requirement");
+        private static final String[] MAX_LIGHT_REQUIREMENT = ConfigKeys.of("max_light_requirement");
+        private static final String[] IS_BONE_MEAL_TARGET = ConfigKeys.of("is_bone_meal_target");
+        private static final String[] AGE_BONUS = ConfigKeys.of("bone_meal_age_bonus");
+        private static final String[] SPAWN_LIGHT_REQUIREMENT = ConfigKeys.of("spawn_light_requirement");
+        private static final String[] MAX_SPAWN_LIGHT_REQUIREMENT = ConfigKeys.of("max_spawn_light_requirement");
 
         @Override
         public CropBlockBehavior create(BlockDefinition block, ConfigSection section) {

@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.condition;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -30,7 +31,7 @@ public final class InvertedCondition<CTX extends Context> implements Condition<C
     }
 
     private record Factory<CTX extends Context>(Function<ConfigSection, Condition<CTX>> factory) implements ConditionFactory<CTX, InvertedCondition<CTX>> {
-        private static final String[] TERMS = new String[] {"terms", "term"};
+        private static final String[] TERMS = ConfigKeys.of("term(s)");
 
         @Override
         public InvertedCondition<CTX> create(ConfigSection section) {

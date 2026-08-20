@@ -17,12 +17,20 @@ public final class Pack {
     private final PackMeta meta;
     private final boolean enabled;
     private final String[] subpacks;
+    private final Path[] resourcePackFolders;
+    private final Path[] configurationFolders;
+    private final Path[] blueprintFolders;
+    private final Path[] scriptFolders;
 
     public Pack(Path folder, PackMeta meta, boolean enabled, String[] subpacks) {
         this.folder = folder;
         this.meta = meta;
         this.enabled = enabled;
         this.subpacks = subpacks;
+        this.resourcePackFolders = expandFolders("resourcepack");
+        this.configurationFolders = expandFolders("configuration");
+        this.blueprintFolders = expandFolders("blueprint");
+        this.scriptFolders = expandFolders("script");
     }
 
     public String name() {
@@ -50,7 +58,7 @@ public final class Pack {
      * used for storing third-party resource packs.
      */
     public Path resourcePackFolder() {
-        return this.folder.resolve("resourcepack");
+        return this.resourcePackFolders[0];
     }
 
     /**
@@ -58,25 +66,50 @@ public final class Pack {
      * used for storing configuration files related to the resource packs.
      */
     public Path configurationFolder() {
-        return this.folder.resolve("configuration");
+        return this.configurationFolders[0];
+    }
+
+    /**
+     * Returns the 'blueprint' folder within the specified directory,
+     * used for storing Blockbench .bbmodel files referenced by 'blueprint' options.
+     */
+    public Path blueprintFolder() {
+        return this.blueprintFolders[0];
+    }
+
+    /**
+     * Returns the 'script' folder within the specified directory,
+     * used for storing js scripts.
+     */
+    public Path scriptFolder() {
+        return this.scriptFolders[0];
     }
 
     public Path[] resourcePackFolders() {
-        if (this.subpacks.length == 0) return new Path[] {resourcePackFolder()};
-        Path[] folders = new Path[1 + this.subpacks.length];
-        folders[0] = resourcePackFolder();
-        for (int i = 1; i <= this.subpacks.length; i++) {
-            folders[i] = this.folder.resolve("subpacks").resolve(this.subpacks[i - 1]).resolve("resourcepack");
-        }
-        return folders;
+        return this.resourcePackFolders;
     }
 
     public Path[] configurationFolders() {
-        if (this.subpacks.length == 0) return new Path[] {configurationFolder()};
+        return this.configurationFolders;
+    }
+
+    public Path[] blueprintFolders() {
+        return this.blueprintFolders;
+    }
+
+    public Path[] scriptFolders() {
+        return this.scriptFolders;
+    }
+
+    /**
+     * Returns the named folder of this pack and of every subpack,
+     * main pack first.
+     */
+    private Path[] expandFolders(String name) {
         Path[] folders = new Path[1 + this.subpacks.length];
-        folders[0] = configurationFolder();
+        folders[0] = this.folder.resolve(name);
         for (int i = 1; i <= this.subpacks.length; i++) {
-            folders[i] = this.folder.resolve("subpacks").resolve(this.subpacks[i - 1]).resolve("configuration");
+            folders[i] = this.folder.resolve("subpacks").resolve(this.subpacks[i - 1]).resolve(name);
         }
         return folders;
     }

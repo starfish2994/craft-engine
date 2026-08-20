@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxCo
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxPart;
 import net.momirealms.craftengine.core.entity.seat.SeatConfig;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.MiscUtils;
@@ -303,10 +304,10 @@ public final class ShulkerFurnitureHitboxConfig extends AbstractFurnitureHitBoxC
     }
 
     private static class Factory implements FurnitureHitBoxConfigFactory<ShulkerFurnitureHitbox> {
-        private static final String[] CAN_USE_ITEM_ON = new String[] {"can_use_item_on", "can-use-item-on"};
-        private static final String[] BLOCKS_BUILDING = new String[] {"blocks_building", "blocks-building"};
-        private static final String[] CAN_BE_HIT_BY_PROJECTILE = new String[] {"can_be_hit_by_projectile", "can-be-hit-by-projectile"};
-        private static final String[] INTERACTION_ENTITY = new String[] {"interaction_entity", "interaction-entity"};
+        private static final String[] CAN_USE_ITEM_ON = ConfigKeys.of("can_use_item_on");
+        private static final String[] BLOCKS_BUILDING = ConfigKeys.of("blocks_building");
+        private static final String[] CAN_BE_HIT_BY_PROJECTILE = ConfigKeys.of("can_be_hit_by_projectile");
+        private static final String[] INTERACTION_ENTITY = ConfigKeys.of("interaction_entity");
 
         @Override
         public ShulkerFurnitureHitboxConfig create(ConfigSection section) {

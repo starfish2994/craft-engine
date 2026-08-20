@@ -1,30 +1,22 @@
 package net.momirealms.craftengine.core.plugin.text.minimessage;
 
-import net.kyori.adventure.text.minimessage.ParsingException;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
+import net.momirealms.sparrow.message.ParsingException;
+import net.momirealms.sparrow.message.tag.Tag;
+import net.momirealms.sparrow.message.tag.resolver.ArgumentQueue;
+import net.momirealms.sparrow.message.tag.resolver.StaticTagResolver;
+import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public final class I18NTag implements TagResolver {
+public final class I18NTag extends StaticTagResolver {
     public static final TagResolver INSTANCE = new I18NTag();
 
-    private I18NTag() {}
+    private I18NTag() { super("i18n"); }
 
     @Override
-    public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull net.kyori.adventure.text.minimessage.Context ctx) throws ParsingException {
-        if (!this.has(name)) {
-            return null;
-        }
+    public Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull net.momirealms.sparrow.message.Context ctx) throws ParsingException {
         String i18nKey = arguments.popOr("No argument i18n key provided").toString();
         String translation = TranslationManager.instance().miniMessageTranslation(i18nKey);
         return Tag.selfClosingInserting(ctx.deserialize(translation));
-    }
-
-    @Override
-    public boolean has(@NotNull String name) {
-        return "i18n".equals(name);
     }
 }

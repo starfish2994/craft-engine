@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfig;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfigFactory;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -52,7 +53,7 @@ public final class ModelEngineFurnitureElementConfig implements FurnitureElement
 
         @Override
         public FurnitureElementConfig<ModelEngineFurnitureElement> create(ConfigSection section) {
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             return new ModelEngineFurnitureElementConfig(
                     section.getNonEmptyString("model"),
                     section.getVector3f("position", ConfigConstants.ZERO_VECTOR3),

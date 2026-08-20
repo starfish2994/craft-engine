@@ -20,7 +20,7 @@ dependencies {
     compression(project)
     adventure(project)
     // S3
-    implementation("net.momirealms:craft-engine-s3:0.21")
+    implementation("net.momirealms:craft-engine-s3:0.22")
     // Util
     compileOnly("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
     // Reflection
@@ -30,6 +30,9 @@ dependencies {
 
 tasks.shadowJar {
     relocation.applyCommon(this)
+    val adventureBundle = project(":core:adventure").tasks.shadowJar
+    dependsOn(adventureBundle)
+    from({ zipTree(adventureBundle.get().archiveFile) })
     archiveClassifier = ""
     archiveFileName = "craft-engine-core-${rootProject.properties["project_version"]}.jar"
 }

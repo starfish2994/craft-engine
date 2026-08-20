@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxCo
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfigFactory;
 import net.momirealms.craftengine.core.entity.seat.SeatConfig;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
@@ -64,10 +65,10 @@ public final class HappyGhastFurnitureHitboxConfig extends AbstractFurnitureHitB
     }
 
     private static class Factory implements FurnitureHitBoxConfigFactory<HappyGhastFurnitureHitbox> {
-        private static final String[] CAN_USE_ITEM_ON = new String[] {"can_use_item_on", "can-use-item-on"};
-        private static final String[] BLOCKS_BUILDING = new String[] {"blocks_building", "blocks-building"};
-        private static final String[] CAN_BE_HIT_BY_PROJECTILE = new String[] {"can_be_hit_by_projectile", "can-be-hit-by-projectile"};
-        private static final String[] HARD_COLLISION = new String[] {"hard_collision", "hard-collision"};
+        private static final String[] CAN_USE_ITEM_ON = ConfigKeys.of("can_use_item_on");
+        private static final String[] BLOCKS_BUILDING = ConfigKeys.of("blocks_building");
+        private static final String[] CAN_BE_HIT_BY_PROJECTILE = ConfigKeys.of("can_be_hit_by_projectile");
+        private static final String[] HARD_COLLISION = ConfigKeys.of("hard_collision");
 
         @Override
         public FurnitureHitBoxConfig<HappyGhastFurnitureHitbox> create(ConfigSection section) {

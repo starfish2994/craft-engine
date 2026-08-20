@@ -10,13 +10,13 @@ import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.number.ConstantNumberProvider;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
-import net.momirealms.craftengine.core.util.random.ThreadLocalRandomSource;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.DirectionProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
@@ -58,7 +58,7 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
     @Override
     public void onPlace(Object thisBlock, Object[] args) {
         if (this.useRandomTick) return;
-        LevelAccessorProxy.INSTANCE.scheduleTick$0(args[1], args[2], thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
+        LevelAccessorProxy.INSTANCE.scheduleTick$0(args[1], args[2], thisBlock, this.delay.getInt());
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -69,17 +69,17 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
         Object pos = args[2];
         ImmutableBlockState blockState = BlockStateUtils.getNullableCustomBlockState(args[0]);
         if (blockState == null || blockState.isEmpty()) {
-            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
+            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt());
             return;
         }
-        if (this.hasRequiredLight && getLight(level, pos) < this.requiredLight || RandomUtils.generateRandomDouble() > this.chance.getDouble(ThreadLocalRandomSource.INSTANCE)) {
-            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
+        if (this.hasRequiredLight && getLight(level, pos) < this.requiredLight || RandomUtils.generateRandomDouble() > this.chance.getDouble()) {
+            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt());
             return;
         }
         int age = blockState.get(this.ageProperty);
         if (age < this.ageProperty.max) {
             LevelWriterProxy.INSTANCE.setBlock(level, pos, blockState.with(this.ageProperty, age + 1).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
-            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt(ThreadLocalRandomSource.INSTANCE));
+            LevelAccessorProxy.INSTANCE.scheduleTick$0(level, pos, thisBlock, this.delay.getInt());
         } else {
             LevelWriterProxy.INSTANCE.setBlock(level, pos, this.decayInto.get().minecraftState(), UpdateFlags.UPDATE_ALL);
         }
@@ -93,7 +93,7 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
         ImmutableBlockState blockState = BlockStateUtils.getNullableCustomBlockState(args[0]);
         if (blockState == null || blockState.isEmpty()) return;
         if (this.hasRequiredLight && getLight(level, pos) < this.requiredLight) return;
-        if (RandomUtils.generateRandomDouble() > this.chance.getDouble(ThreadLocalRandomSource.INSTANCE)) return;
+        if (RandomUtils.generateRandomDouble() > this.chance.getDouble()) return;
         int age = blockState.get(this.ageProperty);
         if (age < this.ageProperty.max) {
             LevelWriterProxy.INSTANCE.setBlock(level, pos, blockState.with(this.ageProperty, age + 1).customBlockState().minecraftState(), UpdateFlags.UPDATE_CLIENTS);
@@ -121,8 +121,8 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
     }
 
     private static class Factory implements BlockBehaviorFactory<DecayBlockBehavior> {
-        private static final String[] REQUIRED_LIGHT = new String[]{"required_light", "required-light"};
-        private static final String[] DECAY_INTO = new String[]{"decay_into", "decay-into"};
+        private static final String[] REQUIRED_LIGHT = ConfigKeys.of("required_light");
+        private static final String[] DECAY_INTO = ConfigKeys.of("decay_into");
 
         @Override
         public DecayBlockBehavior create(BlockDefinition block, ConfigSection section) {
@@ -142,7 +142,7 @@ public final class DecayBlockBehavior extends BukkitBlockBehavior implements Ran
                     (IntegerProperty) BlockBehaviorFactory.getProperty(section.path(), block, "age", Integer.class),
                     delay,
                     section.getInt(REQUIRED_LIGHT, 0),
-                    LazyReference.lazyReference(() -> Objects.requireNonNull(CraftEngine.instance().blockManager().createBlockState(decayInto), decayInto)),
+                    LazyReference.untilNotNull(() -> Objects.requireNonNull(CraftEngine.instance().blockManager().createBlockState(decayInto), decayInto)),
                     section.getNumber("chance", ConfigConstants.CONSTANT_ONE)
             );
         }

@@ -5,7 +5,6 @@ import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
-import net.momirealms.craftengine.core.util.random.ThreadLocalRandomSource;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -116,7 +115,7 @@ public record SoundData(Key id, SoundValue volume, SoundValue pitch) {
 
             @Override
             public float get() {
-                return this.number.getFloat(ThreadLocalRandomSource.INSTANCE);
+                return this.number.getFloat();
             }
         }
     }

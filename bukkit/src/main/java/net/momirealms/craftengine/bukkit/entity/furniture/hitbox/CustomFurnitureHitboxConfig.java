@@ -7,10 +7,7 @@ import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.AbstractFurnitureHitBoxConfig;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBoxConfigFactory;
 import net.momirealms.craftengine.core.entity.seat.SeatConfig;
-import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
-import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.plugin.config.ConfigValue;
-import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
+import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.collision.AABB;
@@ -85,10 +82,10 @@ public final class CustomFurnitureHitboxConfig extends AbstractFurnitureHitBoxCo
     }
 
     private static class Factory implements FurnitureHitBoxConfigFactory<CustomFurnitureHitbox> {
-        private static final String[] ENTITY_TYPE = new String[] {"entity_type", "entity-type"};
-        private static final String[] CAN_USE_ITEM_ON = new String[] {"can_use_item_on", "can-use-item-on"};
-        private static final String[] BLOCKS_BUILDING = new String[] {"blocks_building", "blocks-building"};
-        private static final String[] CAN_BE_HIT_BY_PROJECTILE = new String[] {"can_be_hit_by_projectile", "can-be-hit-by-projectile"};
+        private static final String[] ENTITY_TYPE = ConfigKeys.of("entity_type");
+        private static final String[] CAN_USE_ITEM_ON = ConfigKeys.of("can_use_item_on");
+        private static final String[] BLOCKS_BUILDING = ConfigKeys.of("blocks_building");
+        private static final String[] CAN_BE_HIT_BY_PROJECTILE = ConfigKeys.of("can_be_hit_by_projectile");
 
         @Override
         public CustomFurnitureHitboxConfig create(ConfigSection section) {

@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.item.processor.OverwritableEquippableAssetIdProcessor;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
@@ -76,7 +77,7 @@ public final class ComponentBasedEquipment extends AbstractEquipment implements 
     }
 
     public record Layer(Key texture, DyeableData data, boolean usePlayerTexture) implements Supplier<JsonObject> {
-        private static final String[] USE_PLAYER_TEXTURE = new String[] {"use_player_texture", "use-player-texture"};
+        private static final String[] USE_PLAYER_TEXTURE = ConfigKeys.of("use_player_texture");
 
         @NotNull
         public static Layer fromConfig(EquipmentLayerType layer, ConfigSection section) {
@@ -122,7 +123,7 @@ public final class ComponentBasedEquipment extends AbstractEquipment implements 
         }
 
         public record DyeableData(@Nullable Integer colorWhenUndyed) implements Supplier<JsonObject> {
-            private static final String[] COLOR_WHEN_UNDYED = new String[] {"color_when_undyed", "color-when-undyed"};
+            private static final String[] COLOR_WHEN_UNDYED = ConfigKeys.of("color_when_undyed");
 
             public static DyeableData fromConfig(ConfigSection section) {
                 ConfigValue colorWhenUndyed = section.getValue(COLOR_WHEN_UNDYED);

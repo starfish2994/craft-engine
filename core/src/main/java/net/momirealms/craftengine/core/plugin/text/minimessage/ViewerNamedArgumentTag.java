@@ -1,16 +1,22 @@
 package net.momirealms.craftengine.core.plugin.text.minimessage;
 
-import net.momirealms.craftengine.core.plugin.context.Context;
-import org.jetbrains.annotations.NotNull;
+import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.plugin.context.RelationalContext;
+
+import java.util.Optional;
 
 public final class ViewerNamedArgumentTag extends NamedArgumentTag {
+    public static final ViewerNamedArgumentTag INSTANCE = new ViewerNamedArgumentTag();
 
-    public ViewerNamedArgumentTag(@NotNull Context context) {
-        super(context);
+    private ViewerNamedArgumentTag() {
+        super("viewer_arg");
     }
 
     @Override
-    public boolean has(@NotNull String name) {
-        return name.equals("viewer_arg");
+    protected Optional<?> parameter(net.momirealms.craftengine.core.plugin.context.Context context, ContextKey<?> key) {
+        if (context instanceof RelationalContext relationalContext) {
+            return relationalContext.getViewerOptionalParameter(key);
+        }
+        return Optional.empty();
     }
 }

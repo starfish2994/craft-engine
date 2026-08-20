@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.world.particle;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.LazyReference;
@@ -12,19 +13,19 @@ import java.util.Map;
 
 public final class ParticleDataTypes {
     public static final Map<Key, java.util.function.Function<ConfigSection, ParticleData>> TYPES = new HashMap<>();
-    private static final String[] BLOCK_STATE = new String[]{"blockstate", "block_state", "block-state"};
-    private static final String[] TARGET_X = new String[]{"target_x", "target-x"};
-    private static final String[] TARGET_Y = new String[]{"target_y", "target-y"};
-    private static final String[] TARGET_Z = new String[]{"target_z", "target-z"};
-    private static final String[] ARRIVAL_TIME = new String[]{"arrival_time", "arrival-time"};
-    private static final String[] WATER_BLOCKS = new String[]{"blocks", "water_blocks", "water-blocks"};
-    private static final String[] BURST_IMPULSE_BASE = new String[]{"base", "burst_impulse_base", "burst-impulse-base"};
-    private static final String[] ROLL = new String[]{"roll", "charge"};
+    private static final String[] BLOCK_STATE = ConfigKeys.of("blockstate|block_state");
+    private static final String[] TARGET_X = ConfigKeys.of("target_x");
+    private static final String[] TARGET_Y = ConfigKeys.of("target_y");
+    private static final String[] TARGET_Z = ConfigKeys.of("target_z");
+    private static final String[] ARRIVAL_TIME = ConfigKeys.of("arrival_time");
+    private static final String[] WATER_BLOCKS = ConfigKeys.of("blocks|water_blocks");
+    private static final String[] BURST_IMPULSE_BASE = ConfigKeys.of("base|burst_impulse_base");
+    private static final String[] ROLL = ConfigKeys.of("roll|charge");
 
     static {
         registerParticleData(section -> {
                     final String blockState = section.getNonNullString(BLOCK_STATE);
-                    return new BlockStateData(LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(blockState)));
+                    return new BlockStateData(LazyReference.untilNotNull(() -> CraftEngine.instance().blockManager().createBlockState(blockState)));
                 },
                 ParticleTypes.BLOCK, ParticleTypes.FALLING_DUST, ParticleTypes.DUST_PILLAR, ParticleTypes.BLOCK_CRUMBLE, ParticleTypes.BLOCK_MARKER);
         registerParticleData(section -> new ColorData(
@@ -61,7 +62,7 @@ public final class ParticleDataTypes {
                 ParticleTypes.DUST_COLOR_TRANSITION);
         registerParticleData(section -> {
                     final Key itemId = section.getNonNullIdentifier("item");
-                    return new ItemStackData(LazyReference.lazyReference(() -> Item.byId(itemId)));
+                    return new ItemStackData(LazyReference.untilNotNull(() -> Item.byId(itemId)));
                 },
                 ParticleTypes.ITEM);
         registerParticleData(section -> new VibrationData(

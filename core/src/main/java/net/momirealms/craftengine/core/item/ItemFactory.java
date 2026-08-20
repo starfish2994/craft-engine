@@ -1,8 +1,9 @@
 package net.momirealms.craftengine.core.item;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
-import net.momirealms.craftengine.core.attribute.AttributeModifier;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier;
 import net.momirealms.craftengine.core.item.component.value.Enchantment;
 import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
 import net.momirealms.craftengine.core.item.component.value.JukeboxPlayable;
@@ -15,6 +16,7 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -90,52 +92,58 @@ public abstract class ItemFactory<W extends ItemWrapper> {
 
     protected abstract Optional<Integer> customModelData(W item);
 
-    protected abstract void customNameJson(W item, String json);
+    protected abstract void customNameJson(W item, JsonElement json);
 
-    protected abstract Optional<String> customNameJson(W item);
+    protected abstract Optional<JsonElement> customNameJson(W item);
 
     protected void customNameComponent(W item, Component component) {
         if (component != null) {
-            customNameJson(item, AdventureHelper.componentToJson(component));
+            customNameJson(item, AdventureHelper.componentToJsonElement(component));
         } else {
             customNameJson(item, null);
         }
     }
 
     protected Optional<Component> customNameComponent(W item) {
-        return customNameJson(item).map(AdventureHelper::jsonToComponent);
+        return customNameJson(item).map(AdventureHelper::jsonElementToComponent);
     }
 
-    protected abstract void itemNameJson(W item, String json);
+    protected abstract void itemNameJson(W item, JsonElement json);
 
-    protected abstract Optional<String> itemNameJson(W item);
+    protected abstract Optional<JsonElement> itemNameJson(W item);
 
     protected void itemNameComponent(W item, Component component) {
         if (component != null) {
-            itemNameJson(item, AdventureHelper.componentToJson(component));
+            itemNameJson(item, AdventureHelper.componentToJsonElement(component));
         } else {
             itemNameJson(item, null);
         }
     }
 
     protected Optional<Component> itemNameComponent(W item) {
-        return itemNameJson(item).map(AdventureHelper::jsonToComponent);
+        return itemNameJson(item).map(AdventureHelper::jsonElementToComponent);
     }
 
-    protected abstract Optional<List<String>> loreJson(W item);
+    protected abstract Optional<JsonArray> loreJson(W item);
 
-    protected abstract void loreJson(W item, List<String> lore);
+    protected abstract void loreJson(W item, JsonArray lore);
 
     protected void loreComponent(W item, List<Component> component) {
         if (component != null && !component.isEmpty()) {
-            loreJson(item, component.stream().map(AdventureHelper::componentToJson).toList());
+            JsonArray lore = new JsonArray();
+            component.stream().map(AdventureHelper::componentToJsonElement).forEach(lore::add);
+            loreJson(item, lore);
         } else {
             loreJson(item, null);
         }
     }
 
     protected Optional<List<Component>> loreComponent(W item) {
-        return loreJson(item).map(list -> list.stream().map(AdventureHelper::jsonToComponent).toList());
+        return loreJson(item).map(lore -> {
+            List<Component> components = new ArrayList<>(lore.size());
+            lore.forEach(element -> components.add(AdventureHelper.jsonElementToComponent(element)));
+            return components;
+        });
     }
 
     protected abstract void skull(W item, String skullData);
@@ -230,7 +238,7 @@ public abstract class ItemFactory<W extends ItemWrapper> {
 
     protected abstract boolean isEmpty(W item);
 
-    protected abstract void attributeModifiers(W item, List<AttributeModifier> modifiers);
+    protected abstract void attributeModifiers(W item, List<VanillaAttributeModifier> modifiers);
 
     protected abstract Optional<Map<String, String>> blockState(W item);
 

@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -76,10 +77,10 @@ public final class ReplaceFurnitureFunction<CTX extends Context> extends Abstrac
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, ReplaceFurnitureFunction<CTX>> {
-        private static final String[] VARIANT = new String[] {"variant", "anchor_type", "anchor-type"};
-        private static final String[] DROP_LOOT = new String[] {"drop_loot", "drop-loot"};
-        private static final String[] PLAY_SOUND = new String[] {"play_sound", "play-sound"};
-        private static final String[] FURNITURE_ID = new String[] {"furniture_id", "furniture-id", "furniture", "id"};
+        private static final String[] VARIANT = ConfigKeys.of("variant|anchor_type");
+        private static final String[] DROP_LOOT = ConfigKeys.of("drop_loot");
+        private static final String[] PLAY_SOUND = ConfigKeys.of("play_sound");
+        private static final String[] FURNITURE_ID = ConfigKeys.of("furniture_id|furniture|id");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

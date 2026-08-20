@@ -11,11 +11,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public interface FurnitureHitBox extends SeatOwner {
+public interface FurnitureHitBox {
 
-    Seat<FurnitureHitBox>[] seats();
+    @SuppressWarnings("unchecked")
+    default Seat<SeatOwner>[] seats() {
+        return new Seat[0];
+    }
 
-    List<Collider> colliders();
+    default List<Collider> colliders() {
+        return List.of();
+    }
 
     List<FurnitureHitboxPart> parts();
 
@@ -23,9 +28,11 @@ public interface FurnitureHitBox extends SeatOwner {
 
     void hide(Player player);
 
-    FurnitureHitBoxConfig<?> config();
-
     void collectInteractableEntityId(Consumer<Integer> collector);
+
+    default boolean canUseItemOn() {
+        return false;
+    }
 
     default Optional<EntityHitResult> clip(Vec3d min, Vec3d max) {
         for (FurnitureHitboxPart value : parts()) {

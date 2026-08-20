@@ -14,8 +14,9 @@ public interface ServerboundUseItemOnPacketProxy {
     ServerboundUseItemOnPacketProxy INSTANCE = ASMProxyFactory.create(ServerboundUseItemOnPacketProxy.class);
     Class<?> CLASS = SparrowClass.find("net.minecraft.network.protocol.game.ServerboundUseItemOnPacket");
 
-    @FieldSetter(name = "timestamp")
-    void setTimestamp(Object packet, long timestamp);
+    @FieldSetter(name = "timestamp", activeIf = "has_patch=paper")
+    default void setTimestamp(Object packet, long timestamp) {
+    }
 
     @ConstructorInvoker
     Object newInstance(@Type(clazz = InteractionHandProxy.class) Object hand,

@@ -23,14 +23,14 @@ public record BetaNumberProvider(
     }
 
     @Override
-    public float getFloat(RandomSource random) {
-        return (float) getDouble(random);
+    public float getFloat(Context context) {
+        return (float) getDouble(context);
     }
 
     @Override
-    public double getDouble(RandomSource random) {
+    public double getDouble(Context context) {
         // 使用针对不同参数范围优化的生成算法
-        double x = generateStandardBeta(this.alpha, this.beta, random);
+        double x = generateStandardBeta(this.alpha, this.beta, context.random());
         // 将 [0, 1] 映射到 [min, max]
         return this.min + x * (this.max - this.min);
     }

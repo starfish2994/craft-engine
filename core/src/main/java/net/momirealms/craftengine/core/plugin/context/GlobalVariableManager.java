@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.plugin.context;
 
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.Manageable;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.config.IdValueConfigParser;
@@ -46,10 +47,12 @@ public final class GlobalVariableManager implements Manageable {
     }
 
     private final class GlobalVariableParser extends IdValueConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {
-                "global-variables", "global-variable",
-                "global_variables", "global_variable"
-        };
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("global_variable(s)");
+
+        @Override
+        public Key type() {
+            return Key.ce("global_variable");
+        }
 
         @Override
         public String[] sectionId() {

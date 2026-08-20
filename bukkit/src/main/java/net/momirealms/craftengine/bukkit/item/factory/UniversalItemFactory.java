@@ -1,22 +1,20 @@
 package net.momirealms.craftengine.bukkit.item.factory;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.momirealms.craftengine.bukkit.item.LegacyItemWrapper;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.KeyUtils;
 import net.momirealms.craftengine.bukkit.util.RegistryUtils;
-import net.momirealms.craftengine.core.attribute.AttributeModifier;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier;
 import net.momirealms.craftengine.core.item.ItemType;
 import net.momirealms.craftengine.core.item.component.value.Enchantment;
 import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
 import net.momirealms.craftengine.core.item.component.value.Trim;
 import net.momirealms.craftengine.core.item.processor.IdProcessor;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.util.Color;
-import net.momirealms.craftengine.core.util.Key;
-import net.momirealms.craftengine.core.util.SkullUtils;
-import net.momirealms.craftengine.core.util.UUIDUtils;
+import net.momirealms.craftengine.core.util.*;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.nbt.CompoundTagProxy;
 import net.momirealms.craftengine.proxy.minecraft.nbt.StringTagProxy;
@@ -127,27 +125,28 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     }
 
     @Override
-    protected void customNameJson(LegacyItemWrapper item, String json) {
+    protected void customNameJson(LegacyItemWrapper item, JsonElement json) {
         if (json != null) {
-            item.setTag(json, "display", "Name");
+            item.setTag(GsonHelper.get().toJson(json), "display", "Name");
         } else {
             item.remove("display", "Name");
         }
     }
 
     @Override
-    protected Optional<String> customNameJson(LegacyItemWrapper item) {
+    protected Optional<JsonElement> customNameJson(LegacyItemWrapper item) {
         if (!item.hasTag("display", "Name")) return Optional.empty();
-        return Optional.of(item.getTagAsJava("display", "Name"));
+        String json = item.getTagAsJava("display", "Name");
+        return Optional.of(GsonHelper.get().fromJson(json, JsonElement.class));
     }
 
     @Override
-    protected void itemNameJson(LegacyItemWrapper item, String json) {
+    protected void itemNameJson(LegacyItemWrapper item, JsonElement json) {
         customNameJson(item, json);
     }
 
     @Override
-    protected Optional<String> itemNameJson(LegacyItemWrapper item) {
+    protected Optional<JsonElement> itemNameJson(LegacyItemWrapper item) {
         return customNameJson(item);
     }
 
@@ -183,17 +182,22 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     }
 
     @Override
-    protected Optional<List<String>> loreJson(LegacyItemWrapper item) {
+    protected Optional<JsonArray> loreJson(LegacyItemWrapper item) {
         if (!item.hasTag("display", "Lore")) return Optional.empty();
-        return Optional.of(item.getTagAsJava("display", "Lore"));
+        List<String> lore = item.getTagAsJava("display", "Lore");
+        JsonArray jsonArray = new JsonArray();
+        lore.stream().map(json -> GsonHelper.get().fromJson(json, JsonElement.class)).forEach(jsonArray::add);
+        return Optional.of(jsonArray);
     }
 
     @Override
-    protected void loreJson(LegacyItemWrapper item, List<String> lore) {
+    protected void loreJson(LegacyItemWrapper item, JsonArray lore) {
         if (lore == null || lore.isEmpty()) {
             item.remove("display", "Lore");
         } else {
-            item.setTag(lore, "display", "Lore");
+            List<String> serializedLore = new ArrayList<>(lore.size());
+            lore.forEach(element -> serializedLore.add(GsonHelper.get().toJson(element)));
+            item.setTag(serializedLore, "display", "Lore");
         }
     }
 
@@ -434,9 +438,9 @@ public final class UniversalItemFactory extends BukkitItemFactory<LegacyItemWrap
     }
 
     @Override
-    protected void attributeModifiers(LegacyItemWrapper item, List<AttributeModifier> modifiers) {
+    protected void attributeModifiers(LegacyItemWrapper item, List<VanillaAttributeModifier> modifiers) {
         ListTag listTag = new ListTag();
-        for (AttributeModifier modifier : modifiers) {
+        for (VanillaAttributeModifier modifier : modifiers) {
             CompoundTag modifierTag = new CompoundTag();
             modifierTag.putString("AttributeName", modifier.type());
             modifierTag.putString("Name", modifier.id().toString());

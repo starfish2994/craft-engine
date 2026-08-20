@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Either;
+import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.model.definition.select.SelectProperties;
 import net.momirealms.craftengine.core.pack.model.definition.select.SelectProperty;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
@@ -17,6 +18,7 @@ import net.momirealms.craftengine.core.util.MinecraftVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -143,9 +145,9 @@ public final class SelectItemModel implements ItemModel {
     private static class Factory implements ItemModelFactory<SelectItemModel> {
 
         @Override
-        public SelectItemModel create(ConfigSection section) {
+        public SelectItemModel create(Pack pack, Path path, ConfigSection section) {
             SelectProperty property = SelectProperties.fromConfig(section);
-            ItemModel fallbackModel = section.getValue("fallback", ItemModels::fromConfig);
+            ItemModel fallbackModel = section.getValue("fallback", v -> ItemModels.fromConfig(pack, path, v));
             Map<Either<JsonElement, List<JsonElement>>, ItemModel> whenMap = new HashMap<>();
             ConfigValue cases = section.getNonNullValue("cases", ConfigConstants.ARGUMENT_LIST);
             cases.forEach(value -> {
@@ -157,7 +159,7 @@ public final class SelectItemModel implements ItemModel {
                 } else {
                     either = Either.right(when);
                 }
-                ItemModel model = entry.getNonNullValue("model", ConfigConstants.ARGUMENT_ITEM_MODEL_DEFINITION, ItemModels::fromConfig);
+                ItemModel model = entry.getNonNullValue("model", ConfigConstants.ARGUMENT_ITEM_MODEL_DEFINITION, v -> ItemModels.fromConfig(pack, path, v));
                 whenMap.put(either, model);
             });
             return new SelectItemModel(

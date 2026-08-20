@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.loot.function;
 
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.LootContext;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
@@ -47,7 +48,7 @@ public final class LimitCountFunction extends AbstractLootConditionalFunction {
         @Override
         public LimitCountFunction create(ConfigSection section) {
             return new LimitCountFunction(
-                    section.getList("conditions", CommonConditions::fromConfig),
+                    section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig),
                     section.getValue("min", ConfigValue::getAsNumber),
                     section.getValue("max", ConfigValue::getAsNumber)
             );

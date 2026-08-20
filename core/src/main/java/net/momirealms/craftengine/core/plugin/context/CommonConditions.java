@@ -10,10 +10,13 @@ import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
 
+import java.util.List;
+
 public final class CommonConditions {
     public static final CommonConditionType<HasPlayerCondition<Context>> HAS_PLAYER = register(Key.ce("has_player"), HasPlayerCondition.factory());
     public static final CommonConditionType<HasItemCondition<Context>> HAS_ITEM = register(Key.ce("has_item"), HasItemCondition.factory());
     public static final CommonConditionType<MatchItemCondition<Context>> MATCH_ITEM = register(Key.ce("match_item"), MatchItemCondition.factory());
+    public static final CommonConditionType<EquipmentCondition<Context>> EQUIPMENT = register(Key.ce("equipment"), EquipmentCondition.factory());
     public static final CommonConditionType<MatchEntityCondition<Context>> MATCH_ENTITY = register(Key.ce("match_entity"), MatchEntityCondition.factory());
     public static final CommonConditionType<MatchBlockCondition<Context>> MATCH_BLOCK = register(Key.ce("match_block"), MatchBlockCondition.factory());
     public static final CommonConditionType<MatchBlockPropertyCondition<Context>> MATCH_BLOCK_PROPERTY = register(Key.ce("match_block_property"), MatchBlockPropertyCondition.factory());
@@ -38,6 +41,10 @@ public final class CommonConditions {
     public static final CommonConditionType<InventoryHasItemCondition<Context>> INVENTORY_HAS_ITEM = register(Key.ce("inventory_has_item"), InventoryHasItemCondition.factory());
     public static final CommonConditionType<MatchFurnitureVariantCondition<Context>> MATCH_FURNITURE_VARIANT = register(Key.ce("match_furniture_variant"), MatchFurnitureVariantCondition.factory());
     public static final CommonConditionType<IsBedrockPlayerCondition<Context>> IS_BEDROCK_PLAYER = register(Key.ce("is_bedrock_player"), IsBedrockPlayerCondition.factory());
+    public static final CommonConditionType<JsCondition<Context>> JS = register(Key.ce("js"), JsCondition.factory());
+    public static final CommonConditionType<OpenWaterCondition<Context>> OPEN_WATER = register(Key.ce("open_water"), OpenWaterCondition.factory());
+    public static final CommonConditionType<BiomeCondition<Context>> IN_BIOME = register(Key.ce("biome"), BiomeCondition.factory());
+    public static final CommonConditionType<WorldCondition<Context>> IN_WORLD = register(Key.ce("world"), WorldCondition.factory());
 
     private CommonConditions() {}
 
@@ -49,6 +56,16 @@ public final class CommonConditions {
     }
 
     public static <CTX extends Context> Condition<CTX> fromConfig(ConfigValue value) {
+        if (value.is(List.class)) {
+            List<Condition<CTX>> list = value.getAsList(CommonConditions::fromConfig);
+            if (list.isEmpty()) {
+                return AlwaysTrueCondition.instance();
+            } else if (list.size() == 1) {
+                return list.getFirst();
+            } else {
+                return AllOfCondition.allOf(list);
+            }
+        }
         return fromConfig(value.getAsSection());
     }
 

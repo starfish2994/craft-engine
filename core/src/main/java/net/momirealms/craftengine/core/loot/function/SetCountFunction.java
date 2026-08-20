@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.loot.function;
 
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.LootContext;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -30,12 +31,12 @@ public final class SetCountFunction extends AbstractLootConditionalFunction {
     }
 
     private static class Factory implements LootFunctionFactory<SetCountFunction> {
-        private static final String[] COUNT = new String[] {"count", "amount"};
+        private static final String[] COUNT = ConfigKeys.of("count|amount");
 
         @Override
         public SetCountFunction create(ConfigSection section) {
             return new SetCountFunction(
-                    section.getList("conditions", CommonConditions::fromConfig),
+                    section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig),
                     section.getNonNullNumber(COUNT),
                     section.getBoolean("add")
             );

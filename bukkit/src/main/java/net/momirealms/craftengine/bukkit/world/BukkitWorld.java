@@ -15,7 +15,6 @@ import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.chunk.Chunk;
 import net.momirealms.craftengine.core.world.particle.ParticleData;
 import net.momirealms.craftengine.core.world.particle.ParticleType;
-import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.resources.ResourceKeyProxy;
 import net.momirealms.craftengine.proxy.minecraft.server.level.*;
@@ -29,59 +28,20 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public final class BukkitWorld implements World {
-    private final WeakReference<org.bukkit.World> bukkitWorld;
-    private final WeakReference<Object> minecraftWorld;
-    private final UUID uuid;
-    private final String worldName;
-    private final Path worldFolder;
-    private CEWorld ceWorld;
-    private WorldHeight worldHeight;
+public interface BukkitWorld extends World {
 
-    public BukkitWorld(@NotNull org.bukkit.World bukkitWorld) {
-        this.bukkitWorld = new WeakReference<>(bukkitWorld);
-        this.minecraftWorld = new WeakReference<>(CraftWorldProxy.INSTANCE.getWorld(bukkitWorld));
-        this.uuid = bukkitWorld.getUID();
-        this.worldName = bukkitWorld.getName();
-        this.worldFolder = bukkitWorld.getWorldFolder().toPath(); // 低版本没有直接获取path
+    default org.bukkit.World bukkitWorld() {
+        return (org.bukkit.World) platformWorld();
     }
 
     @Override
-    public org.bukkit.World platformWorld() {
-        return this.bukkitWorld.get();
-    }
-
-    @Override
-    public Object minecraftWorld() {
-        return this.minecraftWorld.get();
-    }
-
-    @Override
-    public CEWorld storageWorld() {
-        if (this.ceWorld == null) {
-            this.ceWorld = BukkitWorldManager.instance().getWorld(uuid());
-        }
-        return this.ceWorld;
-    }
-
-    @Override
-    public WorldHeight worldHeight() {
-        if (this.worldHeight == null) {
-            org.bukkit.World bWorld = platformWorld();
-            this.worldHeight = WorldHeight.create(bWorld.getMinHeight(), bWorld.getMaxHeight() - bWorld.getMinHeight());
-        }
-        return this.worldHeight;
-    }
-
-    @Override
-    public Chunk getChunkIfLoaded(int x, int z) {
+    default Chunk getChunkIfLoaded(int x, int z) {
         Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(this.minecraftWorld());
         Object levelChunk = LevelUtils.getChunkAtIfLoaded(chunkSource, x, z);
         if (levelChunk == null) return null;
@@ -89,99 +49,99 @@ public final class BukkitWorld implements World {
     }
 
     @Override
-    public BlockStateWrapper getBlockState(int x, int y, int z) {
-        Object blockState = BlockGetterProxy.INSTANCE.getBlockState(this.minecraftWorld(), LocationUtils.toBlockPos(x, y, z));
-        return BlockStateUtils.toBlockStateWrapper(blockState);
+    default ExistingBlock getBlock(int x, int y, int z) {
+        return new BukkitExistingBlock(bukkitWorld().getBlockAt(x, y, z));
     }
 
     @Override
-    public ExistingBlock getBlock(int x, int y, int z) {
-        return new BukkitExistingBlock(platformWorld().getBlockAt(x, y, z));
+    default String name() {
+        return bukkitWorld().getName();
     }
 
     @Override
-    public String name() {
-        return this.worldName;
-    }
-
-    @Override
-    public Key dimension() {
+    default Key dimension() {
         Object dimension = LevelProxy.INSTANCE.getDimension(this.minecraftWorld());
         return KeyUtils.identifierToKey(ResourceKeyProxy.INSTANCE.getIdentifier(dimension));
     }
 
     @Override
-    public Path directory() {
-        return this.worldFolder;
+    default Path directory() {
+        return bukkitWorld().getWorldFolder().toPath();
     }
 
     @Override
-    public UUID uuid() {
-        return this.uuid;
+    default UUID uuid() {
+        return bukkitWorld().getUID();
     }
 
     @Override
-    public void dropItemNaturally(Position location, Item item) {
+    default void dropItemNaturally(Position location, Item item) {
         ItemStack itemStack = (ItemStack) item.platformItem();
         if (ItemStackUtils.isEmpty(itemStack)) return;
         if (VersionHelper.isOrAbove1_21_2) {
-            platformWorld().dropItemNaturally(new Location(null, location.x(), location.y(), location.z()), itemStack);
+            bukkitWorld().dropItemNaturally(new Location(null, location.x(), location.y(), location.z()), itemStack);
         } else {
-            platformWorld().dropItemNaturally(new Location(null, location.x() - 0.5, location.y() - 0.5, location.z() - 0.5), itemStack);
+            bukkitWorld().dropItemNaturally(new Location(null, location.x() - 0.5, location.y() - 0.5, location.z() - 0.5), itemStack);
         }
     }
 
     @Override
-    public void dropExp(Position location, int amount) {
+    default void dropExp(Position location, int amount) {
         if (amount <= 0) return;
-        EntityUtils.spawnEntity(platformWorld(), new Location(platformWorld(), location.x(), location.y(), location.z()), EntityType.EXPERIENCE_ORB, (e) -> {
+        EntityUtils.spawnEntity(bukkitWorld(), new Location(bukkitWorld(), location.x(), location.y(), location.z()), EntityType.EXPERIENCE_ORB, (e) -> {
             ExperienceOrb orb = (ExperienceOrb) e;
             orb.setExperience(amount);
         });
     }
 
     @Override
-    public void playSound(Position location, Key sound, float volume, float pitch, SoundSource source) {
-        platformWorld().playSound(new Location(null, location.x(), location.y(), location.z()), sound.toString(), SoundUtils.toBukkit(source), volume, pitch);
+    default void playSound(Position location, Key sound, float volume, float pitch, SoundSource source) {
+        bukkitWorld().playSound(new Location(null, location.x(), location.y(), location.z()), sound.toString(), SoundUtils.toBukkit(source), volume, pitch);
     }
 
     @Override
-    public void playBlockSound(Position location, Key sound, float volume, float pitch) {
-        platformWorld().playSound(new Location(null, location.x(), location.y(), location.z()), sound.toString(), SoundCategory.BLOCKS, volume, pitch);
+    default void playBlockSound(Position location, Key sound, float volume, float pitch) {
+        bukkitWorld().playSound(new Location(null, location.x(), location.y(), location.z()), sound.toString(), SoundCategory.BLOCKS, volume, pitch);
     }
 
     @Override
-    public void spawnParticle(Position location, ParticleType particle, int count, double xOffset, double yOffset, double zOffset, double speed, @Nullable ParticleData extraData, @NotNull Context context) {
+    default void levelEvent(int id, BlockPos pos, int data) {
+        LevelAccessorProxy.INSTANCE.levelEvent(this.minecraftWorld(), id, LocationUtils.toBlockPos(pos), data);
+    }
+
+    @Override
+    default void spawnParticle(Position location, ParticleType particle, int count, double xOffset, double yOffset, double zOffset, double speed, @Nullable ParticleData extraData, @NotNull Context context) {
         Particle particleType = (Particle) particle.platformParticle();
         if (particleType == null) return;
-        org.bukkit.World platformWorld = platformWorld();
+        org.bukkit.World platformWorld = bukkitWorld();
         platformWorld.spawnParticle(particleType, location.x(), location.y(), location.z(), count, xOffset, yOffset, zOffset, speed, extraData == null ? null : ParticleUtils.toBukkitParticleData(extraData, context, platformWorld, location.x(), location.y(), location.z()));
     }
 
     @Override
-    public long time() {
-        return platformWorld().getTime();
+    default long time() {
+        return bukkitWorld().getTime();
     }
 
     @Override
-    public void setBlockState(int x, int y, int z, BlockStateWrapper blockState, int flags) {
+    default Key getNoiseBiome(int x, int y, int z) {
+        return KeyUtils.identifierToKey(LevelReaderProxy.INSTANCE.getNoiseBiome(this.minecraftWorld(), x >> 2, y >> 2, z >> 2));
+    }
+
+    @Override
+    default void setBlockState(int x, int y, int z, BlockStateWrapper blockState, int flags) {
         Object worldServer = this.minecraftWorld();
         Object blockPos = BlockPosProxy.INSTANCE.newInstance(x, y, z);
         LevelWriterProxy.INSTANCE.setBlock(worldServer, blockPos, blockState.minecraftState(), flags);
     }
 
     @Override
-    public void levelEvent(int id, BlockPos pos, int data) {
-        LevelAccessorProxy.INSTANCE.levelEvent(this.minecraftWorld(), id, LocationUtils.toBlockPos(pos), data);
+    default BlockStateWrapper getBlockState(int x, int y, int z) {
+        Object blockState = BlockGetterProxy.INSTANCE.getBlockState(this.minecraftWorld(), LocationUtils.toBlockPos(x, y, z));
+        return BlockStateUtils.toBlockStateWrapper(blockState);
     }
 
     @Override
-    public Key getNoiseBiome(int x, int y, int z) {
-        return KeyUtils.identifierToKey(LevelReaderProxy.INSTANCE.getNoiseBiome(this.minecraftWorld(), x >> 2, y >> 2, z >> 2));
-    }
-
-    @Override
-    public List<Player> getTrackedBy(ChunkPos pos) {
+    default List<Player> getTrackedBy(ChunkPos pos) {
         Object serverLevel = this.minecraftWorld();
         Object chunkSource = ServerLevelProxy.INSTANCE.getChunkSource(serverLevel);
         Object chunkMap = ServerChunkCacheProxy.INSTANCE.getChunkMap(chunkSource);
@@ -202,16 +162,5 @@ public final class BukkitWorld implements World {
             tracked.add(serverPlayer);
         }
         return tracked;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof BukkitWorld that)) return false;
-        return this.uuid.equals(that.uuid());
-    }
-
-    @Override
-    public int hashCode() {
-        return this.uuid.hashCode();
     }
 }

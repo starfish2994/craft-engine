@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.input.SmithingInput;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
@@ -144,7 +145,7 @@ public final class CustomSmithingTrimRecipe extends AbstractRecipe
 
     @SuppressWarnings({"DuplicatedCode"})
     public static class Serializer extends AbstractRecipeSerializer<CustomSmithingTrimRecipe> {
-        private static final String[] TEMPLATE_TYPE = new String[]{"template_type", "template-type"};
+        private static final String[] TEMPLATE_TYPE = ConfigKeys.of("template_type");
 
         @SuppressWarnings("unchecked")
         @Override

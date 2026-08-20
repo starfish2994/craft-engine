@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.loot.entry;
 
 import net.momirealms.craftengine.core.loot.LootContext;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -36,7 +37,7 @@ public final class AlternativesLootEntryContainer extends AbstractCompositeLootE
         @Override
         public AlternativesLootEntryContainer create(ConfigSection section) {
             return new AlternativesLootEntryContainer(
-                    section.getList("conditions", CommonConditions::fromConfig),
+                    section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig),
                     section.getList("children", LootEntryContainers::fromConfig)
             );
         }

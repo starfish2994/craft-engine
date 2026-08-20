@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfig;
 import net.momirealms.craftengine.core.entity.furniture.element.FurnitureElementConfigFactory;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -52,11 +53,11 @@ public final class BetterModelFurnitureElementConfig implements FurnitureElement
     }
 
     private static class Factory implements FurnitureElementConfigFactory<BetterModelFurnitureElement> {
-        private static final String[] SIGHT_TRACE = new String[] {"sight_trace", "sight-trace"};
+        private static final String[] SIGHT_TRACE = ConfigKeys.of("sight_trace");
 
         @Override
         public FurnitureElementConfig<BetterModelFurnitureElement> create(ConfigSection section) {
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             return new BetterModelFurnitureElementConfig(
                     section.getNonEmptyString("model"),
                     section.getVector3f("position", ConfigConstants.ZERO_VECTOR3),

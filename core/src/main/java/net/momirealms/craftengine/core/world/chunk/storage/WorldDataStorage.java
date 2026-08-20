@@ -25,6 +25,9 @@ public interface WorldDataStorage {
     @NotNull
     CEChunk readChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos, @Nullable Chunk chunkAccess) throws IOException;
 
+    default void preloadChunkAt(@NotNull CEWorld world, @NotNull ChunkPos pos, @Nullable Chunk chunkAccess) throws IOException {
+    }
+
     @Nullable
     CompoundTag readChunkTagAt(@NotNull ChunkPos pos) throws IOException;
 

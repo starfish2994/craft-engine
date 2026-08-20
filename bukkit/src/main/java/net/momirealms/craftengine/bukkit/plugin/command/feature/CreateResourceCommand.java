@@ -46,6 +46,9 @@ public final class CreateResourceCommand extends BukkitCommandFeature<CommandSen
                     }
                     Path configurationPath = packPath.resolve("configuration");
                     Path resourcepackPath = packPath.resolve("resourcepack");
+                    Path scriptPath = packPath.resolve("script");
+                    Path blueprintPath = packPath.resolve("blueprint");
+
                     Path packMetaPath = packPath.resolve("pack.yml");
                     String namespace = context.getOrDefault("namespace", packFolder);
                     if (!Identifier.isValidNamespace(namespace)) {
@@ -57,6 +60,8 @@ public final class CreateResourceCommand extends BukkitCommandFeature<CommandSen
                     try {
                         FileUtils.createDirectoriesSafe(packPath);
                         FileUtils.createDirectoriesSafe(configurationPath);
+                        FileUtils.createDirectoriesSafe(scriptPath);
+                        FileUtils.createDirectoriesSafe(blueprintPath);
                         Path namespacePath = resourcepackPath.resolve("assets").resolve(namespace);
                         FileUtils.createDirectoriesSafe(namespacePath);
                         Path modelsPath = namespacePath.resolve("models");

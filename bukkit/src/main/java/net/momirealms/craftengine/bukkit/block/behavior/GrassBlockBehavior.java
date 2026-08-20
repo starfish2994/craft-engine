@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
@@ -177,7 +178,7 @@ public final class GrassBlockBehavior extends BukkitBlockBehavior implements Bon
     }
 
     private static class Factory implements BlockBehaviorFactory<GrassBlockBehavior> {
-        private static final String[] FEATURE = new String[]{"feature", "placed_feature", "placed-feature"};
+        private static final String[] FEATURE = ConfigKeys.of("feature|placed_feature");
 
         @Override
         public GrassBlockBehavior create(BlockDefinition block, ConfigSection section) {

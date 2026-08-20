@@ -14,4 +14,7 @@ public interface DedicatedServerPropertiesProxy {
 
     @FieldSetter(name = "enforceSecureProfile")
     void setEnforceSecureProfile(Object target, boolean value);
+
+    @FieldGetter(name = "networkCompressionThreshold")
+    int getNetworkCompressionThreshold(Object target);
 }

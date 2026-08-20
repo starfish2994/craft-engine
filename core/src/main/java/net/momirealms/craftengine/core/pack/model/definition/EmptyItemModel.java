@@ -1,12 +1,14 @@
 package net.momirealms.craftengine.core.pack.model.definition;
 
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 import net.momirealms.craftengine.core.util.MiscUtils;
 
+import java.nio.file.Path;
 import java.util.function.Consumer;
 
 public final class EmptyItemModel implements ItemModel {
@@ -32,7 +34,7 @@ public final class EmptyItemModel implements ItemModel {
 
     private static class Factory implements ItemModelFactory<EmptyItemModel> {
         @Override
-        public EmptyItemModel create(ConfigSection section) {
+        public EmptyItemModel create(Pack pack, Path path, ConfigSection section) {
             return INSTANCE;
         }
     }

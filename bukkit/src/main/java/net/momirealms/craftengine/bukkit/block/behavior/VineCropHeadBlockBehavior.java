@@ -14,13 +14,13 @@ import net.momirealms.craftengine.core.block.property.BooleanProperty;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
-import net.momirealms.craftengine.core.util.random.ThreadLocalRandomSource;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.event.CraftEventFactoryProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
@@ -255,7 +255,7 @@ public final class VineCropHeadBlockBehavior extends AbstractCanSurviveBlockBeha
     // 计算骨粉催熟后生长高度
     private int getBlocksToGrowWhenBoneMealed() {
         if (this.boneMealGrowBlocks != null) {
-            this.boneMealGrowBlocks.getInt(ThreadLocalRandomSource.INSTANCE);
+            this.boneMealGrowBlocks.getInt();
         }
         return 1;
     }
@@ -275,10 +275,10 @@ public final class VineCropHeadBlockBehavior extends AbstractCanSurviveBlockBeha
     }
 
     private static class Factory implements BlockBehaviorFactory<VineCropHeadBlockBehavior> {
-        private static final String[] MAX_HEIGHT = new String[] {"max_height", "max-height"};
-        private static final String[] GROW_SPEED = new String[] {"grow_speed", "grow-speed"};
-        private static final String[] BONE_MEAL = new String[] {"bone_meal", "bone-meal"};
-        private static final String[] GROW_BLOCKS = new String[] {"grow_blocks", "grow-blocks"};
+        private static final String[] MAX_HEIGHT = ConfigKeys.of("max_height");
+        private static final String[] GROW_SPEED = ConfigKeys.of("grow_speed");
+        private static final String[] BONE_MEAL = ConfigKeys.of("bone_meal");
+        private static final String[] GROW_BLOCKS = ConfigKeys.of("grow_blocks");
 
         @Override
         public VineCropHeadBlockBehavior create(BlockDefinition block, ConfigSection section) {

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.*;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
@@ -26,12 +27,12 @@ public final class ActionBarFunction<CTX extends Context> extends AbstractCondit
     public void runInternal(CTX ctx) {
         if (this.selector == null) {
             ctx.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(it -> {
-                it.sendActionBar(AdventureHelper.miniMessage().deserialize(this.message, ctx.tagResolvers()));
+                it.sendActionBar(AdventureHelper.deserialize(this.message, ctx));
             });
         } else {
             for (Player viewer : this.selector.get(ctx)) {
                 RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
-                viewer.sendActionBar(AdventureHelper.miniMessage().deserialize(this.message, relationalContext.tagResolvers()));
+                viewer.sendActionBar(AdventureHelper.deserialize(this.message, relationalContext));
             }
         }
     }
@@ -41,7 +42,7 @@ public final class ActionBarFunction<CTX extends Context> extends AbstractCondit
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, ActionBarFunction<CTX>> {
-        private static final String[] ACTIONBAR = new String[] {"actionbar", "message"};
+        private static final String[] ACTIONBAR = ConfigKeys.of("actionbar|message");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

@@ -1,9 +1,11 @@
 package net.momirealms.craftengine.core.plugin.context.number;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.MiscUtils;
-import net.momirealms.craftengine.core.util.random.RandomSource;
+
 
 /**
  * 指数分布提供器
@@ -19,22 +21,22 @@ public record ExponentialNumberProvider(
     public static final NumberProviderFactory<ExponentialNumberProvider> FACTORY = new Factory();
 
     @Override
-    public int getInt(RandomSource random) {
-        return (int) Math.round(getDouble(random));
+    public int getInt(Context context) {
+        return (int) Math.round(getDouble(context));
     }
 
     @Override
-    public float getFloat(RandomSource random) {
-        return (float) getDouble(random);
+    public float getFloat(Context context) {
+        return (float) getDouble(context);
     }
 
     @Override
-    public double getDouble(RandomSource random) {
+    public double getDouble(Context context) {
         for (int i = 0; i < this.maxAttempts; i++) {
             // 逆变换采样法 (Inverse Transform Sampling)
             // 公式: X = -ln(1 - U) / λ  或者简单的 -ln(U) / λ
             // 其中 U 是 [0, 1) 之间的均匀分布随机数
-            double u = random.nextDouble();
+            double u = context.random().nextDouble();
             
             // 防止 u 为 0 导致 ln(0) 出现负无穷
             if (u < 1e-10) continue;
@@ -51,7 +53,7 @@ public record ExponentialNumberProvider(
     }
 
     private static class Factory implements NumberProviderFactory<ExponentialNumberProvider> {
-        private static final String[] MAX_ATTEMPTS = new String[] {"max_attempts", "max-attempts"};
+        private static final String[] MAX_ATTEMPTS = ConfigKeys.of("max_attempts");
 
         @Override
         public ExponentialNumberProvider create(ConfigSection section) {

@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.pack.model.simplified.item;
 
 import com.mojang.datafixers.util.Either;
+import net.momirealms.craftengine.core.pack.model.bbmodel.BBModelConverter;
 import net.momirealms.craftengine.core.pack.model.definition.BaseItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.CompositeItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.EmptyItemModel;
@@ -76,5 +77,16 @@ public final class GeneratedItemModelReader implements SimplifiedItemModelReader
         } else {
             return new CompositeItemModel(models.stream().map(it -> (ItemModel) new BaseItemModel(it, this.tints)).toList());
         }
+    }
+
+    @Override
+    public int modelCount() {
+        return 1;
+    }
+
+    @Override
+    public ItemModel buildFromBlueprints(List<BBModelConverter.Converted> blueprints) {
+        BBModelConverter.Converted converted = blueprints.getFirst();
+        return new BaseItemModel(converted.model(), this.tints, ModelGeneration.raw(converted.json(), converted.textures()));
     }
 }

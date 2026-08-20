@@ -353,4 +353,9 @@ public interface BlockBehaviourProxy {
         @FieldSetter(name = "id", activeIf = "min_version=1.21.2")
         void setId(Object target, Object id);
     }
+
+    @ReflectionProxy(name = "net.minecraft.world.level.block.state.BlockBehaviour$StatePredicate")
+    interface StatePredicateProxy {
+        Class<?> CLASS = SparrowClass.find("net.minecraft.world.level.block.state.BlockBehaviour$StatePredicate");
+    }
 }

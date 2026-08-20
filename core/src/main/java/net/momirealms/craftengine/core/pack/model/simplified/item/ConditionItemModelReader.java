@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.pack.model.simplified.item;
 
+import net.momirealms.craftengine.core.pack.model.bbmodel.BBModelConverter;
 import net.momirealms.craftengine.core.pack.model.definition.BaseItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.ConditionItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.ItemModel;
@@ -33,25 +34,17 @@ public final class ConditionItemModelReader implements SimplifiedItemModelReader
     public ItemModel read(ConfigValue textureValue, Optional<ConfigValue> optionalModelValue, Key id) {
         List<Key> textures = textureValue.getAsFixedSizeList(2, ConfigValue::getAsAssetPath);
         List<Key> models = optionalModelValue.map(it -> it.getAsFixedSizeList(2, ConfigValue::getAsAssetPath)).orElse(null);
-        boolean autoModel = models == null;
-        return new ConditionItemModel(
-                this.property,
-                new BaseItemModel(
-                        autoModel ? Key.of(id.namespace(), "item/" + id.value() + this.suffix) : models.getLast(),
-                        List.of(),
-                        ModelGeneration.builder()
-                                .parentModelPath(this.model)
-                                .texturesOverride(Map.of("layer0", textures.getLast().asMinimalString()))
-                                .build()
-                ),
-                new BaseItemModel(
-                        autoModel ? Key.of(id.namespace(), "item/" + id.value()) : models.getFirst(),
-                        List.of(),
-                        ModelGeneration.builder()
-                                .parentModelPath(this.model)
-                                .texturesOverride(Map.of("layer0", textures.getFirst().asMinimalString()))
-                                .build()
-                )
+        return build(
+                models != null ? models.getFirst() : Key.of(id.namespace(), "item/" + id.value()),
+                ModelGeneration.builder()
+                        .parentModelPath(this.model)
+                        .texturesOverride(Map.of("layer0", textures.getFirst().asMinimalString()))
+                        .build(),
+                models != null ? models.getLast() : Key.of(id.namespace(), "item/" + id.value() + this.suffix),
+                ModelGeneration.builder()
+                        .parentModelPath(this.model)
+                        .texturesOverride(Map.of("layer0", textures.getLast().asMinimalString()))
+                        .build()
         );
     }
 
@@ -62,6 +55,29 @@ public final class ConditionItemModelReader implements SimplifiedItemModelReader
                 this.property,
                 new BaseItemModel(models.getLast()),
                 new BaseItemModel(models.getFirst())
+        );
+    }
+
+    @Override
+    public int modelCount() {
+        return 2;
+    }
+
+    @Override
+    public ItemModel buildFromBlueprints(List<BBModelConverter.Converted> blueprints) {
+        BBModelConverter.Converted idle = blueprints.get(0);
+        BBModelConverter.Converted special = blueprints.get(1);
+        return build(
+                idle.model(), ModelGeneration.raw(idle.json(), idle.textures()),
+                special.model(), ModelGeneration.raw(special.json(), special.textures())
+        );
+    }
+
+    private ItemModel build(Key idlePath, ModelGeneration idleGeneration, Key specialPath, ModelGeneration specialGeneration) {
+        return new ConditionItemModel(
+                this.property,
+                new BaseItemModel(specialPath, List.of(), specialGeneration),
+                new BaseItemModel(idlePath, List.of(), idleGeneration)
         );
     }
 }

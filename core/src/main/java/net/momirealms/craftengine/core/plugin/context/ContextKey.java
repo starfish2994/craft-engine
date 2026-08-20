@@ -11,6 +11,9 @@ public interface ContextKey<T> {
 
     static <T> ContextKey<T> chain(@NotNull String node) {
         String[] parts = node.split("\\.");
+        if (parts.length == 1) {
+            return new Direct<>(parts[0]);
+        }
         ContextKey<T> current = null;
         for (String part : parts) {
             current = new Chain<>(part, current);

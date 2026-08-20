@@ -143,6 +143,10 @@ public final class BlockSettingsModifiers {
         boolean respect = value.getAsBoolean();
         return settings -> settings.respectToolComponent(respect);
     });
+    public static final BlockSettingsModifierType<BlockSettingsModifier> REQUIRED_BREAK_POWER = register(Key.ce("required_break_power"), value -> {
+        int power = value.getAsInt();
+        return settings -> settings.requiredBreakPower(power);
+    });
     public static final BlockSettingsModifierType<BlockSettingsModifier> USE_SHAPE_FOR_LIGHT_OCCLUSION = register(Key.ce("use_shape_for_light_occlusion"), value -> {
         boolean use = value.getAsBoolean();
         return settings -> settings.useShapeForLightOcclusion(use);
@@ -160,7 +164,7 @@ public final class BlockSettingsModifiers {
     });
     public static final BlockSettingsModifierType<BlockSettingsModifier> CORRECT_TOOLS = register(Key.ce("correct_tools"), value -> {
         List<String> tools = value.getAsStringList();
-        LazyReference<Set<Key>> correctTools = LazyReference.lazyReference(() -> {
+        LazyReference<Set<Key>> correctTools = LazyReference.untilNotNull(() -> {
             Set<Key> ids = new HashSet<>();
             for (String tool : tools) {
                 if (tool.charAt(0) == '#') ids.addAll(CraftEngine.instance().itemManager().itemIdsByTag(Key.of(tool.substring(1))).stream().map(UniqueKey::key).toList());

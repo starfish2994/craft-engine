@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.loot.function.LootFunction;
 import net.momirealms.craftengine.core.loot.function.LootFunctions;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -49,7 +50,7 @@ public final class FurnitureItemLootEntryContainer extends SingleItemLootEntryCo
         public FurnitureItemLootEntryContainer create(ConfigSection section) {
             return new FurnitureItemLootEntryContainer(
                     section.getIdentifier("item"),
-                    section.getList("conditions", CommonConditions::fromConfig),
+                    section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig),
                     section.getList("functions", LootFunctions::fromConfig),
                     section.getInt("weight", 1),
                     section.getInt("quality")

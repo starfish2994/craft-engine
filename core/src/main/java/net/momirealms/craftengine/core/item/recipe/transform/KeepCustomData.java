@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.item.recipe.transform;
 
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 
 import java.util.List;
@@ -24,7 +25,7 @@ public final class KeepCustomData implements ItemTransformDataProcessor {
     }
 
     private static class Factory implements ItemTransformDataProcessor.Factory<KeepCustomData> {
-        private static final String[] TAGS = new String[]{"tags", "paths"};
+        private static final String[] TAGS = ConfigKeys.of("tags|paths");
 
         @Override
         public KeepCustomData create(ConfigSection section) {

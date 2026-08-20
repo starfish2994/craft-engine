@@ -12,6 +12,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -25,12 +26,11 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public final class ArmorStandBlockEntityElementConfig implements BlockEntityElementConfig<ArmorStandBlockEntityElement> {
     public static final BlockEntityElementConfigFactory<ArmorStandBlockEntityElement> FACTORY = new Factory();
-    public final Function<Player, List<Object>> lazyMetadataPacket;
+    public final BlockEntityMetadataProvider lazyMetadataPacket;
     public final Key itemId;
     public final float scale;
     public final Vector3f position;
@@ -62,7 +62,7 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
         this.tintSource = tintSource;
         this.predicate = predicate;
         this.hasCondition = hasCondition;
-        this.lazyMetadataPacket = player -> {
+        this.lazyMetadataPacket = (player, ts, force) -> {
             List<Object> dataValues = new ArrayList<>(2);
             if (glowColor != null) {
                 BaseEntityData.SharedFlags.addEntityData((byte) 0x60, dataValues);
@@ -71,6 +71,8 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
             }
             if (small) {
                 ArmorStandData.ClientFlags.addEntityData((byte) 0x01, dataValues);
+            } else {
+                ArmorStandData.ClientFlags.addEntityData((byte) 0, dataValues, force);
             }
             return dataValues;
         };
@@ -148,8 +150,8 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
         return this.small;
     }
 
-    public List<Object> metadataValues(Player player) {
-        return this.lazyMetadataPacket.apply(player);
+    public List<Object> metadataValues(Player player, boolean force) {
+        return this.lazyMetadataPacket.apply(player, null, force);
     }
 
     public boolean isSamePosition(ArmorStandBlockEntityElementConfig that) {
@@ -159,12 +161,12 @@ public final class ArmorStandBlockEntityElementConfig implements BlockEntityElem
     }
 
     private static class Factory implements BlockEntityElementConfigFactory<ArmorStandBlockEntityElement> {
-        private static final String[] GLOW_COLOR = new String[] {"glow_color", "glow-color"};
-        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
+        private static final String[] GLOW_COLOR = ConfigKeys.of("glow_color");
+        private static final String[] TINT_SOURCE = ConfigKeys.of("tint_source");
 
         @Override
         public ArmorStandBlockEntityElementConfig create(ConfigSection section) {
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             return new ArmorStandBlockEntityElementConfig(
                     section.getNonNullIdentifier("item"),
                     section.getFloat("scale", 1f),

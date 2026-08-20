@@ -6,7 +6,6 @@ import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.bukkit.api.event.CustomBlockBreakEvent;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
-import net.momirealms.craftengine.bukkit.loot.BlockLootContext;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.*;
@@ -15,10 +14,8 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
-import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.customdata.BlockDebugStickData;
-import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
@@ -67,6 +64,7 @@ import java.util.Optional;
 
 import static net.momirealms.craftengine.core.block.UpdateFlags.UPDATE_CLIENTS;
 import static net.momirealms.craftengine.core.block.UpdateFlags.UPDATE_KNOWN_SHAPE;
+
 
 public final class BlockEventListener implements Listener {
     private static final String DEBUG_STICK_TAG = "craftengine:debug_stick_state";
@@ -170,12 +168,31 @@ public final class BlockEventListener implements Listener {
             }
         }
 
-        if (!BlockStateUtils.isVanillaBlock(stateId)) {
+        if (BlockStateUtils.isVanillaBlock(stateId)) {
+            // sound system
+            if (Config.enableSoundSystem() && (!event.isCancelled() || Config.processCancelledBreak())) {
+                if (BukkitItemUtils.isDebugStick(itemInHand)) return;
+                Object soundType = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(blockState);
+                Object soundEvent = SoundTypeProxy.INSTANCE.getBreakSound(soundType);
+                Object soundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
+                if (this.manager.isBreakSoundMissing(soundId)) {
+                    // creative mode + invalid item in hand
+                    if (serverPlayer.canInstabuild() && !ItemStackUtils.canBreakBlockInCreativeMode(itemInHand)) {
+                        return;
+                    }
+                    Object blockOwner = BlockStateUtils.getBlockOwner(blockState);
+                    if (blockOwner == BlocksProxy.FIRE || blockOwner == BlocksProxy.SOUL_FIRE) {
+                        return;
+                    }
+                    player.playSound(block.getLocation().add(0.5, 0.5, 0.5), soundId.toString(), SoundCategory.BLOCKS, 1f, 0.8f);
+                }
+            }
+        } else {
             ImmutableBlockState state = this.manager.getImmutableBlockStateUnsafe(stateId);
             if (!state.isEmpty()) {
                 if (!event.isCancelled()) {
                     // double check adventure mode to prevent dupe
-                    Object abilities = PlayerProxy.INSTANCE.getAbilities(serverPlayer.serverPlayer());
+                    Object abilities = PlayerProxy.INSTANCE.getAbilities(serverPlayer.minecraftPlayer());
                     if (!AbilitiesProxy.INSTANCE.isMayBuild(abilities) && !serverPlayer.canBreak(blockPos, null)) {
                         return;
                     }
@@ -215,48 +232,6 @@ public final class BlockEventListener implements Listener {
                         if (BukkitItemUtils.isDebugStick(itemInHand)) return;
                         serverPlayer.playSound(position, state.settings().sounds().breakSound(), SoundSource.BLOCK);
                     }
-                }
-            }
-        } else {
-            // override vanilla block loots
-            if (!event.isCancelled() && player.getGameMode() != GameMode.CREATIVE) {
-                this.plugin.lootManager().getBlockLoot(stateId).ifPresent(it -> {
-                    if (!event.isDropItems()) {
-                        return;
-                    }
-                    if (it.override()) {
-                        event.setDropItems(false);
-                        event.setExpToDrop(0);
-                    }
-                    ContextHolder lootContext = ContextHolder.builder()
-                            .withParameter(DirectContextParameters.BLOCK, new BukkitExistingBlock(block))
-                            .withParameter(DirectContextParameters.POSITION, position)
-                            .withParameter(DirectContextParameters.PLAYER, serverPlayer)
-                            .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.isEmpty(itemInHand) ? null : itemInHand).build();
-                    BlockLootContext blockLootContext = new BlockLootContext(world, serverPlayer, ((float) serverPlayer.luck()), lootContext, BukkitAdaptor.adapt(block), itemInHand, serverPlayer.serverPlayer());
-                    for (Loot loot : it.loots()) {
-                        for (Item item : loot.getRandomItems(blockLootContext)) {
-                            world.dropItemNaturally(position, item);
-                        }
-                    }
-                });
-            }
-            // sound system
-            if (Config.enableSoundSystem() && (!event.isCancelled() || Config.processCancelledBreak())) {
-                if (BukkitItemUtils.isDebugStick(itemInHand)) return;
-                Object soundType = BlockBehaviourProxy.BlockStateBaseProxy.INSTANCE.getSoundType(blockState);
-                Object soundEvent = SoundTypeProxy.INSTANCE.getBreakSound(soundType);
-                Object soundId = SoundEventProxy.INSTANCE.getLocation(soundEvent);
-                if (this.manager.isBreakSoundMissing(soundId)) {
-                    // creative mode + invalid item in hand
-                    if (serverPlayer.canInstabuild() && !ItemStackUtils.canBreakBlockInCreativeMode(itemInHand)) {
-                        return;
-                    }
-                    Object blockOwner = BlockStateUtils.getBlockOwner(blockState);
-                    if (blockOwner == BlocksProxy.FIRE || blockOwner == BlocksProxy.SOUL_FIRE) {
-                        return;
-                    }
-                    player.playSound(block.getLocation().add(0.5, 0.5, 0.5), soundId.toString(), SoundCategory.BLOCKS, 1f, 0.8f);
                 }
             }
         }

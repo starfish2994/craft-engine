@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.sound;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigParser;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
@@ -88,7 +89,12 @@ public abstract class AbstractSoundManager implements SoundManager {
     protected abstract void registerSounds(Collection<Key> sounds);
 
     private final class JukeboxSongParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"jukebox-songs", "jukebox-song", "jukebox_songs", "jukebox_song"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("jukebox_song(s)");
+
+        @Override
+        public Key type() {
+            return Key.ce("jukebox_song");
+        }
 
         @Override
         public String[] sectionId() {
@@ -110,7 +116,7 @@ public abstract class AbstractSoundManager implements SoundManager {
             return List.of(LoadingStages.SOUND);
         }
 
-        private static final String[] COMPARATOR = new String[] {"comparator-output", "comparator_output"};
+        private static final String[] COMPARATOR = ConfigKeys.of("comparator_output");
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
@@ -125,7 +131,12 @@ public abstract class AbstractSoundManager implements SoundManager {
     }
 
     private final class SoundParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"sounds", "sound"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("sound(s)");
+
+        @Override
+        public Key type() {
+            return Key.ce("sound");
+        }
 
         @Override
         public String[] sectionId() {
@@ -142,7 +153,7 @@ public abstract class AbstractSoundManager implements SoundManager {
             return LoadingStages.SOUND;
         }
 
-        private static final String[] SOUNDS = new String[] {"sounds", "sound"};
+        private static final String[] SOUNDS = ConfigKeys.of("sound(s)");
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {

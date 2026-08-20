@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -53,8 +54,8 @@ public final class PlaceBlockFunction<CTX extends Context> extends AbstractCondi
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, PlaceBlockFunction<CTX>> {
-        private static final String[] BLOCK_STATE = new String[] {"block_state", "block-state"};
-        private static final String[] UPDATE_FLAGS = new String[] {"update_flags", "update-flags"};
+        private static final String[] BLOCK_STATE = ConfigKeys.of("block_state");
+        private static final String[] UPDATE_FLAGS = ConfigKeys.of("update_flags");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);
@@ -69,7 +70,7 @@ public final class PlaceBlockFunction<CTX extends Context> extends AbstractCondi
                     section.getNumber("y", ConfigConstants.POSITION_Y),
                     section.getNumber("z", ConfigConstants.POSITION_Z),
                     section.getNumber(UPDATE_FLAGS, NumberProviders.direct(UpdateFlags.UPDATE_ALL)),
-                    LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(state))
+                    LazyReference.untilNotNull(() -> CraftEngine.instance().blockManager().createBlockState(state))
             );
         }
     }

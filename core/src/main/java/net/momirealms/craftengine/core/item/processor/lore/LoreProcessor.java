@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.processor.ItemProcessorFactory;
 import net.momirealms.craftengine.core.item.processor.SimpleNetworkItemProcessor;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
@@ -78,7 +79,7 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
         };
     }
 
-    String[] SPLIT_LINES = new String[] {"split_lines", "split-lines"};
+    String[] SPLIT_LINES = ConfigKeys.of("split_lines");
 
     static @NotNull List<LoreModificationHolder> getLoreModificationHolders(ConfigValue configValue) {
         MutableInt lastPriority = new MutableInt(0);
@@ -90,7 +91,7 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
                 LoreModification.Operation operation = section.getEnum("operation", LoreModification.Operation.class, LoreModification.Operation.APPEND);
                 int priority = section.getInt("priority", lastPriority.intValue());
                 boolean split = section.getBoolean(SPLIT_LINES);
-                List<Condition<ItemBuildContext>> conditions = section.getList("conditions", a -> CommonConditions.fromConfig(a.getAsSection()));
+                List<Condition<ItemBuildContext>> conditions = section.getList(ConfigKeys.of("condition(s)"), a -> CommonConditions.fromConfig(a.getAsSection()));
                 modifications.add(new LoreModificationHolder(new LoreModification(operation, split,
                         Arrays.stream(contents)
                                 .map(AdventureHelper::legacyToMiniMessage)

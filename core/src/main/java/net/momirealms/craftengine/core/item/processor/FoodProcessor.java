@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.item.processor;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
@@ -49,7 +50,7 @@ public final class FoodProcessor implements SimpleNetworkItemProcessor {
     }
 
     private static class Factory implements ItemProcessorFactory<FoodProcessor> {
-        private static final String[] CAN_ALWAYS_EAT = new String[]{"can_always_eat", "can-always-eat"};
+        private static final String[] CAN_ALWAYS_EAT = ConfigKeys.of("can_always_eat");
 
         @Override
         public FoodProcessor create(ConfigValue value) {

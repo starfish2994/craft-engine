@@ -1,6 +1,5 @@
 package net.momirealms.craftengine.core.item;
 
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
@@ -10,12 +9,22 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
+// TODO 设计的很差。未来最好重构
 public class ItemBuildContext extends PlayerOptionalContext {
-    public static final ItemBuildContext EMPTY = new ItemBuildContext(null, ContextHolder.emptyImmutable());
-    public static final TagResolver[] EMPTY_RESOLVERS = empty().tagResolvers();
+    public static final ItemBuildContext EMPTY = new ItemBuildContext(null, ContextHolder.empty());
+    protected Item item;
 
     public ItemBuildContext(@Nullable Player player, @NotNull ContextHolder contexts) {
         super(player, contexts);
+    }
+
+    public void setItem(@NotNull Item item) {
+        this.item = item;
+        this.contexts.withParameter(DirectContextParameters.ITEM, item);
+    }
+
+    public Item item() {
+        return this.item;
     }
 
     @NotNull

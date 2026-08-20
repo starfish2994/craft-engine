@@ -1,17 +1,17 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
-import net.momirealms.craftengine.core.block.setting.BlockSettings;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.LootContext;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -23,7 +23,6 @@ import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
-import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 
 import java.util.function.Predicate;
@@ -50,20 +49,11 @@ public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
             if (state == null) {
                 return;
             }
-            BlockSettings settings = state.settings();
-            if (settings.requireCorrectTool()) {
-                if (item.isEmpty()) {
-                    return;
-                }
-                boolean cannotBreak = !settings.isCorrectTool(item.id())
-                        && (!settings.respectToolComponent()
-                        || !ItemStackProxy.INSTANCE.isCorrectToolForDrops(args[3], state.customBlockState().minecraftState()));
-                if (cannotBreak) {
-                    return;
-                }
+            if (!BlockStateUtils.isCorrectTool(state, item)) {
+                return;
             }
         }
-        World world = BukkitWorldManager.instance().wrap(LevelProxy.INSTANCE.getWorld(args[1]));
+        World world = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(args[1]));
         BlockPos pos = LocationUtils.fromBlockPos(args[2]);
         tryDropExperience(world, pos, item);
     }
@@ -86,8 +76,8 @@ public final class DropExperienceBlockBehavior extends BukkitBlockBehavior {
     }
 
     private static class Factory implements BlockBehaviorFactory<DropExperienceBlockBehavior> {
-        private static final String[] AMOUNT = new String[] {"amount", "count"};
-        private static final String[] CONDITIONS = new String[] {"conditions", "condition"};
+        private static final String[] AMOUNT = ConfigKeys.of("amount|count");
+        private static final String[] CONDITIONS = ConfigKeys.of("condition(s)");
 
         @Override
         public DropExperienceBlockBehavior create(BlockDefinition block, ConfigSection section) {

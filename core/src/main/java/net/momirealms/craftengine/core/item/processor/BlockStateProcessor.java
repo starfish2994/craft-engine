@@ -53,10 +53,10 @@ public final class BlockStateProcessor implements SimpleNetworkItemProcessor {
                 for (Map.Entry<String, Object> entry : value.getAsMap().entrySet()) {
                     properties.put(entry.getKey(), entry.getValue().toString());
                 }
-                return new BlockStateProcessor(LazyReference.lazyReference(() -> properties));
+                return new BlockStateProcessor(LazyReference.untilNotNull(() -> properties));
             } else {
                 String blockStateTag = value.getAsString();
-                return new BlockStateProcessor(LazyReference.lazyReference(() -> {
+                return new BlockStateProcessor(LazyReference.untilNotNull(() -> {
                     BlockStateWrapper blockState = CraftEngine.instance().blockManager().createBlockState(blockStateTag);
                     if (blockState instanceof CustomBlockStateWrapper customBlockStateWrapper) {
                         blockState = customBlockStateWrapper.visualBlockState();

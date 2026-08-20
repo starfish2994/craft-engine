@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.block.behavior.EntityBlock;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.world.particle.ParticleConfig;
@@ -37,8 +38,8 @@ public final class WallTorchParticleBlockBehavior extends BukkitBlockBehavior im
     }
 
     private static class Factory implements BlockBehaviorFactory<WallTorchParticleBlockBehavior> {
-        private static final String[] PARTICLES = new String[] {"particles", "particle"};
-        private static final String[] TICK_INTERVAL = new String[] {"tick_interval", "tick-interval"};
+        private static final String[] PARTICLES = ConfigKeys.of("particle(s)");
+        private static final String[] TICK_INTERVAL = ConfigKeys.of("tick_interval");
 
         @Override
         public WallTorchParticleBlockBehavior create(BlockDefinition block, ConfigSection section) {

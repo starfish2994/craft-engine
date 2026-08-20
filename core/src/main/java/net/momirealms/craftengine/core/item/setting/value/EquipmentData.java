@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.item.setting.value;
 
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
@@ -55,14 +56,14 @@ public final class EquipmentData {
         this.shearingSound = shearingSound;
     }
 
-    private static final String[] ASSET_ID = new String[] {"asset_id", "asset-id"};
-    private static final String[] CAMERA_OVERLAY = new String[] {"camera_overlay", "camera-overlay"};
-    private static final String[] EQUIP_ON_INTERACT = new String[] {"equip_on_interact", "equip-on-interact"};
-    private static final String[] DAMAGE_ON_HURT = new String[] {"damage_on_hurt", "damage-on-hurt"};
-    private static final String[] CAN_BE_SHEARED = new String[] {"can_be_sheared", "can-be-sheared"};
-    private static final String[] EQUIP_SOUND = new String[] {"equip_sound", "equip-sound"};
-    private static final String[] SHEARING_SOUND = new String[] {"shearing_sound", "shearing-sound"};
-    private static final String[] SOUND_ID = new String[] {"sound_id", "sound-id"};
+    private static final String[] ASSET_ID = ConfigKeys.of("asset_id");
+    private static final String[] CAMERA_OVERLAY = ConfigKeys.of("camera_overlay");
+    private static final String[] EQUIP_ON_INTERACT = ConfigKeys.of("equip_on_interact");
+    private static final String[] DAMAGE_ON_HURT = ConfigKeys.of("damage_on_hurt");
+    private static final String[] CAN_BE_SHEARED = ConfigKeys.of("can_be_sheared");
+    private static final String[] EQUIP_SOUND = ConfigKeys.of("equip_sound");
+    private static final String[] SHEARING_SOUND = ConfigKeys.of("shearing_sound");
+    private static final String[] SOUND_ID = ConfigKeys.of("sound_id");
 
     public static EquipmentData fromConfig(@NotNull final ConfigSection section) {
         EquipmentSlot slot = section.getNonNullEnum("slot", EquipmentSlot.class, EquipmentSlot::byId);

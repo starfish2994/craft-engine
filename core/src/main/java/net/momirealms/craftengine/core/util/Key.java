@@ -62,7 +62,7 @@ public final class Key {
     }
 
     public String[] decompose() {
-        return new String[] { this.namespace, this.value };
+        return new String[]{ this.namespace, this.value };
     }
 
     public Key transform(UnaryOperator<String> transformer) {

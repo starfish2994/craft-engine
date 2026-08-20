@@ -7,7 +7,7 @@ import net.momirealms.craftengine.proxy.minecraft.server.level.ServerLevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.*;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -50,6 +50,12 @@ public interface MinecraftServerProxy {
 
     @MethodInvoker(name = "hasStopped")
     boolean hasStopped(Object target);
+
+    @MethodInvoker(name = "isRunning")
+    boolean isRunning(Object target);
+
+    @FieldGetter(name = "structureTemplateManager")
+    Object getStructureTemplateManager(Object target);
 
     @ReflectionProxy(name = "net.minecraft.server.MinecraftServer$ServerResourcePackInfo")
     interface ServerResourcePackInfoProxy {

@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.compatibility.skript.expression;
 
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Expression;
@@ -27,8 +28,10 @@ import java.util.List;
 
 @Name("CraftEngine Item")
 @Description({"Get CraftEngine items."})
+@Example("give player custom item \"mynamespace:my_item\"")
 @Since("1.0")
 public final class ExprCustomItem extends SimpleExpression<ItemType> {
+    private Expression<?> itemIds;
 
     public static void register(SkriptAddon addon) {
         DefaultSyntaxInfos.Expression<ExprCustomItem, ItemType> expression = DefaultSyntaxInfos.Expression.builder(ExprCustomItem.class, ItemType.class)
@@ -37,8 +40,6 @@ public final class ExprCustomItem extends SimpleExpression<ItemType> {
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.EXPRESSION, expression);
     }
-
-    private Expression<?> itemIds;
 
     @Override
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
@@ -64,7 +65,7 @@ public final class ExprCustomItem extends SimpleExpression<ItemType> {
 
     @Override
     public boolean isSingle() {
-        return true;
+        return itemIds.isSingle();
     }
 
     @Override

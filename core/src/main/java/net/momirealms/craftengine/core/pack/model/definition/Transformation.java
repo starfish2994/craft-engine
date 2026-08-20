@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import org.joml.AxisAngle4f;
@@ -19,8 +20,8 @@ import java.util.Map;
  * @param matrix 一个不可变的列表，其中包含16个浮点数元素，描述一个行主序（Row-major）矩阵
  */
 public record Transformation(List<Float> matrix) {
-    private static final String[] RIGHT_ROTATION = new String[]{"right_rotation", "right-rotation"};
-    private static final String[] LEFT_ROTATION = new String[]{"left_rotation", "left-rotation"};
+    private static final String[] RIGHT_ROTATION = ConfigKeys.of("right_rotation");
+    private static final String[] LEFT_ROTATION = ConfigKeys.of("left_rotation");
 
     public Transformation(Vector3f translation, Quaternionf leftRotation, Vector3f scale, Quaternionf rightRotation) {
         this(toMatrix(translation, leftRotation, scale, rightRotation));

@@ -40,7 +40,11 @@ public interface ItemManager extends Manageable, ModelGenerator {
     @NotNull
     Item wrap(Object itemStack);
 
-    Item fromBytes(byte[] bytes);
+    default Item fromBytes(byte[] bytes) {
+        return fromBytes(bytes, true);
+    }
+
+    Item fromBytes(byte[] bytes, boolean useCache);
 
     Item fromNBT(CompoundTag tag);
 

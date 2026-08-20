@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.compatibility.ItemSource;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.LazyReference;
@@ -66,14 +67,14 @@ public final class ExternalSourceProcessor implements ItemProcessor {
     }
 
     private static class Factory implements ItemProcessorFactory<ExternalSourceProcessor> {
-        private static final String[] PLUGIN = new String[]{"plugin", "source"};
+        private static final String[] PLUGIN = ConfigKeys.of("plugin|source");
 
         @Override
         public ExternalSourceProcessor create(ConfigValue value) {
             ConfigSection section = value.getAsSection();
             String plugin = section.getNonNullString(PLUGIN);
             String id = section.getNonNullString("id");
-            return new ExternalSourceProcessor(id, LazyReference.lazyReference(() -> {
+            return new ExternalSourceProcessor(id, LazyReference.untilNotNull(() -> {
                 ItemSource itemSource = CraftEngine.instance().compatibilityManager().getItemSource(plugin.toLowerCase(Locale.ENGLISH));
                 if (itemSource == null) {
                     CraftEngine.instance().logger().warn("Item source '" + plugin + "' not found for item '" + id + "'");

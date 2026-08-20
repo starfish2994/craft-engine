@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
@@ -74,7 +75,7 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
         if (!state.get(this.poweredProperty)) {
             press(BlockStateUtils.getBlockOwner(state.customBlockState().minecraftState()),
                     state, world.minecraftWorld(), LocationUtils.toBlockPos(pos),
-                    player != null ? player.serverPlayer() : null);
+                    player != null ? player.minecraftPlayer() : null);
         }
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
@@ -217,8 +218,8 @@ public final class ButtonBlockBehavior extends BukkitBlockBehavior {
     }
 
     private static class Factory implements BlockBehaviorFactory<ButtonBlockBehavior> {
-        private static final String[] TICKS_TO_STAY_PRESSED = new String[] {"ticks_to_stay_pressed", "ticks-to-stay-pressed"};
-        private static final String[] CAN_BE_ACTIVATED_BY_ARROW = new String[] {"can_be_activated_by_arrows", "can-be-activated-by-arrows"};
+        private static final String[] TICKS_TO_STAY_PRESSED = ConfigKeys.of("ticks_to_stay_pressed");
+        private static final String[] CAN_BE_ACTIVATED_BY_ARROW = ConfigKeys.of("can_be_activated_by_arrows");
 
         @SuppressWarnings("DuplicatedCode")
         @Override

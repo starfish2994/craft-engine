@@ -4,7 +4,10 @@ import net.momirealms.craftengine.bukkit.world.FoliaCEWorld;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
-import net.momirealms.craftengine.core.block.entity.tick.*;
+import net.momirealms.craftengine.core.block.entity.tick.BlockEntityTicker;
+import net.momirealms.craftengine.core.block.entity.tick.DefaultTickingBlockEntity;
+import net.momirealms.craftengine.core.block.entity.tick.ReplaceableTickingBlockEntity;
+import net.momirealms.craftengine.core.block.entity.tick.TickingBlockEntity;
 import net.momirealms.craftengine.core.util.TickersList;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.CEWorld;
@@ -15,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public final class FoliaCEChunk extends BukkitCEChunk {
     private final TickersList<TickingBlockEntity> tickingBlockEntities = VersionHelper.hasFoliaPatch ? new TickersList<>() : null;
@@ -30,21 +32,15 @@ public final class FoliaCEChunk extends BukkitCEChunk {
         super(world, chunkPos, sections, blockEntitiesTag, blockEntityRenders);
     }
 
-    // folia 将同步和异步的tick的任务合二为一
+    // folia 同步 ticker 在区域线程执行，异步 ticker 交给世界异步 tick 列表
     @Override
     public void replaceOrCreateTickingBlockEntity(BlockEntity blockEntity) {
         ImmutableBlockState blockState = blockEntity.blockState();
         BlockEntityController controller = blockEntity.controller;
         BlockEntityTicker<BlockEntityController> syncTicker = controller.createBlockEntityTicker(this.world, blockState);
-        BlockEntityTicker<BlockEntityController> asyncTicker = controller.createAsyncBlockEntityTicker(this.world, blockState);
-        if (syncTicker != null || asyncTicker != null) {
+        if (syncTicker != null) {
             super.tickingSyncBlockEntitiesByPos.compute(blockEntity.pos(), ((pos, previousTicker) -> {
-                TickingBlockEntity newTicker;
-                if (syncTicker != null && asyncTicker != null) {
-                    newTicker = new CombinedTickingBlockEntity<>(this, blockEntity, syncTicker, asyncTicker);
-                } else {
-                    newTicker = new DefaultTickingBlockEntity<>(this, blockEntity, Objects.requireNonNullElse(syncTicker, asyncTicker));
-                }
+                TickingBlockEntity newTicker = new DefaultTickingBlockEntity<>(this, blockEntity, syncTicker);
                 if (previousTicker != null) {
                     previousTicker.setTicker(newTicker);
                     return previousTicker;
@@ -58,6 +54,22 @@ public final class FoliaCEChunk extends BukkitCEChunk {
             foliaWorld.replaceOrCreateTickingChunk(this);
         } else {
             this.removeSyncBlockEntityTicker(blockEntity.pos());
+        }
+        BlockEntityTicker<BlockEntityController> asyncTicker = controller.createAsyncBlockEntityTicker(this.world, blockState);
+        if (asyncTicker != null) {
+            super.tickingAsyncBlockEntitiesByPos.compute(blockEntity.pos(), ((pos, previousTicker) -> {
+                TickingBlockEntity newTicker = new DefaultTickingBlockEntity<>(this, blockEntity, asyncTicker);
+                if (previousTicker != null) {
+                    previousTicker.setTicker(newTicker);
+                    return previousTicker;
+                } else {
+                    ReplaceableTickingBlockEntity replaceableTicker = new ReplaceableTickingBlockEntity(newTicker);
+                    this.world.addAsyncBlockEntityTicker(replaceableTicker);
+                    return replaceableTicker;
+                }
+            }));
+        } else {
+            this.removeAsyncBlockEntityTicker(blockEntity.pos());
         }
     }
 

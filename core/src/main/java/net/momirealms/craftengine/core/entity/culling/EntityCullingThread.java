@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class EntityCullingThread {
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduler;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final int id;
     private final int threads;
@@ -20,6 +20,11 @@ public final class EntityCullingThread {
     public EntityCullingThread(int id, int threads) {
         this.id = id;
         this.threads = threads;
+        this.scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "craft-engine-entity-culling-" + id);
+            thread.setDaemon(true);
+            return thread;
+        });
     }
 
     public void start() {

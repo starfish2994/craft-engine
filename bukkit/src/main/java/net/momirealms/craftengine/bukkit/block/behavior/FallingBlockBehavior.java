@@ -10,6 +10,7 @@ import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -122,8 +123,8 @@ public final class FallingBlockBehavior extends BukkitBlockBehavior implements B
     }
 
     private static class Factory implements BlockBehaviorFactory<FallingBlockBehavior> {
-        private static final String[] HURT_AMOUNT = new String[] {"hurt_amount", "hurt-amount"};
-        private static final String[] MAX_HURT = new String[] {"max_hurt", "max-hurt"};
+        private static final String[] HURT_AMOUNT = ConfigKeys.of("hurt_amount");
+        private static final String[] MAX_HURT = ConfigKeys.of("max_hurt");
 
         @Override
         public FallingBlockBehavior create(BlockDefinition block, ConfigSection section) {

@@ -2,6 +2,7 @@ package net.momirealms.craftengine.bukkit.entity.furniture.listener;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
+import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureHitEvent;
 import net.momirealms.craftengine.bukkit.api.event.FurnitureInteractEvent;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
@@ -67,17 +68,18 @@ public final class FurnitureEventListener implements Listener {
         if (!chunk.isLoaded()) {
             return;
         }
+        // 整个实体列表同属一个区块，实体操作的推迟判断共享一次计算
+        BukkitFurnitureManager.SafeEntityOperationRunner operationRunner = this.manager.newEntityOperationRunner(chunk);
         List<Entity> entities = event.getEntities();
         for (int i = 0, size = entities.size(); i < size; i++) {
             Entity entity = entities.get(i);
             if (entity instanceof ItemDisplay itemDisplay) {
-                this.manager.handleMetaEntityDuringChunkLoad(itemDisplay);
+                this.manager.handleMetaEntityDuringChunkLoad(itemDisplay, operationRunner);
             } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
                 this.manager.handleCollisionEntityDuringChunkLoad(entity);
             }
         }
-        CEWorld world = this.worldManager.getWorld(event.getWorld());
-
+        CEWorld world = BukkitAdaptor.adapt(event.getWorld()).storageWorld();
         CEChunk ceChunk = world.getChunkAtIfLoaded(chunk.getX(), chunk.getZ());
         if (ceChunk != null) {
             ceChunk.setEntitiesLoaded(true);
@@ -111,7 +113,7 @@ public final class FurnitureEventListener implements Listener {
             Entity entity = entities.get(i);
             if (entity instanceof ItemDisplay itemDisplay) {
                 this.manager.handleMetaEntityUnload(itemDisplay, false);
-            } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
+            } else if (CraftEngineFurniture.isCollisionEntity(entity)) {
                 this.manager.handleCollisionEntityUnload(entity);
                 entity.remove();
             }
@@ -126,7 +128,7 @@ public final class FurnitureEventListener implements Listener {
             Entity entity = entities.get(i);
             if (entity instanceof ItemDisplay itemDisplay) {
                 this.manager.handleMetaEntityUnload(itemDisplay, false);
-            } else if (BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
+            } else if (CraftEngineFurniture.isCollisionEntity(entity)) {
                 this.manager.handleCollisionEntityUnload(entity);
                 entity.remove();
             }

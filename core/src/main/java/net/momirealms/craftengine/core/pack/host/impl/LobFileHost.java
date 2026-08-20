@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import net.momirealms.craftengine.core.pack.host.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
@@ -225,9 +226,9 @@ public final class LobFileHost implements ResourcePackHost {
     }
 
     private static class Factory implements ResourcePackHostFactory<LobFileHost> {
-        private static final String[] USE_ENVIRONMENT_VARIABLES = new String[] {"use_environment_variables", "use-environment-variables"};
-        private static final String[] API_KEY = new String[] {"api_key", "api-key"};
-        private static final String[] CACHE_FILE_NAME = new String[] {"cache_file_name", "cache-file-name"};
+        private static final String[] USE_ENVIRONMENT_VARIABLES = ConfigKeys.of("use_environment_variables");
+        private static final String[] API_KEY = ConfigKeys.of("api_key");
+        private static final String[] CACHE_FILE_NAME = ConfigKeys.of("cache_file_name");
 
         @Override
         public LobFileHost create(ConfigSection section) {

@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -44,8 +45,8 @@ public final class TintSourceBlockBehavior extends BukkitBlockBehavior implement
     }
 
     private static class Factory implements BlockBehaviorFactory<TintSourceBlockBehavior> {
-        private static final String[] DROP_ITEM = new String[] {"drop_item", "drop-item"};
-        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
+        private static final String[] DROP_ITEM = ConfigKeys.of("drop_item");
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
 
         @Override
         public TintSourceBlockBehavior create(BlockDefinition block, ConfigSection section) {

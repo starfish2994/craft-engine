@@ -1,14 +1,22 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.expression;
 
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
+import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.Since;
 import ch.njol.skript.expressions.base.SimplePropertyExpression;
-import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
+import net.momirealms.craftengine.bukkit.compatibility.util.FurnitureResolver;
+import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurniture;
 import org.bukkit.entity.Entity;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.registration.DefaultSyntaxInfos;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
+@Name("Furniture ID")
+@Description({"Get the CraftEngine furniture id of an entity."})
+@Example("set {_id} to furniture id of target entity")
+@Since("1.0")
 public final class ExprEntityFurnitureID extends SimplePropertyExpression<Object, String> {
 
     public static void register(SkriptAddon addon) {
@@ -24,7 +32,8 @@ public final class ExprEntityFurnitureID extends SimplePropertyExpression<Object
     @Override
     public @Nullable String convert(Object object) {
         if (object instanceof Entity entity) {
-            return entity.getPersistentDataContainer().get(BukkitFurnitureManager.FURNITURE_KEY, PersistentDataType.STRING);
+            BukkitFurniture furniture = FurnitureResolver.resolve(entity);
+            return furniture == null ? null : furniture.id().toString();
         }
         return null;
     }

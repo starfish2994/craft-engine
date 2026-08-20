@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.model.simplified.item;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.mojang.datafixers.util.Either;
+import net.momirealms.craftengine.core.pack.model.bbmodel.BBModelConverter;
 import net.momirealms.craftengine.core.pack.model.definition.BaseItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.ItemModel;
 import net.momirealms.craftengine.core.pack.model.definition.SelectItemModel;
@@ -34,27 +35,17 @@ public final class SpearItemModelReader implements SimplifiedItemModelReader {
     public ItemModel read(ConfigValue textureValue, Optional<ConfigValue> optionalModelValue, Key id) {
         List<Key> textures = textureValue.getAsFixedSizeList(2, ConfigValue::getAsAssetPath);
         List<Key> models = optionalModelValue.map(it -> it.getAsFixedSizeList(2, ConfigValue::getAsAssetPath)).orElse(null);
-        boolean autoModel = models == null;
-        return new SelectItemModel(
-                DisplayContextSelectProperty.INSTANCE,
-                Map.of(
-                        Either.right(CASES), new BaseItemModel(
-                                autoModel ? Key.of(id.namespace(), "item/" + id.value()) : models.get(0),
-                                List.of(),
-                                ModelGeneration.builder()
-                                        .parentModelPath(GENERATED)
-                                        .texturesOverride(Map.of("layer0", textures.get(0).asMinimalString()))
-                                        .build()
-                        )
-                ),
-                new BaseItemModel(
-                        autoModel ? Key.of(id.namespace(), "item/" + id.value() + "_in_hand") : models.get(1),
-                        List.of(),
-                        ModelGeneration.builder()
-                                .parentModelPath(SPEAR_IN_HAND)
-                                .texturesOverride(Map.of("layer0", textures.get(1).asMinimalString()))
-                                .build()
-                )
+        return build(
+                models != null ? models.get(0) : Key.of(id.namespace(), "item/" + id.value()),
+                ModelGeneration.builder()
+                        .parentModelPath(GENERATED)
+                        .texturesOverride(Map.of("layer0", textures.get(0).asMinimalString()))
+                        .build(),
+                models != null ? models.get(1) : Key.of(id.namespace(), "item/" + id.value() + "_in_hand"),
+                ModelGeneration.builder()
+                        .parentModelPath(SPEAR_IN_HAND)
+                        .texturesOverride(Map.of("layer0", textures.get(1).asMinimalString()))
+                        .build()
         );
     }
 
@@ -65,6 +56,29 @@ public final class SpearItemModelReader implements SimplifiedItemModelReader {
                 DisplayContextSelectProperty.INSTANCE,
                 Map.of(Either.right(CASES), new BaseItemModel(models.get(0))),
                 new BaseItemModel(models.get(1))
+        );
+    }
+
+    @Override
+    public int modelCount() {
+        return 2;
+    }
+
+    @Override
+    public ItemModel buildFromBlueprints(List<BBModelConverter.Converted> blueprints) {
+        BBModelConverter.Converted gui = blueprints.get(0);
+        BBModelConverter.Converted inHand = blueprints.get(1);
+        return build(
+                gui.model(), ModelGeneration.raw(gui.json(), gui.textures()),
+                inHand.model(), ModelGeneration.raw(inHand.json(), inHand.textures())
+        );
+    }
+
+    private ItemModel build(Key guiPath, ModelGeneration guiGeneration, Key inHandPath, ModelGeneration inHandGeneration) {
+        return new SelectItemModel(
+                DisplayContextSelectProperty.INSTANCE,
+                Map.of(Either.right(CASES), new BaseItemModel(guiPath, List.of(), guiGeneration)),
+                new BaseItemModel(inHandPath, List.of(), inHandGeneration)
         );
     }
 }

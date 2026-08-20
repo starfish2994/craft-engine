@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.network;
 
+import com.google.gson.JsonElement;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;
 import net.momirealms.craftengine.core.entity.player.Player;
@@ -25,7 +26,8 @@ public interface NetworkManager extends Manageable {
 
     Channel getChannel(Player player);
 
-    @Nullable NetWorkUser getOnlineUser(UUID uuid);
+    @Nullable
+    Player getOnlineUser(UUID uuid);
 
     int remapBlockState(int stateId, boolean enableMod);
 
@@ -53,7 +55,11 @@ public interface NetworkManager extends Manageable {
 
     void simulatePacket(@NotNull NetWorkUser player, Object packet);
 
+    boolean hasNetworkTag(String text);
+
     Map<String, ComponentProvider> matchNetworkTags(String text);
+
+    Map<String, ComponentProvider> matchNetworkTags(JsonElement json);
 
     default Map<String, ComponentProvider> matchNetworkTags(Tag nbt) {
         return matchNetworkTags(new StringValueOnlyTagVisitor().visit(nbt));

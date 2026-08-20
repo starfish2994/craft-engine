@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.LiquidBlockContainer;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.world.WorldEvents;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
@@ -46,7 +47,7 @@ public final class LiquidFlowableBlockBehavior extends BukkitBlockBehavior imple
     }
 
     private static class Factory implements BlockBehaviorFactory<LiquidFlowableBlockBehavior> {
-        private static final String[] DROP_ITEMS = new String[] {"drop_item", "drop-item"};
+        private static final String[] DROP_ITEMS = ConfigKeys.of("drop_item");
 
         @Override
         public LiquidFlowableBlockBehavior create(BlockDefinition block, ConfigSection section) {

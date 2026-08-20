@@ -27,9 +27,9 @@ public final class BukkitDestroyStageDisplayEntity extends DestroyStageDisplayEn
 
     public BukkitDestroyStageDisplayEntity(DestroyStageDisplayEntitySetting config, int entityId, BlockPos pos) {
         super(config, entityId, pos);
-        double x = pos.x() + config.position.x;
-        double y = pos.y() + config.position.y;
-        double z = pos.z() + config.position.z;
+        double x = pos.x() + (double) config.position.x;
+        double y = pos.y() + (double) config.position.y;
+        double z = pos.z() + (double) config.position.z;
         this.spawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
                 entityId, UUID.randomUUID(),
                 x, y, z, config.pitch, config.yaw,
@@ -58,17 +58,17 @@ public final class BukkitDestroyStageDisplayEntity extends DestroyStageDisplayEn
     private List<Object> buildMetadata(Player player, int index) {
         List<Object> data = new ArrayList<>();
         DisplayData.ItemDisplayData.ItemStack.addEntityData(resolveItem(index, player), data);
-        DisplayData.ItemDisplayData.Scale.addEntityDataIfNotDefaultValue(this.config.scale, data);
-        DisplayData.ItemDisplayData.LeftRotation.addEntityDataIfNotDefaultValue(this.config.rotation, data);
-        DisplayData.ItemDisplayData.Translation.addEntityDataIfNotDefaultValue(this.config.translation, data);
-        DisplayData.ItemDisplayData.ItemTransform.addEntityDataIfNotDefaultValue(this.config.displayContext.id(), data);
-        DisplayData.ItemDisplayData.BillboardConstraints.addEntityDataIfNotDefaultValue(this.config.billboard.id(), data);
+        DisplayData.ItemDisplayData.Scale.addEntityData(this.config.scale, data);
+        DisplayData.ItemDisplayData.LeftRotation.addEntityData(this.config.rotation, data);
+        DisplayData.ItemDisplayData.Translation.addEntityData(this.config.translation, data);
+        DisplayData.ItemDisplayData.ItemTransform.addEntityData(this.config.displayContext.id(), data);
+        DisplayData.ItemDisplayData.BillboardConstraints.addEntityData(this.config.billboard.id(), data);
         int blockLight = this.config.blockLight;
         int skyLight = this.config.skyLight;
         if (blockLight != -1 && skyLight != -1) {
             DisplayData.ItemDisplayData.BrightnessOverride.addEntityData(blockLight << 4 | skyLight << 20, data);
         }
-        DisplayData.ItemDisplayData.ViewRange.addEntityDataIfNotDefaultValue((float) (this.config.viewRange * player.displayEntityViewDistance()), data);
+        DisplayData.ItemDisplayData.ViewRange.addEntityData((float) (this.config.viewRange * player.displayEntityViewDistance()), data);
         return data;
     }
 

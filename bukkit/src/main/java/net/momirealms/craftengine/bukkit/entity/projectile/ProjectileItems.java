@@ -4,6 +4,7 @@ import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import org.bukkit.Location;
@@ -59,9 +60,9 @@ public final class ProjectileItems {
         PROJECTILE_FACTORIES.put(ItemKeys.TRIDENT, (location, itemStack, source, isCritical) -> {
             return EntityUtils.spawnEntity(location.getWorld(), location, Trident.class, e -> {
                 e.setShooter(source);
-                e.setItemStack(itemStack);
+                e.setItem(itemStack);
                 e.setCritical(isCritical);
-                e.setLoyaltyLevel(itemStack.getEnchantmentLevel(Enchantment.LOYALTY));
+                if (VersionHelper.hasPaperPatch) e.setLoyaltyLevel(itemStack.getEnchantmentLevel(Enchantment.LOYALTY));
                 Object entity = CraftEntityProxy.INSTANCE.getEntity(e);
                 EntityProxy.INSTANCE.setRot(entity, location.getYaw(), location.getPitch());
             });
@@ -75,7 +76,7 @@ public final class ProjectileItems {
         PROJECTILE_FACTORIES.put(ItemKeys.FIREWORK_ROCKET, (location, itemStack, source, isCritical) -> {
             return EntityUtils.spawnEntity(location.getWorld(), location, Firework.class, e -> {
                 e.setShooter(source);
-                e.setItem(itemStack);
+                if (VersionHelper.hasPaperPatch) e.setItem(itemStack);
                 if (itemStack.getItemMeta() instanceof FireworkMeta meta) {
                     e.setFireworkMeta(meta);
                 }

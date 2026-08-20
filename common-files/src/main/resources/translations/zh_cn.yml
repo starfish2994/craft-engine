@@ -77,6 +77,9 @@ command.resource.create.failure.invalid_namespace: <red>无法创建名为“<ar
 command.resource.create.failure.exists: <red>名为“<arg:0>”的资源已经存在</red>
 command.resource.save_default.success: <white>已成功将默认资源保存到“<arg:0>”</white><newline><i><gray>点击<green><u><b><click:run_command:'/ce reload all'><hover:show_text:'重新加载插件'>这里</hover></click></b></u></green>应用更改</gray></i>
 command.resource.save_default.failure: <red>保存默认资产的时候发生了未知的错误，请查看控制台
+command.resource.search.parser.not_found: <red>没有类型为“<arg:0>”的资源</red>
+command.resource.search.resource.not_found: <red>没有ID为“<arg:0>”的资源</red>
+command.resource.search.success: <white>ID为“<arg:0>”的资源定义文件路径为：<arg:1></white>
 command.upload.failure.not_supported: <red>当前的托管方式“<arg:0>”不支持上传资源包</red>
 command.upload.on_progress: <white>已开始上传，请检查控制台以获取更多信息</white>
 command.send_resource_pack.success.single: <white>已将资源包发送给<arg:0></white>
@@ -87,6 +90,7 @@ command.locale.unset.success: <white>重置了<arg:0>的区域设置</white>
 command.display_entity_view_distance_scale.set.success: <white>已将<arg:1>的展示实体可见距离百分比设为<arg:0></white>
 command.entity_culling_distance_scale.set.success: <white>已将<arg:1>的实体剔除距离百分比设为<arg:0></white>
 command.entity_culling.toggle.success: <white>已将<arg:1>的实体剔除状态设为<arg:0></white>
+command.damage_visibility.set.success: <white>已将<arg:1>的伤害数字可见性设为<arg:0></white>
 command.place_feature.failed: <red>放置地物失败</red>
 command.place_feature.success: <white>已在<arg:1>, <arg:2>, <arg:3>处放置“<arg:0>”</white>
 command.place_feature.invalid: <red>没有类型为“<arg:0>”的地物</red>
@@ -124,6 +128,18 @@ snbt.parser.incorrect: 应为字面量<arg:0>
 yaml.duplicated_key: 在文件“<arg:0>”中的第“<arg:2>”行发现发现重复的键“<arg:1>”
 yaml.inconsistent_value_type: 在文件“<arg:0>”中的第“<arg:2>”行发现发现重复的键“<arg:1>”且值类型不同
 plugin.compatibility: '[兼容性] 已挂钩 <arg:0>'
+attribute.damage_formula.unknown_type: 未知的伤害公式类型“<arg:0>”
+damage_indicator.unknown_type: 未知的伤害数字显示类型“<arg:0>”
+attribute.base_value_source.unknown_type: 未知的属性基础值来源类型“<arg:0>”
+attribute.sync_value_provider.unknown_type: 未知的同步数值提供器类型“<arg:0>”
+attribute.value_transformer.unknown_type: 未知的数值转换器类型“<arg:0>”
+attribute.value_formatter.unknown_type: 未知的数值格式化器类型“<arg:0>”
+attribute.formula.unknown_variable: 伤害公式“<arg:1>”中存在未知的变量“<arg:0>”
+attribute.formula.unknown_attribute: 伤害公式“<arg:1>”中存在未知的属性“<arg:0>”
+attribute.unknown_operation: 未知的属性运算“<arg:0>”
+attribute.operation.invalid_expression: 属性运算中存在无效的表达式“<arg:0>”
+attribute.derived.unknown_attribute: 派生表达式“<arg:1>”中引用了未知的属性“<arg:0>”
+attribute.derived.unknown_type: 未知的派生值类型“<arg:0>”
 number.unknown_type: 未知的数字类型“<arg:0>”
 number.fixed.invalid_expression: 无效的表达式“<arg:0>”。https://ezylang.github.io/EvalEx/references/references.html
 number.greater_than: “<arg:0>”应大于“<arg:1>”
@@ -137,6 +153,10 @@ player_selector.unknown_type: 未知的玩家选择器类型“<arg:0>”
 loot.entry.unknown_type: 未知的战利品条目类型“<arg:0>”
 loot.function.unknown_type: 未知的战利品函数类型“<arg:0>”
 loot.function.formula.unknown_type: 未知的公式类型“<arg:0>”
+loot.source.unknown_type: 未知的战利品来源类型“<arg:0>”
+loot.source.unknown_overwrite_mode: 未知的战利品来源覆写模式“<arg:0>”
+loot.source.target_not_allowed: 战利品来源类型“<arg:0>”不支持配置“target”
+loot.source.invalid_target: 无效的战利品来源目标“<arg:0>”
 host.unknown_type: 未知的资源包托管类型“<arg:0>”
 host.missing_environment_variable: 缺少环境变量“<arg:0>”
 host.get_url_failed: 获取玩家<arg:0>的资源包下载链接失败
@@ -167,6 +187,7 @@ resource_pack.malformatted_json: Json文件“<arg:0>”的格式不正确
 resource_pack.not_a_json_object: Json文件“<arg:0>”不是一个json对象
 resource_pack.conflict_resolution.unknown_type: 未知的文件冲突解决方案类型“<arg:0>”
 resource_pack.model_generation.conflict: 无法生成模型，因为模型文件“<arg:0>”已存在
+resource_pack.texture_generation.conflict: 无法生成贴图,因为贴图文件“<arg:0>”已存在
 resource_pack.item_model.conflict: 无法生成物品模型映射“<arg:0>”，因为文件“<arg:1>”已存在
 resource_pack.missing_font_texture: 字体“<arg:0>”缺少纹理“<arg:1>”
 resource_pack.missing_model_texture: 模型“<arg:0>”缺少纹理“<arg:1>”
@@ -242,6 +263,7 @@ resource.emoji.unknown_image: 未知的图像“<arg:0>”
 resource.equipment.unknown_type: 未知的装备类型“<arg:0>”
 resource.equipment.unknown_layer_type: 未知的预设模型类型“<arg:0>”
 resource.equipment.invalid_sacrificed_armor: 无效的原版盔甲类型“<arg:0>”
+resource.equipment_set.invalid_slot_name: 无效的套装槽位名称“<arg:0>”
 resource.furniture.element.unknown_type: 未知的家具元素类型“<arg:0>”
 resource.furniture.element.tint_source.unknown_type: 未知的家具染色源类型“<arg:0>”
 resource.furniture.hitbox.unknown_type: 未知的家具判定箱类型“<arg:0>”
@@ -282,6 +304,9 @@ resource.item.missing_model_id: 缺少“custom_model_data”或“item_model”
 resource.item.occupied_vanilla_item_model: 物品模型“<arg:0>”已被原版物品占用
 resource.item.invalid_material: 无效的物品类型“<arg:0>”
 resource.model.generation.conflict: 无法为“<arg:0>”生成模型，因为有两个或多个配置试图使用相同的路径生成不同的json模型
+resource.texture.generation.conflict: 无法为“<arg:0>”生成贴图,因为有两个或多个配置试图使用相同的路径生成不同的贴图
+resource.model.bbmodel.invalid_file: 无法读取或解析 bbmodel 文件“<arg:0>”
+resource.model.bbmodel.invalid_name: bbmodel 文件名“<arg:0>”不是有效的资源路径,请仅使用小写字母、数字、_、-、.、/ 重命名
 resource.recipe.transform_processor.unknown_type: 未知的锻造配方后处理器类型“<arg:0>”
 resource.recipe.ingredient.invalid_tag: 物品标签“<arg:0>”不包含任何物品
 resource.recipe.ingredient.item_not_exist: 原料物品“<arg:0>”不存在
@@ -292,4 +317,3 @@ resource.recipe.shaped_transform.ambigious_source: 在有序合成转化配方�
 resource.recipe.shaped_transform.source_not_found: 无法在配方中找到标记为source的原料
 resource.recipe.post_processor.unknown_type: 未知的配方结果后处理器类型“<arg:0>”
 resource.recipe.unknown_type: 未知的配方类型“<arg:0>”
-resource.vanilla_loot.block.invalid_target: 无效的方块目标“<arg:0>”

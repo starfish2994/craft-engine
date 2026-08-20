@@ -15,8 +15,8 @@ items:
           is_redstone_conductor: true
           push_reaction: push_only
           instrument: basedrum
-          correct_tools:
-            template: default:pickaxe_power/level_1
+          correct_tools: ["#minecraft:pickaxes"]
+          required_break_power: 1
           map_color: 36
           tags: ["minecraft:mineable/pickaxe"]
           sounds:

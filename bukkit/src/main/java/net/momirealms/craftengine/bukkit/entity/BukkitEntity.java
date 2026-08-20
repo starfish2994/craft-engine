@@ -1,47 +1,96 @@
 package net.momirealms.craftengine.bukkit.entity;
 
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
-import net.momirealms.craftengine.bukkit.util.DirectionUtils;
-import net.momirealms.craftengine.bukkit.util.EntityUtils;
-import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.core.entity.AbstractEntity;
+import net.momirealms.craftengine.bukkit.util.*;
+import net.momirealms.craftengine.core.customdata.CustomDataKey;
 import net.momirealms.craftengine.core.entity.data.EntityData;
+import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.persistence.CraftPersistentDataContainerProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.syncher.SynchedEntityDataProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
+import net.momirealms.sparrow.nbt.Tag;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
-public class BukkitEntity extends AbstractEntity {
-    protected final WeakReference<org.bukkit.entity.Entity> entity;
+public class BukkitEntity implements net.momirealms.craftengine.core.entity.Entity {
+    protected final WeakReference<Object> entityRef;
+    protected Key id;
 
-    public BukkitEntity(org.bukkit.entity.Entity entity) {
-        this.entity = new WeakReference<>(entity);
+    public BukkitEntity(Object entity) {
+        if (EntityProxy.CLASS.isInstance(entity)) {
+            this.entityRef = new WeakReference<>(entity);
+        } else if (entity instanceof Entity bukkitEntity) {
+            this.entityRef = new WeakReference<>(CraftEntityProxy.INSTANCE.getEntity(bukkitEntity));
+        } else {
+            throw new IllegalArgumentException(entity.getClass() + " is not a valid Entity");
+        }
+    }
+
+    protected BukkitEntity(WeakReference<Object> entity) {
+        this.entityRef = entity;
+    }
+
+    @Nullable
+    @Override
+    public <T> T getCustomData(CustomDataKey<T> key) {
+        Object minecraftTag = CraftPersistentDataContainerProxy.INSTANCE.getRaw(persistentDataContainer()).get(key.id().asString());
+        if (minecraftTag == null) return null;
+        Tag tag = RegistryOps.NBT.convertTo(RegistryOps.SPARROW_NBT, minecraftTag);
+        return key.serializer().deserialize(tag);
+    }
+
+    @Override
+    public <T> void setCustomData(CustomDataKey<T> key, T value) {
+        Tag tag = key.serializer().serialize(value);
+        Object minecraftTag = RegistryOps.SPARROW_NBT.convertTo(RegistryOps.NBT, tag);
+        CraftPersistentDataContainerProxy.INSTANCE.put(
+                persistentDataContainer(),
+                key.id().asString(),
+                minecraftTag
+        );
+    }
+
+    @Override
+    public boolean removeCustomData(CustomDataKey<?> key) {
+        Map<String, Object> raw = CraftPersistentDataContainerProxy.INSTANCE.getRaw(persistentDataContainer());
+        return raw.remove(key.id().asString()) != null;
+    }
+
+    private Object persistentDataContainer() {
+        return CraftEntityProxy.INSTANCE.getPersistentDataContainer(platformEntity());
     }
 
     @Override
     public double x() {
-        return EntityProxy.INSTANCE.getX(serverEntity());
+        return EntityProxy.INSTANCE.getX(minecraftEntity());
     }
 
     @Override
     public double y() {
-        return EntityProxy.INSTANCE.getY(serverEntity());
+        return EntityProxy.INSTANCE.getY(minecraftEntity());
     }
 
     @Override
     public double z() {
-        return EntityProxy.INSTANCE.getZ(serverEntity());
-    }
-
-    @Override
-    public void tick() {
+        return EntityProxy.INSTANCE.getZ(minecraftEntity());
     }
 
     @Override
@@ -51,22 +100,22 @@ public class BukkitEntity extends AbstractEntity {
 
     @Override
     public int entityId() {
-        return platformEntity().getEntityId();
+        return EntityProxy.INSTANCE.getId(minecraftEntity());
     }
 
     @Override
     public float xRot() {
-        return EntityProxy.INSTANCE.getXRot(serverEntity());
+        return EntityProxy.INSTANCE.getXRot(minecraftEntity());
     }
 
     @Override
     public float yRot() {
-        return EntityProxy.INSTANCE.getYRot(serverEntity());
+        return EntityProxy.INSTANCE.getYRot(minecraftEntity());
     }
 
     @Override
     public World world() {
-        return BukkitAdaptor.adapt(platformEntity().getWorld());
+        return BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(EntityProxy.INSTANCE.getLevel(this.minecraftEntity())));
     }
 
     @Override
@@ -76,17 +125,27 @@ public class BukkitEntity extends AbstractEntity {
 
     @Override
     public org.bukkit.entity.Entity platformEntity() {
-        return this.entity.get();
+        return EntityProxy.INSTANCE.getBukkitEntity(this.entityRef.get());
     }
 
     @Override
-    public Object serverEntity() {
-        return CraftEntityProxy.INSTANCE.getEntity(platformEntity());
+    public Object minecraftEntity() {
+        return this.entityRef.get();
     }
 
     @Override
     public Key type() {
-        return EntityUtils.getEntityType(platformEntity());
+        Object entityType = EntityProxy.INSTANCE.getType(minecraftEntity());
+        Object id = RegistryProxy.INSTANCE.getKey(BuiltInRegistriesProxy.ENTITY_TYPE, entityType);
+        return KeyUtils.identifierToKey(id);
+    }
+
+    @Override
+    public Key id() {
+        if (this.id == null) {
+            this.id = CraftEngine.instance().entityManager().getEntityId(this);
+        }
+        return this.id;
     }
 
     @Override
@@ -97,18 +156,23 @@ public class BukkitEntity extends AbstractEntity {
     }
 
     @Override
+    public boolean isAlive() {
+        return EntityProxy.INSTANCE.isAlive(minecraftEntity());
+    }
+
+    @Override
     public String name() {
         return platformEntity().getName();
     }
 
     @Override
     public UUID uuid() {
-        return platformEntity().getUniqueId();
+        return EntityProxy.INSTANCE.getUUID(this.minecraftEntity());
     }
 
     @Override
     public Object entityData() {
-        return EntityProxy.INSTANCE.getEntityData(serverEntity());
+        return EntityProxy.INSTANCE.getEntityData(minecraftEntity());
     }
 
     @Override
@@ -124,5 +188,55 @@ public class BukkitEntity extends AbstractEntity {
     @Override
     public void remove() {
         this.platformEntity().remove();
+    }
+
+    @Override
+    public Set<Player> getTrackedBy() {
+        return EntityUtils.getTrackedBy(this.platformEntity(), BukkitAdaptor::adapt);
+    }
+
+    @Override
+    public void teleport(WorldPosition worldPosition) {
+        Location location = new Location((org.bukkit.World) worldPosition.world().platformWorld(), worldPosition.x(), worldPosition.y(), worldPosition.z(), worldPosition.yRot(), worldPosition.xRot());
+        if (VersionHelper.hasFoliaPatch) {
+            this.platformEntity().teleportAsync(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        } else {
+            this.platformEntity().teleport(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        }
+    }
+
+    @Override
+    public WorldPosition eyePosition() {
+        return LocationUtils.toWorldPosition(this.getEyeLocation());
+    }
+
+    @Override
+    public Vec3d getEyePos() {
+        return getEyePos(minecraftEntity());
+    }
+
+    public Vec3d getEyePos(Object entity) {
+        Object vehicle = EntityProxy.INSTANCE.getVehicle(entity);
+        if (vehicle != null) {
+            Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, entity);
+            return new Vec3d(mountPos.x, mountPos.y + EntityProxy.INSTANCE.getEyeHeight(entity), mountPos.z);
+        } else {
+            return new Vec3d(EntityProxy.INSTANCE.getX(entity), EntityProxy.INSTANCE.getEyeY(entity), EntityProxy.INSTANCE.getZ(entity));
+        }
+    }
+
+    public Location getEyeLocation() {
+        Object entity = minecraftEntity();
+        Object vehicle = EntityProxy.INSTANCE.getVehicle(entity);
+        if (vehicle != null) {
+            Vec3d mountPos = EntityUtils.getPassengerRidingPosition(vehicle, entity);
+            return new Location(platformEntity().getWorld(), mountPos.x, mountPos.y + EntityProxy.INSTANCE.getEyeHeight(entity), mountPos.z, EntityProxy.INSTANCE.getYRot(entity), EntityProxy.INSTANCE.getXRot(entity));
+        }
+        return new Location(platformEntity().getWorld(), EntityProxy.INSTANCE.getXo(entity), EntityProxy.INSTANCE.getEyeY(entity), EntityProxy.INSTANCE.getZo(entity), EntityProxy.INSTANCE.getYRot(entity), EntityProxy.INSTANCE.getXRot(entity));
+    }
+
+    @Override
+    public int fireTicks() {
+        return platformEntity().getFireTicks();
     }
 }

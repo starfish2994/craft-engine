@@ -8,7 +8,7 @@ public interface LazyReference<T> {
 
     boolean initialized();
 
-    static <T> LazyReference<T> lazyReference(final Supplier<T> supplier) {
+    static <T> LazyReference<T> untilNotNull(final Supplier<T> supplier) {
         return new LazyReference<>() {
             private T value;
 
@@ -23,6 +23,27 @@ public interface LazyReference<T> {
             @Override
             public boolean initialized() {
                 return this.value != null;
+            }
+        };
+    }
+
+    static <T> LazyReference<T> oneTime(final Supplier<T> supplier) {
+        return new LazyReference<>() {
+            private boolean resolved;
+            private T value;
+
+            @Override
+            public T get() {
+                if (!this.resolved) {
+                    this.value = supplier.get();
+                    this.resolved = true;
+                }
+                return this.value;
+            }
+
+            @Override
+            public boolean initialized() {
+                return this.resolved;
             }
         };
     }

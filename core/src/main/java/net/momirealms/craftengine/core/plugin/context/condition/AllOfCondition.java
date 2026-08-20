@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.condition;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -20,7 +21,7 @@ public final class AllOfCondition<CTX extends Context> implements Condition<CTX>
         this.condition = condition;
     }
 
-    public static AllOfCondition<Context> allOf(List<? extends Condition<Context>> conditions) {
+    public static <CTX extends Context> AllOfCondition<CTX> allOf(List<? extends Condition<CTX>> conditions) {
         return new AllOfCondition<>(conditions);
     }
 
@@ -34,7 +35,7 @@ public final class AllOfCondition<CTX extends Context> implements Condition<CTX>
     }
 
     private record Factory<CTX extends Context>(Function<ConfigSection, Condition<CTX>> factory) implements ConditionFactory<CTX, AllOfCondition<CTX>> {
-        private static final String[] TERMS = new String[]{"terms", "term"};
+        private static final String[] TERMS = ConfigKeys.of("term(s)");
 
         @Override
         public AllOfCondition<CTX> create(ConfigSection section) {

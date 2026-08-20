@@ -53,7 +53,7 @@ public final class PlayerUtils {
     }
 
     public static void giveItem(@NotNull Player player, Item original, Item item, boolean spawnFakeEntity) {
-        Object serverPlayer = player.serverPlayer();
+        Object serverPlayer = player.minecraftPlayer();
         Object inventory = PlayerProxy.INSTANCE.getInventory(serverPlayer);
         boolean flag = InventoryProxy.INSTANCE.add(inventory, item.minecraftItem());
         if (flag && item.isEmpty()) {
@@ -79,7 +79,7 @@ public final class PlayerUtils {
                         entityId,
                         UUID.randomUUID(),
                         player.x(),
-                        EntityProxy.INSTANCE.getEyeY(player.serverPlayer()) - 0.3,
+                        EntityProxy.INSTANCE.getEyeY(player.minecraftPlayer()) - 0.3,
                         player.z(),
                         player.xRot(),
                         player.yRot(),
@@ -136,7 +136,7 @@ public final class PlayerUtils {
         packets.add(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(
                 player.entityId(), List.of(Pair.of(EquipmentSlotProxy.OFFHAND, totemItem))
         ));
-        packets.add(ClientboundEntityEventPacketProxy.INSTANCE.newInstance(player.serverPlayer(), (byte) 35));
+        packets.add(ClientboundEntityEventPacketProxy.INSTANCE.newInstance(player.minecraftPlayer(), (byte) 35));
         if (isMainHandTotem) {
             packets.add(ClientboundSetEquipmentPacketProxy.INSTANCE.newInstance(
                     player.entityId(), List.of(Pair.of(EquipmentSlotProxy.MAINHAND, previousMainHandItem.minecraftItem()))

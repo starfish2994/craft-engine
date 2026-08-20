@@ -8,7 +8,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 public final class BukkitExecutor extends AbstractBukkitExecutor {
     private final BukkitCraftEngine plugin;
@@ -101,7 +100,7 @@ public final class BukkitExecutor extends AbstractBukkitExecutor {
         return runLater0(r, delay);
     }
 
-    @NonNull
+    @NotNull
     private SchedulerTask runLater0(Runnable r, long delay) {
         if (delay <= 0) {
             if (Bukkit.isPrimaryThread()) {
@@ -137,5 +136,15 @@ public final class BukkitExecutor extends AbstractBukkitExecutor {
     @Override
     public SchedulerTask runRepeating(Runnable r, Runnable retired, long delay, long period, net.momirealms.craftengine.core.entity.Entity entity) {
         return new BukkitTask(Bukkit.getScheduler().runTaskTimer(plugin.javaPlugin(), r, delay, period));
+    }
+
+    @Override
+    public SchedulerTask runAsyncLater(Runnable r, long delayTicks) {
+        return new BukkitTask(Bukkit.getScheduler().runTaskLaterAsynchronously(this.plugin.javaPlugin(), r, delayTicks));
+    }
+
+    @Override
+    public SchedulerTask runAsyncRepeating(Runnable r, long delayTicks, long periodTicks) {
+        return new BukkitTask(Bukkit.getScheduler().runTaskTimerAsynchronously(this.plugin.javaPlugin(), r, delayTicks, periodTicks));
     }
 }

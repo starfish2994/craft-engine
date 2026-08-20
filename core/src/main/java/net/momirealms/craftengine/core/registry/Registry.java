@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public interface Registry<T> extends Holder.Owner<T> {
+public interface Registry<T> extends Holder.Owner<T>, Iterable<T> {
 
     ResourceKey<? extends Registry<T>> key();
 

@@ -1,25 +1,25 @@
 package net.momirealms.craftengine.core.plugin.context.number;
 
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.random.RandomSource;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
 
 public record UniformNumberProvider(NumberProvider min, NumberProvider max) implements NumberProvider {
     public static final NumberProviderFactory<UniformNumberProvider> FACTORY = new Factory();
 
     @Override
-    public int getInt(RandomSource random) {
-        return RandomUtils.generateRandomInt(this.min.getInt(random), this.max.getInt(random) + 1, random);
+    public int getInt(Context context) {
+        return RandomUtils.generateRandomInt(this.min.getInt(context), this.max.getInt(context) + 1, context.random());
     }
 
     @Override
-    public double getDouble(RandomSource random) {
-        return RandomUtils.generateRandomDouble(this.min.getDouble(random), this.max.getDouble(random), random);
+    public double getDouble(Context context) {
+        return RandomUtils.generateRandomDouble(this.min.getDouble(context), this.max.getDouble(context), context.random());
     }
 
     @Override
-    public float getFloat(RandomSource random) {
-        return RandomUtils.generateRandomFloat(this.min.getFloat(random), this.max.getFloat(random), random);
+    public float getFloat(Context context) {
+        return RandomUtils.generateRandomFloat(this.min.getFloat(context), this.max.getFloat(context), context.random());
     }
 
     private static class Factory implements NumberProviderFactory<UniformNumberProvider> {

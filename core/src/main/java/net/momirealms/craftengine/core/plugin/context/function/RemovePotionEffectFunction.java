@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -45,7 +46,7 @@ public final class RemovePotionEffectFunction<CTX extends Context> extends Abstr
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, RemovePotionEffectFunction<CTX>> {
-        private static final String[] POTION_EFFECTS = new String[] {"potion_effect", "potion-effect"};
+        private static final String[] POTION_EFFECTS = ConfigKeys.of("potion_effect");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

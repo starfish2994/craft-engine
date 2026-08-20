@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -39,8 +40,8 @@ public final class ClearItemFunction<CTX extends Context> extends AbstractCondit
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, ClearItemFunction<CTX>> {
-        private static final String[] ID = new String[]{"item", "id"};
-        private static final String[] COUNT = new String[]{"count", "amount"};
+        private static final String[] ID = ConfigKeys.of("item|id");
+        private static final String[] COUNT = ConfigKeys.of("count|amount");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

@@ -1,29 +1,25 @@
 package net.momirealms.craftengine.core.plugin.text.minimessage;
 
-import net.kyori.adventure.text.minimessage.Context;
-import net.kyori.adventure.text.minimessage.ParsingException;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.core.font.AbstractFontManager;
 import net.momirealms.craftengine.core.font.Image;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.sparrow.message.Context;
+import net.momirealms.sparrow.message.ParsingException;
+import net.momirealms.sparrow.message.tag.Tag;
+import net.momirealms.sparrow.message.tag.resolver.ArgumentQueue;
+import net.momirealms.sparrow.message.tag.resolver.StaticTagResolver;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public final class ImageTag implements TagResolver {
+public final class ImageTag extends StaticTagResolver {
     public static final ImageTag INSTANCE = new ImageTag();
 
-    private ImageTag() {}
+    private ImageTag() { super("image"); }
 
     @Override
-    public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
-        if (!this.has(name)) {
-            return null;
-        }
+    public Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
         String namespaceOrId = arguments.popOr("No argument namespace provided").toString();
         if (arguments.hasNext()) {
             String id = arguments.popOr("No argument id provided").toString();
@@ -63,8 +59,4 @@ public final class ImageTag implements TagResolver {
         }
     }
 
-    @Override
-    public boolean has(@NotNull String name) {
-        return "image".equals(name);
-    }
 }

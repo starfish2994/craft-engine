@@ -20,6 +20,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
@@ -366,8 +367,8 @@ public final class DoorBlockBehavior extends AbstractCanSurviveBlockBehavior
     }
 
     private static class Factory implements BlockBehaviorFactory<DoorBlockBehavior> {
-        private static final String[] CAN_OPEN_WITH_HAND = new String[] {"can_open_with_hand", "can-open-with-hand"};
-        private static final String[] CAN_OPEN_BY_WIND_CHARGE = new String[] {"can_open_by_wind_charge", "can-open-by-wind-charge"};
+        private static final String[] CAN_OPEN_WITH_HAND = ConfigKeys.of("can_open_with_hand");
+        private static final String[] CAN_OPEN_BY_WIND_CHARGE = ConfigKeys.of("can_open_by_wind_charge");
 
         @Override
         public DoorBlockBehavior create(BlockDefinition block, ConfigSection section) {

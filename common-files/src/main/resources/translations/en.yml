@@ -85,6 +85,9 @@ command.resource.create.failure.invalid_namespace: <red>Failed to create resourc
 command.resource.create.failure.exists: <red>Resource <arg:0> already exists.</red>
 command.resource.save_default.success: <white>Successfully saved default assets from '<arg:0>'</white><newline><gray><i>Click <green><u><b><click:run_command:'/ce reload all'><hover:show_text:'Reload the plugin'>HERE</hover></click></b></u></green> to apply the changes</i></gray>
 command.resource.save_default.failure: <red>An unknown error occurred while saving the default assets. Please check the console
+command.resource.search.parser.not_found: <red>Cannot found config type '<arg:0>'</red>
+command.resource.search.resource.not_found: <red>Cannot found any resource with id '<arg:0>'</red>
+command.resource.search.success: <white>The path of '<arg:0>' is <arg:1></white>
 command.upload.failure.not_supported: <red>Current hosting method '<arg:0>' doesn't support uploading resource packs.</red>
 command.upload.on_progress: <white>Started uploading progress. Check the console for more information.</white>
 command.send_resource_pack.success.single: <white>Sent resource pack to <arg:0>.</white>
@@ -95,6 +98,7 @@ command.locale.unset.success: <white>Cleared selected locale for <arg:0></white>
 command.display_entity_view_distance_scale.set.success: <white>Display entity view distance scale updated to <arg:0> for <arg:1></white>
 command.entity_culling_distance_scale.set.success: <white>Entity culling distance scale updated to <arg:0> for <arg:1></white>
 command.entity_culling.toggle.success: <white>Entity culling status updated to <arg:0> for <arg:1></white>
+command.damage_visibility.set.success: <white>Damage indicator visibility updated to <arg:0> for <arg:1></white>
 command.place_feature.failed: "<red>Failed to place feature</red>"
 command.place_feature.success: "<white>Placed \"<arg:0>\" at <arg:1>, <arg:2>, <arg:3></white>"
 command.place_feature.invalid: "<red>There is no feature with type \"<arg:0>\"</red>"
@@ -132,6 +136,18 @@ snbt.parser.incorrect: Expected literal <arg:0>
 yaml.duplicated_key: "Found duplicated key '<arg:1>' at line <arg:2> in file <arg:0>"
 yaml.inconsistent_value_type: "Found duplicated key '<arg:1>' at line <arg:2> with different value types in file <arg:0>"
 plugin.compatibility: "[Compatibility] <arg:0> hooked"
+attribute.damage_formula.unknown_type: Unknown damage formula type '<arg:0>'
+damage_indicator.unknown_type: Unknown damage indicator type '<arg:0>'
+attribute.base_value_source.unknown_type: Unknown base value source type '<arg:0>'
+attribute.sync_value_provider.unknown_type: Unknown sync value provider type '<arg:0>'
+attribute.value_transformer.unknown_type: Unknown value transformer type '<arg:0>'
+attribute.value_formatter.unknown_type: Unknown value formatter type '<arg:0>'
+attribute.formula.unknown_variable: Unknown variable '<arg:0>' in damage formula '<arg:1>'
+attribute.formula.unknown_attribute: Unknown attribute '<arg:0>' in damage formula '<arg:1>'
+attribute.unknown_operation: Unknown attribute operation '<arg:0>'
+attribute.operation.invalid_expression: Invalid expression '<arg:0>' in attribute operation
+attribute.derived.unknown_attribute: Unknown attribute '<arg:0>' in derived expression '<arg:1>'
+attribute.derived.unknown_type: Unknown derived value type '<arg:0>'
 number.unknown_type: Unknown number type '<arg:0>'
 number.fixed.invalid_expression: Invalid expression '<arg:0>'. https://ezylang.github.io/EvalEx/references/references.html
 number.greater_than: '''<arg:0>'' should be greater than ''<arg:1>'''
@@ -145,6 +161,10 @@ player_selector.unknown_type: Unknown player selector type '<arg:0>'
 loot.entry.unknown_type: Unknown loot entry type '<arg:0>'
 loot.function.unknown_type: Unknown loot function type '<arg:0>'
 loot.function.formula.unknown_type: Unknown formula type '<arg:0>'
+loot.source.unknown_type: Unknown loot source type '<arg:0>'
+loot.source.unknown_overwrite_mode: Unknown loot source overwrite mode '<arg:0>'
+loot.source.target_not_allowed: Loot source type '<arg:0>' does not support 'target'
+loot.source.invalid_target: Invalid loot source target '<arg:0>'
 host.unknown_type: Unknown resource pack host type '<arg:0>'
 host.missing_environment_variable: Missing environment variable '<arg:0>'
 host.get_url_failed: "Failed to retrieve resource pack download URL for player <arg:0>"
@@ -175,6 +195,7 @@ resource_pack.malformatted_json: Json file '<arg:0>' is malformatted
 resource_pack.not_a_json_object: Json file '<arg:0>' is not a json object
 resource_pack.conflict_resolution.unknown_type: Unknown conflict resolution type '<arg:0>'
 resource_pack.model_generation.conflict: Failed to generate model because the model file '<arg:0>' already exists
+resource_pack.texture_generation.conflict: Failed to generate texture because the texture file '<arg:0>' already exists
 resource_pack.item_model.conflict: Failed to generate item model '<arg:0>' because the file '<arg:1>' already exists
 resource_pack.missing_font_texture: "Font '<arg:0>' is missing texture '<arg:1>'"
 resource_pack.missing_model_texture: "Model '<arg:0>' is missing texture '<arg:1>'"
@@ -250,6 +271,7 @@ resource.emoji.unknown_image: Unknown image '<arg:0>'
 resource.equipment.unknown_type: Unknown equipment type '<arg:0>'
 resource.equipment.unknown_layer_type: Unknown equipment layer type '<arg:0>'
 resource.equipment.invalid_sacrificed_armor: Invalid vanilla armor type '<arg:0>'
+resource.equipment_set.invalid_slot_name: Invalid equipment set slot name '<arg:0>'
 resource.furniture.element.unknown_type: Unknown furniture element type '<arg:0>'
 resource.furniture.element.tint_source.unknown_type: Unknown furniture tint source type '<arg:0>'
 resource.furniture.hitbox.unknown_type: Unknown furniture hitbox type '<arg:0>'
@@ -292,6 +314,9 @@ resource.item.invalid_material: Invalid material type '<arg:0>'
 resource.item.unknown_data_component_type: Unknown data component type '<arg:0>'
 resource.item.data_component_predicate.unknown_type: Unknown data component predicate type '<arg:0>'
 resource.model.generation.conflict: Failed to generate model for '<arg:0>' as two or more configurations attempt to generate different json models with the same path
+resource.texture.generation.conflict: Failed to generate texture for '<arg:0>' as two or more configurations attempt to generate different textures with the same path
+resource.model.bbmodel.invalid_file: Failed to read or parse bbmodel file '<arg:0>'
+resource.model.bbmodel.invalid_name: bbmodel file name '<arg:0>' is not a valid resource path, please rename it using only lowercase letters, digits, '_', '-', '.', '/'
 resource.recipe.transform_processor.unknown_type: Unknown smithing transform post processor type '<arg:0>'
 resource.recipe.ingredient.invalid_tag: Item tag '<arg:0>' doesn't contain any item
 resource.recipe.ingredient.item_not_exist: Ingredient item '<arg:0>' doesn't exist
@@ -304,4 +329,3 @@ resource.recipe.shapeless_transform.ambigious_source: "Found 2 or more materials
 resource.recipe.shapeless_transform.source_not_found: "Unable to find a material marked as source in recipe"
 resource.recipe.post_processor.unknown_type: Unknown recipe post processor type '<arg:0>'
 resource.recipe.unknown_type: Unknown recipe type '<arg:0>'
-resource.vanilla_loot.block.invalid_target: Invalid block target '<arg:0>'

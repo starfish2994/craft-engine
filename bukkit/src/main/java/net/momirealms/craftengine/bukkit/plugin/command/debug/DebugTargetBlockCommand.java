@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.plugin.command.debug;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.plugin.command.BukkitCommandFeature;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
@@ -91,7 +92,7 @@ public final class DebugTargetBlockCommand extends BukkitCommandFeature<CommandS
                                         .clickEvent(ClickEvent.suggestCommand(name)));
                             }
                         }
-                        CEWorld world = plugin().worldManager().getWorld(block.getWorld().getUID());
+                        CEWorld world = BukkitAdaptor.adapt(block.getWorld()).storageWorld();
                         BlockPos blockPos = LocationUtils.toBlockPos(block.getLocation());
                         BlockEntity blockEntity = world.getBlockEntityAtIfLoaded(blockPos);
                         if (blockEntity != null) {
@@ -137,7 +138,7 @@ public final class DebugTargetBlockCommand extends BukkitCommandFeature<CommandS
                                         .clickEvent(ClickEvent.suggestCommand(stringTag)));
                             }
                         }
-                        CEWorld world = plugin().worldManager().getWorld(block.getWorld().getUID());
+                        CEWorld world = BukkitAdaptor.adapt(block.getWorld()).storageWorld();
                         BlockPos blockPos = LocationUtils.toBlockPos(block.getLocation());
                         ImmutableBlockState dataInCache = world.getBlockStateAtIfLoaded(blockPos);
                         sender.sendMessage(Component.text("storage: " + (dataInCache != null && !dataInCache.isEmpty())));

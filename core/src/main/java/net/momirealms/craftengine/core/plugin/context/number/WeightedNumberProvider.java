@@ -1,7 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.number;
 
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.util.random.RandomSource;
+import net.momirealms.craftengine.core.plugin.context.Context;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,19 +34,19 @@ public final class WeightedNumberProvider implements NumberProvider {
     }
 
     @Override
-    public int getInt(RandomSource random) {
-        return (int) Math.round(getDouble(random));
+    public int getInt(Context context) {
+        return (int) Math.round(getDouble(context));
     }
 
     @Override
-    public float getFloat(RandomSource random) {
-        return (float) getDouble(random);
+    public float getFloat(Context context) {
+        return (float) getDouble(context);
     }
 
     @Override
-    public double getDouble(RandomSource random) {
+    public double getDouble(Context context) {
         // 生成 [0, totalWeight) 之间的随机数
-        double randomValue = random.nextDouble() * this.totalWeight;
+        double randomValue = context.random().nextDouble() * this.totalWeight;
         
         // 查找第一个累计权重值大于 randomValue 的条目
         Map.Entry<Double, Double> entry = this.weightMap.higherEntry(randomValue);

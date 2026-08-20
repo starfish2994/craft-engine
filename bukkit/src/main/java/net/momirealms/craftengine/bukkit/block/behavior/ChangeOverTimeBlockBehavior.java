@@ -8,6 +8,7 @@ import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
@@ -31,7 +32,7 @@ public final class ChangeOverTimeBlockBehavior extends BukkitBlockBehavior imple
         this.changeSpeed = changeSpeed;
         this.nextBlock = nextBlock;
         this.excludedProperties = excludedProperties;
-        this.lazyState = LazyReference.lazyReference(() -> CraftEngine.instance().blockManager().createBlockState(this.nextBlock));
+        this.lazyState = LazyReference.untilNotNull(() -> CraftEngine.instance().blockManager().createBlockState(this.nextBlock));
     }
 
     public BlockStateWrapper nextState() {
@@ -63,9 +64,9 @@ public final class ChangeOverTimeBlockBehavior extends BukkitBlockBehavior imple
     }
 
     private static class Factory implements BlockBehaviorFactory<ChangeOverTimeBlockBehavior> {
-        private static final String[] CHANGE_SPEED = new String[] {"change_speed", "change-speed"};
-        private static final String[] NEXT_BLOCK = new String[] {"next_block", "next-block"};
-        private static final String[] EXCLUDED_PROPERTIES = new String[] {"excluded_properties", "excluded-properties"};
+        private static final String[] CHANGE_SPEED = ConfigKeys.of("change_speed");
+        private static final String[] NEXT_BLOCK = ConfigKeys.of("next_block");
+        private static final String[] EXCLUDED_PROPERTIES = ConfigKeys.of("excluded_properties");
 
         @Override
         public ChangeOverTimeBlockBehavior create(BlockDefinition block, ConfigSection section) {

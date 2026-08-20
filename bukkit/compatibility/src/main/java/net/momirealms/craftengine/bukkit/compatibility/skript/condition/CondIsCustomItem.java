@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.compatibility.skript.condition;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.conditions.base.PropertyCondition;
 import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Condition;
@@ -20,8 +21,10 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 
 @Name("Is CraftEngine Item")
 @Description({"Checks if the Item is CraftEngine item."})
+@Example("if player's tool is a custom item:")
 @Since("1.0")
 public final class CondIsCustomItem extends Condition {
+    private Expression<?> item;
 
     public static void register(SkriptAddon addon) {
         SyntaxInfo<CondIsCustomItem> condition = SyntaxInfo.builder(CondIsCustomItem.class)
@@ -30,8 +33,6 @@ public final class CondIsCustomItem extends Condition {
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.CONDITION, condition);
     }
-
-    private Expression<?> item;
 
     @Override
     public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {

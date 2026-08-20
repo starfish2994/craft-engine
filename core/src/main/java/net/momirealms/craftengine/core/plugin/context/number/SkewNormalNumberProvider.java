@@ -1,12 +1,10 @@
 package net.momirealms.craftengine.core.plugin.context.number;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.MiscUtils;
-import net.momirealms.craftengine.core.util.random.RandomSource;
-
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 通用偏态分布提供器
@@ -80,33 +78,33 @@ public final class SkewNormalNumberProvider implements NumberProvider {
     }
 
     @Override
-    public int getInt(RandomSource random) {
+    public int getInt(Context context) {
         // 四舍五入取整
-        return (int) Math.round(getDouble(random));
+        return (int) Math.round(getDouble(context));
     }
 
     @Override
-    public float getFloat(RandomSource random) {
-        return (float) getDouble(random);
+    public float getFloat(Context context) {
+        return (float) getDouble(context);
     }
 
     @Override
-    public double getDouble(RandomSource random) {
+    public double getDouble(Context context) {
         // 如果没有偏度，直接使用更快的标准高斯生成
         if (Math.abs(this.skewness) < 1e-6) {
-            return generateNormalBounded();
+            return generateNormalBounded(context);
         }
-        return generateSkewNormalBounded(random);
+        return generateSkewNormalBounded(context);
     }
 
     /**
      * 生成有界偏态分布随机数
      */
-    private double generateSkewNormalBounded(RandomSource random) {
+    private double generateSkewNormalBounded(Context context) {
         for (int i = 0; i < this.maxAttempts; i++) {
             // 生成标准正态变量
-            double u0 = random.nextGaussian();
-            double u1 = random.nextGaussian();
+            double u0 = context.random().nextGaussian();
+            double u1 = context.random().nextGaussian();
 
             // 核心生成公式: Z = δ|U0| + √(1-δ²)U1
             // 此时 Z 服从标准偏态正态分布 (Location=0, Scale=1, Shape=α)
@@ -126,10 +124,9 @@ public final class SkewNormalNumberProvider implements NumberProvider {
     /**
      * 特例优化：当偏度为0时（正态分布），使用更简单的逻辑
      */
-    private double generateNormalBounded() {
-        Random random = ThreadLocalRandom.current();
+    private double generateNormalBounded(Context context) {
         for (int i = 0; i < this.maxAttempts; i++) {
-            double value = this.targetMean + random.nextGaussian() * this.targetStdDev;
+            double value = this.targetMean + context.random().nextGaussian() * this.targetStdDev;
             if (value >= this.min && value <= this.max) {
                 return value;
             }
@@ -138,8 +135,8 @@ public final class SkewNormalNumberProvider implements NumberProvider {
     }
 
     private static class Factory implements NumberProviderFactory<SkewNormalNumberProvider> {
-        private static final String[] STD_DEV = new String[] {"std_dev", "std-dev"};
-        private static final String[] MAX_ATTEMPTS = new String[] {"max_attempts", "max-attempts"};
+        private static final String[] STD_DEV = ConfigKeys.of("std_dev");
+        private static final String[] MAX_ATTEMPTS = ConfigKeys.of("max_attempts");
 
         @Override
         public SkewNormalNumberProvider create(ConfigSection section) {

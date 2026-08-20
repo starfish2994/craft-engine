@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.item.customdata;
 
 import net.momirealms.craftengine.core.entity.furniture.FurnitureDebugStickState;
+import net.momirealms.craftengine.core.util.CustomDataSerializer;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 

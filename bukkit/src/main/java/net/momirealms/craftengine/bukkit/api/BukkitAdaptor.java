@@ -3,12 +3,15 @@ package net.momirealms.craftengine.bukkit.api;
 import net.momirealms.craftengine.bukkit.entity.BukkitEntity;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
+import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.network.BukkitNetworkManager;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.world.BukkitExistingBlock;
 import net.momirealms.craftengine.bukkit.world.BukkitWorld;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
-import net.momirealms.craftengine.core.world.CEWorld;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
+import net.momirealms.craftengine.proxy.bukkit.craftbukkit.entity.CraftEntityProxy;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -18,7 +21,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class BukkitAdaptor {
-    private BukkitAdaptor() {}
+
+    private BukkitAdaptor() {
+    }
 
     /**
      * Adapts a Bukkit Player to a CraftEngine BukkitServerPlayer.
@@ -29,7 +34,7 @@ public final class BukkitAdaptor {
      */
     @Nullable
     public static BukkitServerPlayer adapt(@NotNull final Player player) {
-        return (BukkitServerPlayer) BukkitNetworkManager.instance().getOnlineUser(player.getUniqueId());
+        return BukkitNetworkManager.instance().getOnlineUser(player.getUniqueId());
     }
 
     /**
@@ -41,9 +46,17 @@ public final class BukkitAdaptor {
      */
     @NotNull
     public static BukkitWorld adapt(@NotNull final World world) {
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(world);
-        if (ceWorld == null) return new BukkitWorld(world);
-        return (BukkitWorld) ceWorld.world;
+        Object worldBorder = CraftWorldProxy.INSTANCE.getWorldBorder(world);
+        if (worldBorder instanceof BukkitWorld bukkitWorld) {
+            return bukkitWorld;
+        }
+        if (BukkitCraftEngine.instance().isFullyLoaded()) {
+            // should not reach here
+            throw new IllegalStateException("Failed to adapt world " + world.getName());
+        } else {
+            // If CraftEngine has not started yet
+            return BukkitWorldManager.instance().ensureStorageWorld(world);
+        }
     }
 
     /**
@@ -55,7 +68,8 @@ public final class BukkitAdaptor {
      */
     @NotNull
     public static BukkitEntity adapt(@NotNull final Entity entity) {
-        return new BukkitEntity(entity);
+        Object handle = CraftEntityProxy.INSTANCE.getEntity(entity);
+        return EntityUtils.adaptNMS(handle);
     }
 
     /**

@@ -80,6 +80,8 @@ public interface PacketIds {
 
     int clientboundPlayerChatPacket();
 
+    int clientboundPlayerCombatKillPacket();
+
     int clientIntentionPacket();
 
     int clientboundStatusResponsePacket();
@@ -157,4 +159,6 @@ public interface PacketIds {
     int clientboundShowDialogPacket$configuration();
 
     int clientboundUpdateAttributesPacket();
+
+    int clientboundSetHealthPacket();
 }

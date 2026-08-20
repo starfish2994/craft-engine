@@ -106,7 +106,7 @@ public final class GlowingFurnitureBehaviorTemplate extends FurnitureBehaviorTem
         }
 
         @Override
-        public void onUnload(boolean isStopping) {
+        public void onUnload() {
             if (!this.unloaded) {
                 this.removeLightBlocks(false);
                 this.unloaded = true;

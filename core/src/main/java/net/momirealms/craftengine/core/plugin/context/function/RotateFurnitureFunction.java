@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.furniture.Furniture;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -58,8 +59,8 @@ public final class RotateFurnitureFunction<CTX extends Context> extends Abstract
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, RotateFurnitureFunction<CTX>> {
-        private static final String[] ON_SUCCESS = new String[] {"on_success", "on-success"};
-        private static final String[] ON_FAILURE = new String[] {"on_failure", "on-failure"};
+        private static final String[] ON_SUCCESS = ConfigKeys.of("on_success");
+        private static final String[] ON_FAILURE = ConfigKeys.of("on_failure");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

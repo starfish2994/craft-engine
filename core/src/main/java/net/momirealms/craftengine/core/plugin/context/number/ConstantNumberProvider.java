@@ -5,19 +5,24 @@ import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.parser.ParseException;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
-import net.momirealms.craftengine.core.util.random.RandomSource;
+import net.momirealms.craftengine.core.plugin.context.Context;
 
 public record ConstantNumberProvider(double value) implements NumberProvider {
     public static final NumberProviderFactory<ConstantNumberProvider> FACTORY = new Factory();
 
     @Override
-    public float getFloat(RandomSource random) {
+    public float getFloat(Context context) {
         return (float) this.value;
     }
 
     @Override
-    public double getDouble(RandomSource random) {
+    public double getDouble(Context context) {
         return this.value;
+    }
+
+    @Override
+    public boolean isConstant() {
+        return true;
     }
 
     public static ConstantNumberProvider constant(final double value) {

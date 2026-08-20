@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context;
 
-public class SimpleContext extends AbstractCommonContext {
+public class SimpleContext extends AbstractChainParameterContext {
+    public static final SimpleContext EMPTY = new SimpleContext(ContextHolder.empty());
 
     public SimpleContext(ContextHolder contexts) {
         super(contexts);

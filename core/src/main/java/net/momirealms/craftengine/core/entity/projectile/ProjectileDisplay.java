@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.entity.projectile;
 import net.momirealms.craftengine.core.entity.display.Billboard;
 import net.momirealms.craftengine.core.entity.display.ItemDisplayContext;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Key;
 import org.joml.Quaternionf;
@@ -15,7 +16,7 @@ public record ProjectileDisplay(
         Vector3f scale,
         Vector3f translation,
         Quaternionf rotation) {
-    private static final String[] DISPLAY_TRANSFORM = new String[] {"display_transform", "display-transform"};
+    private static final String[] DISPLAY_TRANSFORM = ConfigKeys.of("display_transform");
 
     public static ProjectileDisplay fromConfig(ConfigSection section) {
         return new ProjectileDisplay(

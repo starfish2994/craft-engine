@@ -1,6 +1,10 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.condition;
 
 import ch.njol.skript.conditions.base.PropertyCondition;
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
+import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser;
@@ -13,7 +17,12 @@ import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.registration.SyntaxInfo;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
+@Name("Is Furniture")
+@Description({"Checks if the entity is a CraftEngine furniture."})
+@Example("if target entity is a furniture:")
+@Since("1.0")
 public final class CondIsFurniture extends Condition {
+    private Expression<Entity> entities;
 
     public static void register(SkriptAddon addon) {
         SyntaxInfo<CondIsFurniture> condition = SyntaxInfo.builder(CondIsFurniture.class)
@@ -22,8 +31,6 @@ public final class CondIsFurniture extends Condition {
                 .build();
         addon.registry(SyntaxRegistry.class).register(SyntaxRegistry.CONDITION, condition);
     }
-
-    private Expression<Entity> entities;
 
     @Override
     public boolean check(Event event) {
@@ -39,7 +46,7 @@ public final class CondIsFurniture extends Condition {
     @Override
     public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
         entities = (Expression<Entity>) expressions[0];
-        setNegated(matchedPattern > 1);
+        setNegated(matchedPattern == 1);
         return true;
     }
 }

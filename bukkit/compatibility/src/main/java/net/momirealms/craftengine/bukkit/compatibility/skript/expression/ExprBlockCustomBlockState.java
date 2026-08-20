@@ -1,5 +1,9 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.expression;
 
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
+import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.Since;
 import ch.njol.skript.expressions.base.SimplePropertyExpression;
 import net.momirealms.craftengine.bukkit.api.CraftEngineBlocks;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
@@ -10,6 +14,10 @@ import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.registration.DefaultSyntaxInfos;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
+@Name("Custom Block State")
+@Description({"Get the CraftEngine custom block state of a block or blockdata."})
+@Example("set {_state} to custom block state of target block")
+@Since("1.0")
 public final class ExprBlockCustomBlockState extends SimplePropertyExpression<Object, ImmutableBlockState> {
 
     public static void register(SkriptAddon addon) {

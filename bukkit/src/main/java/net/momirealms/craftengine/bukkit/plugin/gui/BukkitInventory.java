@@ -24,7 +24,7 @@ public final class BukkitInventory implements Inventory {
     @Override
     public void open(Player player, Component title) {
         BukkitServerPlayer serverPlayer = (BukkitServerPlayer) player;
-        Object nmsPlayer = serverPlayer.serverPlayer();
+        Object nmsPlayer = serverPlayer.minecraftPlayer();
         Object menuType = CraftContainerProxy.INSTANCE.getNotchInventoryType(this.inventory);
         int nextId = ServerPlayerProxy.INSTANCE.nextContainerCounter(nmsPlayer);
         Object menu = CraftContainerProxy.INSTANCE.newInstance(this.inventory, nmsPlayer, nextId);

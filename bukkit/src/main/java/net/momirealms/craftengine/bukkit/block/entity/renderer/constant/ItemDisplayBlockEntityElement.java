@@ -36,13 +36,13 @@ public final class ItemDisplayBlockEntityElement extends AbstractConstantBlockEn
         Vector3f position = config.position();
         this.tintSource = tintSource;
         this.cachedSpawnPacket = ClientboundAddEntityPacketProxy.INSTANCE.newInstance(
-                entityId, UUID.randomUUID(), pos.x() + position.x, pos.y() + position.y, pos.z() + position.z,
+                entityId, UUID.randomUUID(), pos.x() + (double) position.x, pos.y() + (double) position.y, pos.z() + (double) position.z,
                 config.xRot(), config.yRot(), EntityTypesProxy.ITEM_DISPLAY, 0, Vec3Proxy.ZERO, 0
         );
         this.config = config;
         this.cachedDespawnPacket = ClientboundRemoveEntitiesPacketProxy.INSTANCE.newInstance(IntList.of(entityId));
         this.entityId = entityId;
-        this.cachedUpdatePosPacket = posChanged ? EntityUtils.createUpdatePosPacket(this.entityId, pos.x() + position.x, pos.y() + position.y, pos.z() + position.z, config.yRot(), config.xRot(), false) : null;
+        this.cachedUpdatePosPacket = posChanged ? EntityUtils.createUpdatePosPacket(this.entityId, pos.x() + (double) position.x, pos.y() + (double) position.y, pos.z() + (double) position.z, config.yRot(), config.xRot(), false) : null;
     }
 
     @Override
@@ -52,15 +52,15 @@ public final class ItemDisplayBlockEntityElement extends AbstractConstantBlockEn
 
     @Override
     public void showInternal(Player player) {
-        player.sendPackets(List.of(this.cachedSpawnPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player, this.tintSource))), false);
+        player.sendPackets(List.of(this.cachedSpawnPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player, this.tintSource, false))), false);
     }
 
     @Override
     public void update(@NotNull Player player) {
         if (this.cachedUpdatePosPacket != null) {
-            player.sendPackets(List.of(this.cachedUpdatePosPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player, this.tintSource))), false);
+            player.sendPackets(List.of(this.cachedUpdatePosPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player, this.tintSource, true))), false);
         } else {
-            player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player, this.tintSource)), false);
+            player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadataValues(player, this.tintSource, true)), false);
         }
     }
 

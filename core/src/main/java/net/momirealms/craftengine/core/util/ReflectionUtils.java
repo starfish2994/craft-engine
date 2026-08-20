@@ -17,8 +17,8 @@ import java.util.List;
 public final class ReflectionUtils {
     public static final boolean JNI_IS_AVAILABLE = MiscUtils.get(() -> {
         try {
-            Class.forName("cn.gtemc.reflection.ImplLookupGetter");
-            return true;
+            Class<?> clazz = ImplLookupGetter.IMPL_LOOKUP.lookupClass();
+            return clazz == null || clazz.isInstance(Object.class);
         } catch (Throwable t) {
             if (VersionHelper.IS_RUNNING_IN_DEV) {
                 System.err.println("[CraftEngine] JNI is not available");
@@ -201,6 +201,15 @@ public final class ReflectionUtils {
     public static MethodHandle unreflectConstructor(Constructor<?> constructor) {
         try {
             return LOOKUP.unreflectConstructor(constructor);
+        } catch (IllegalAccessException e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    public static MethodHandle unreflectStatic(Method method) {
+        try {
+            return LOOKUP.unreflect(method);
         } catch (IllegalAccessException e) {
             return null;
         }

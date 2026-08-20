@@ -1,6 +1,10 @@
 items:
   default:drill:
     material: stone_pickaxe
+    settings:
+      break_power: 2
+      tags:
+        - minecraft:pickaxes
     data:
       item_name: <!i><white><lang:item.default.drill>
       max_damage: 512

@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.block.EmptyBlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
+import net.momirealms.craftengine.core.block.entity.InactiveBlockEntityController;
 import net.momirealms.craftengine.core.block.entity.render.BlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElement;
@@ -454,16 +455,29 @@ public class CEChunk {
     public void addBlockEntity(BlockEntity blockEntity) {
         this.setBlockEntity(blockEntity);
         if (this.activated) {
+            try {
+                blockEntity.controller.onLoad();
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().warn("Failed to load block entity " + blockEntity.blockState + " at " + world.name() + " " + blockEntity.pos, t);
+            }
             this.replaceOrCreateTickingBlockEntity(blockEntity);
             this.createDynamicBlockEntityRenderer(blockEntity);
         }
     }
 
     public void removeBlockEntity(BlockPos blockPos) {
-        BlockEntity removedBlockEntity = this.blockEntities.remove(blockPos.asLong());
-        if (removedBlockEntity != null) {
-            removedBlockEntity.setValid(false);
-        }
+        BlockEntity blockEntity = this.blockEntities.remove(blockPos.asLong());
+        if (blockEntity != null) {
+            // 与 onLoad 成对：只有区块处于激活状态（即触发过 onLoad）时才触发 onUnload
+            if (this.activated) {
+                try {
+                    blockEntity.controller.onUnload();
+                } catch (Throwable t) {
+                    CraftEngine.instance().logger().warn("Failed to unload block entity " + blockEntity.blockState + " at " + world.name() + " " + blockEntity.pos, t);
+                }
+            }
+            blockEntity.setValid(false);
+    }
         this.removeBlockEntityTicker(blockPos);
         this.removeDynamicBlockEntityRenderer(blockPos);
     }
@@ -478,6 +492,11 @@ public class CEChunk {
             blockEntity.setValid(true);
             this.replaceOrCreateTickingBlockEntity(blockEntity);
             this.createDynamicBlockEntityRenderer(blockEntity);
+            try {
+                blockEntity.controller.onLoad();
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().warn("Failed to load block entity " + blockEntity.blockState + " at " + world.name() + " " + blockEntity.pos, t);
+            }
         }
         try {
             this.renderLock.readLock().lock();
@@ -492,7 +511,14 @@ public class CEChunk {
 
     public void deactivateAllBlockEntities() {
         if (!this.activated) return;
-        this.blockEntities.values().forEach(e -> e.setValid(false));
+        this.blockEntities.values().forEach(e -> {
+            e.setValid(false);
+            try {
+                e.controller.onUnload();
+            } catch (Throwable t) {
+                CraftEngine.instance().logger().warn("Failed to unload block entity " + e.blockState + " at " + world.name() + " " + e.pos, t);
+            }
+        });
 
         if (!CraftEngine.instance().isStopping()) {
             try {
@@ -605,7 +631,7 @@ public class CEChunk {
     public void setBlockEntity(BlockEntity blockEntity) {
         BlockPos pos = blockEntity.pos();
         ImmutableBlockState blockState = this.getBlockState(pos);
-        if (!blockState.hasBlockEntity()) {
+        if (!blockState.hasBlockEntity() && !(blockEntity.controller instanceof InactiveBlockEntityController)) {
             Debugger.BLOCK.debug(() -> "Failed to add invalid block entity " + blockEntity.saveAsTag() + " at " + pos);
             return;
         }
@@ -661,7 +687,7 @@ public class CEChunk {
     public boolean isEmpty() {
         if (!this.blockEntities.isEmpty()) return false;
         for (CESection section : this.sections) {
-            if (section != null && !section.statesContainer.isEmpty()) {
+            if (section != null && !section.isEmpty()) {
                 return false;
             }
         }
@@ -695,7 +721,7 @@ public class CEChunk {
 
     @NotNull
     public ImmutableBlockState getBlockState(BlockPos pos) {
-        return getBlockState(pos.x(), pos.y(), pos.z());
+        return getBlockState(pos.x, pos.y, pos.z);
     }
 
     @NotNull

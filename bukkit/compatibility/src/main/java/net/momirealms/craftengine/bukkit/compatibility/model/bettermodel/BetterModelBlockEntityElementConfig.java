@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.compatibility.model.bettermodel;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfig;
 import net.momirealms.craftengine.core.block.entity.render.element.BlockEntityElementConfigFactory;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -71,12 +72,12 @@ public final class BetterModelBlockEntityElementConfig implements BlockEntityEle
     }
 
     public static class Factory implements BlockEntityElementConfigFactory<BetterModelBlockEntityElement> {
-        private static final String[] SIGHT_TRACE = new String[] {"sight_trace", "sight-trace"};
+        private static final String[] SIGHT_TRACE = ConfigKeys.of("sight_trace");
 
         @Override
         public BetterModelBlockEntityElementConfig create(ConfigSection section) {
             String model = section.getNonEmptyString("model");
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             return new BetterModelBlockEntityElementConfig(
                     model,
                     section.getVector3f("position", ConfigConstants.CENTER_VECTOR3),

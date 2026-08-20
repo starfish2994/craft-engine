@@ -1,8 +1,9 @@
 package net.momirealms.craftengine.core.item;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
-import net.momirealms.craftengine.core.attribute.AttributeModifier;
+import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeModifier;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
@@ -10,12 +11,15 @@ import net.momirealms.craftengine.core.item.component.value.Enchantment;
 import net.momirealms.craftengine.core.item.component.value.FireworkExplosion;
 import net.momirealms.craftengine.core.item.component.value.JukeboxPlayable;
 import net.momirealms.craftengine.core.item.component.value.Trim;
-import net.momirealms.craftengine.core.item.customdata.CustomDataSerializer;
 import net.momirealms.craftengine.core.item.customdata.CustomDataSerializers;
 import net.momirealms.craftengine.core.item.processor.ItemProcessor;
 import net.momirealms.craftengine.core.item.setting.value.EquipmentData;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.context.ChainParameterSource;
+import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.plugin.context.parameter.ItemParameterProvider;
 import net.momirealms.craftengine.core.util.Color;
+import net.momirealms.craftengine.core.util.CustomDataSerializer;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
@@ -31,7 +35,12 @@ import java.util.Optional;
  * This interface provides methods for managing item properties such as custom model data,
  * damage, display name, lore, enchantments, and tags.
  */
-public interface Item {
+public interface Item extends ChainParameterSource {
+
+    @Override
+    default <T> Optional<T> getParameter(ContextKey<T> key) {
+        return ItemParameterProvider.INSTANCE.getOptionalParameter(key, this);
+    }
 
     static Item byId(final Key id) {
         return CraftEngine.instance().itemManager().getBuildableItem(id)
@@ -61,6 +70,10 @@ public interface Item {
 
     static Item fromBytes(final byte[] bytes) {
         return CraftEngine.instance().itemManager().fromBytes(bytes);
+    }
+
+    static Item fromBytes(final byte[] bytes, final boolean useCache) {
+        return CraftEngine.instance().itemManager().fromBytes(bytes, useCache);
     }
 
     default Item toClientSide(Player player) {
@@ -141,15 +154,15 @@ public interface Item {
 
     Optional<FireworkExplosion> fireworkExplosion();
 
-    Item customNameJson(String displayName);
+    Item customNameJson(JsonElement displayName);
 
     Item customNameComponent(Component displayName);
 
-    Optional<String> customNameJson();
+    Optional<JsonElement> customNameJson();
 
     Optional<Component> customNameComponent();
 
-    default Optional<String> hoverNameJson() {
+    default Optional<JsonElement> hoverNameJson() {
         return customNameJson().or(this::itemNameJson);
     }
 
@@ -157,11 +170,11 @@ public interface Item {
         return customNameComponent().or(this::itemNameComponent);
     }
 
-    Item itemNameJson(String itemName);
+    Item itemNameJson(JsonElement itemName);
 
     Item itemNameComponent(Component itemName);
 
-    Optional<String> itemNameJson();
+    Optional<JsonElement> itemNameJson();
 
     Optional<Component> itemNameComponent();
 
@@ -177,15 +190,15 @@ public interface Item {
 
     Optional<String> tooltipStyle();
 
-    Item loreJson(List<String> lore);
+    Item loreJson(JsonArray lore);
 
     Item loreComponent(List<Component> lore);
 
-    Optional<List<String>> loreJson();
+    Optional<JsonArray> loreJson();
 
     Optional<List<Component>> loreComponent();
 
-    Item attributeModifiers(List<AttributeModifier> modifiers);
+    Item attributeModifiers(List<VanillaAttributeModifier> modifiers);
 
     Optional<JukeboxPlayable> jukeboxSong();
 

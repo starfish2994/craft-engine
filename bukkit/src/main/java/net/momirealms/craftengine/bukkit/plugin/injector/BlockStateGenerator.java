@@ -22,11 +22,11 @@ import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.loot.DatapackLootTable;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
+import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
 import net.momirealms.craftengine.core.block.DelegatingBlockState;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.property.Property;
-import net.momirealms.craftengine.core.block.setting.BlockSettings;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.loot.LootTableReference;
@@ -38,7 +38,6 @@ import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
-import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.BlockProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockStateProxy;
@@ -67,7 +66,7 @@ public final class BlockStateGenerator {
             .build();
 
     public static void init() {
-        ByteBuddy byteBuddy = new ByteBuddy(ClassFileVersion.JAVA_V17);
+        ByteBuddy byteBuddy = new ByteBuddy(ClassFileVersion.JAVA_V21);
         String packageWithName = BlockStateGenerator.class.getName();
         String generatedStateClassName = packageWithName.substring(0, packageWithName.lastIndexOf('.')) + ".CraftEngineBlockState";
         DynamicType.Builder<?> stateBuilder = byteBuddy
@@ -132,13 +131,8 @@ public final class BlockStateGenerator {
             }
 
             // do not drop if it's not the correct tool
-            BlockSettings settings = state.settings();
-            if (optionalPlayer != null && settings.requireCorrectTool()) {
-                if (item.isEmpty()) return List.of();
-                if (!settings.isCorrectTool(item.id()) &&
-                        (!settings.respectToolComponent() || !ItemStackProxy.INSTANCE.isCorrectToolForDrops(tool, state.customBlockState().minecraftState()))) {
-                    return List.of();
-                }
+            if (optionalPlayer != null && !BlockStateUtils.isCorrectTool(state, item)) {
+                return List.of();
             }
 
             // 数据包 LootTable.

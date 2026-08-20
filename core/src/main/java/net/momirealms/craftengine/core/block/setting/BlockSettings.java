@@ -27,6 +27,7 @@ public final class BlockSettings {
     boolean fluidState;
     boolean requireCorrectTools;
     boolean respectToolComponent;
+    int requiredBreakPower;
     Tristate isRedstoneConductor = Tristate.UNDEFINED;
     Tristate isSuffocating = Tristate.UNDEFINED;
     Tristate isViewBlocking = Tristate.UNDEFINED;
@@ -42,7 +43,7 @@ public final class BlockSettings {
     Key itemId;
     Set<Key> tags = Set.of();
     float incorrectToolSpeed = 0.3f;
-    LazyReference<Set<Key>> correctTools = LazyReference.lazyReference(Set::of);
+    LazyReference<Set<Key>> correctTools = LazyReference.untilNotNull(Set::of);
     String name;
     String supportShapeBlockState;
     float friction = 0.6f;
@@ -106,6 +107,7 @@ public final class BlockSettings {
         newSettings.burnChance = settings.burnChance;
         newSettings.requireCorrectTools = settings.requireCorrectTools;
         newSettings.respectToolComponent = settings.respectToolComponent;
+        newSettings.requiredBreakPower = settings.requiredBreakPower;
         newSettings.fireSpreadChance = settings.fireSpreadChance;
         newSettings.isRedstoneConductor = settings.isRedstoneConductor;
         newSettings.isSuffocating = settings.isSuffocating;
@@ -268,6 +270,10 @@ public final class BlockSettings {
         return respectToolComponent;
     }
 
+    public int requiredBreakPower() {
+        return requiredBreakPower;
+    }
+
     public String supportShapeBlockState() {
         return supportShapeBlockState;
     }
@@ -391,6 +397,11 @@ public final class BlockSettings {
 
     public BlockSettings respectToolComponent(boolean respectToolComponent) {
         this.respectToolComponent = respectToolComponent;
+        return this;
+    }
+
+    public BlockSettings requiredBreakPower(int requiredBreakPower) {
+        this.requiredBreakPower = requiredBreakPower;
         return this;
     }
 

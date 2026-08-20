@@ -10,6 +10,8 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import net.momirealms.craftengine.bukkit.block.BukkitBlockManager;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.command.feature.TotemAnimationCommand;
+import net.momirealms.craftengine.bukkit.plugin.injector.HashedStackGenerator;
+import net.momirealms.craftengine.bukkit.plugin.network.handler.PlayerPacketHandler;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIdHelper;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20;
 import net.momirealms.craftengine.bukkit.plugin.network.id.PacketIds1_20_5;
@@ -122,9 +124,10 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
     private final TriConsumer<Channel, Object, Runnable> immediatePacketConsumer;
     private final TriConsumer<Channel, List<Object>, Runnable> immediatePacketsConsumer;
     private final Map<ChannelPipeline, BukkitServerPlayer> users = new ConcurrentHashMap<>();
-    private final Map<UUID, BukkitServerPlayer> onlineUsers = new ConcurrentHashMap<>();
+    private final ConcurrentChainedUUID2ReferenceHashTable<BukkitServerPlayer> onlineUsers = ConcurrentChainedUUID2ReferenceHashTable.createWithCapacity(30);
     private final HashSet<Channel> injectedChannels = new HashSet<>();
     private final boolean hasAntiPopup;
+    private final boolean hasCompressionThreshold;
     private BukkitServerPlayer[] onlineUserArray = new BukkitServerPlayer[0];
     private int[] blockStateRemapper;
     private int[] modBlockStateRemapper;
@@ -135,6 +138,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         instance = this;
         this.hasAntiPopup = Bukkit.getPluginManager().getPlugin("AntiPopup") != null;
         this.plugin = plugin;
+        this.hasCompressionThreshold = checkHasCompressionThreshold();
         // register packet handlers
         this.registerPacketListeners();
         // set up packet senders
@@ -176,6 +180,13 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         if (VersionHelper.hasLeavesPatch) {
             this.injectLeavesBotList();
         }
+    }
+
+    private boolean checkHasCompressionThreshold() {
+        Object server = MinecraftServerProxy.INSTANCE.getServer();
+        Object properties = DedicatedServerSettingsProxy.INSTANCE.getProperties(DedicatedServerProxy.INSTANCE.getSettings(server));
+        int networkCompressionThreshold = DedicatedServerPropertiesProxy.INSTANCE.getNetworkCompressionThreshold(properties);
+        return networkCompressionThreshold > 0;
     }
 
     public static BukkitNetworkManager instance() {
@@ -421,6 +432,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         // 状态切换相关监听器 - 结束
 
         // nms - 需要在服务器处理前处理的请放这里
+        if (NMSContainerClickListener.INSTANCE != null) {
+            HashedStackGenerator.init();
+        }
         registerNMSPacketConsumer(NMSContainerClickListener.INSTANCE, ServerboundContainerClickPacketProxy.CLASS);
         registerNMSPacketConsumer(NMSFinishConfigurationListener.INSTANCE, ClientboundFinishConfigurationPacketProxy.CLASS);
         registerNMSPacketConsumer(NMSResourcePackListener.INSTANCE, ServerboundResourcePackPacketProxy.CLASS);
@@ -487,6 +501,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         registerByteBufferPacketListener(MerchantOffersListener.INSTANCE, PACKET_IDS.clientBoundMerchantOffersPacket(), "ClientboundMerchantOffersPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(OpenScreenListener.INSTANCE, PACKET_IDS.clientboundOpenScreenPacket(), "ClientboundOpenScreenPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(SystemChatListener.INSTANCE, PACKET_IDS.clientboundSystemChatPacket(), "ClientboundSystemChatPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(PlayerCombatKillListener.INSTANCE, PACKET_IDS.clientboundPlayerCombatKillPacket(), "ClientboundPlayerCombatKillPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(SetActionBarTextListener.INSTANCE, PACKET_IDS.clientboundSetActionBarTextPacket(), "ClientboundSetActionBarTextPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(TabListListener.INSTANCE, PACKET_IDS.clientboundTabListPacket(), "ClientboundTabListPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(SetTitleTextListener.INSTANCE, PACKET_IDS.clientboundSetTitleTextPacket(), "ClientboundSetTitleTextPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
@@ -499,6 +514,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         registerByteBufferPacketListener(ShowDialogListener.INSTANCE, PACKET_IDS.clientboundShowDialogPacket$play(), "ClientboundShowDialogPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(ShowDialogListener.INSTANCE, PACKET_IDS.clientboundShowDialogPacket$configuration(), "ClientboundShowDialogPacket", ConnectionState.CONFIGURATION, PacketFlow.CLIENTBOUND);
         registerByteBufferPacketListener(UpdateAttributesListener.INSTANCE, PACKET_IDS.clientboundUpdateAttributesPacket(), "ClientboundUpdateAttributesPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+        registerByteBufferPacketListener(SetHealthListener.INSTANCE, PACKET_IDS.clientboundSetHealthPacket(), "ClientboundSetHealthPacket", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -507,6 +523,8 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         BukkitServerPlayer user = (BukkitServerPlayer) getUser(player);
         if (user != null) {
             user.setPlayer(player);
+            // 玩家自身实体的包处理器（血量 metadata 缩放等）
+            user.entityPacketHandlers().put(user.entityId(), PlayerPacketHandler.INSTANCE);
             this.onlineUsers.put(player.getUniqueId(), user);
             this.resetUserArray();
             // folia在此tick每个玩家
@@ -598,7 +616,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
 
     @Override
     @Nullable
-    public NetWorkUser getOnlineUser(UUID uuid) {
+    public BukkitServerPlayer getOnlineUser(UUID uuid) {
         return this.onlineUsers.get(uuid);
     }
 
@@ -726,7 +744,7 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
             }
         }
 
-        addToPipeline(pipeline, new PluginChannelEncoder(user), new PluginChannelDecoder(user));
+        addToPipeline(pipeline, new PluginChannelEncoder(user, !this.hasCompressionThreshold), new PluginChannelDecoder(user));
         if (this.serverPortHost != null) {
             pipeline.addFirst(HTTP_DECODER, new HTTPChannelDecoder());
         }
@@ -906,8 +924,9 @@ public final class BukkitNetworkManager extends AbstractNetworkManager implement
         private final NetWorkUser player;
         private boolean handledCompression = false;
 
-        public PluginChannelEncoder(NetWorkUser player) {
+        public PluginChannelEncoder(NetWorkUser player, boolean handledCompression) {
             this.player = player;
+            this.handledCompression = handledCompression;
         }
 
         @Override

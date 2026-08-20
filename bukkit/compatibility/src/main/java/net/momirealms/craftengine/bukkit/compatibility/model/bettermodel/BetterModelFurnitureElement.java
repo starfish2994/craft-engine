@@ -12,7 +12,7 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
@@ -44,7 +44,7 @@ public final class BetterModelFurnitureElement extends AbstractConditionalFurnit
     }
 
     @Override
-    public @NonNull Furniture furniture() {
+    public @NotNull Furniture furniture() {
         return this.furniture;
     }
 

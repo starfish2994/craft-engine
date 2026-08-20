@@ -1,8 +1,10 @@
 package net.momirealms.craftengine.core.registry;
 
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.ResourceKey;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -88,5 +90,10 @@ public abstract class AbstractMappedRegistry<T> implements WritableRegistry<T> {
     @Override
     public boolean isEmpty() {
         return this.byResourceKey.isEmpty();
+    }
+
+    @Override
+    public @NotNull Iterator<T> iterator() {
+        return Iterators.transform(this.byId.iterator(), Holder::value);
     }
 }

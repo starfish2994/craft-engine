@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.host.impl;
 import com.google.gson.reflect.TypeToken;
 import net.momirealms.craftengine.core.pack.host.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.GsonHelper;
@@ -66,7 +67,7 @@ public final class GitLabHost implements ResourcePackHost {
 
         CraftEngine.instance().scheduler().executeAsync(() -> {
             try {
-                String localSha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
+                String localSha1 = HashUtils.sha1(resourcePackPath);
                 String boundary = "CraftEngineBoundary" + System.currentTimeMillis();
 
                 HttpRequest request = HttpRequest.newBuilder()
@@ -153,11 +154,11 @@ public final class GitLabHost implements ResourcePackHost {
     }
 
     private static class Factory implements ResourcePackHostFactory<GitLabHost> {
-        private static final String[] USE_ENVIRONMENT_VARIABLES = new String[] {"use_environment_variables", "use-environment-variables"};
-        private static final String[] GITLAB_URL = new String[] {"gitlab_url", "gitlab-url"};
-        private static final String[] ACCESS_TOKEN = new String[] {"access_token", "access-token"};
-        private static final String[] PROJECT_ID = new String[] {"project_id", "project-id"};
-        private static final String[] CACHE_FILE_NAME = new String[] {"cache_file_name", "cache-file-name"};
+        private static final String[] USE_ENVIRONMENT_VARIABLES = ConfigKeys.of("use_environment_variables");
+        private static final String[] GITLAB_URL = ConfigKeys.of("gitlab_url");
+        private static final String[] ACCESS_TOKEN = ConfigKeys.of("access_token");
+        private static final String[] PROJECT_ID = ConfigKeys.of("project_id");
+        private static final String[] CACHE_FILE_NAME = ConfigKeys.of("cache_file_name");
 
         @Override
         public GitLabHost create(ConfigSection section) {

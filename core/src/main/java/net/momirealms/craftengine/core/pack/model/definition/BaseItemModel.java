@@ -3,18 +3,23 @@ package net.momirealms.craftengine.core.pack.model.definition;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.Pack;
+import net.momirealms.craftengine.core.pack.model.bbmodel.BBModelConverter;
 import net.momirealms.craftengine.core.pack.model.definition.tint.Tint;
 import net.momirealms.craftengine.core.pack.model.definition.tint.Tints;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,6 +78,14 @@ public final class BaseItemModel implements ItemModel {
         return this.transformation;
     }
 
+    public static BaseItemModel ofBBModel(BBModelConverter.Converted converted) {
+        return new BaseItemModel(converted.model(), List.of(), ModelGeneration.raw(converted.json(), converted.textures()), null);
+    }
+
+    public static BaseItemModel ofBBModel(BBModelConverter.Converted converted, @Nullable List<Tint> tints, @Nullable Transformation transformation) {
+        return new BaseItemModel(converted.model(), tints, ModelGeneration.raw(converted.json(), converted.textures()), transformation);
+    }
+
     @Override
     public JsonObject toJson(MinecraftVersion min, MinecraftVersion max) {
         JsonObject json = new JsonObject();
@@ -106,11 +119,17 @@ public final class BaseItemModel implements ItemModel {
     }
 
     private static class Factory implements ItemModelFactory<BaseItemModel> {
-        private static final String[] PATH = new String[] {"path", "model"};
+        private static final String[] PATH = ConfigKeys.of("path|model");
 
         @Override
-        public BaseItemModel create(ConfigSection section) {
-            Key modelPath = section.getNonNullIdentifier(PATH);
+        public BaseItemModel create(Pack pack, Path path, ConfigSection section) {
+            List<Tint> tints = section.getList("tints", Tints::fromConfig);
+            Transformation transformation = section.getValue("transformation", Transformation::fromConfig);
+            ConfigValue blueprintValue = section.getValue("blueprint");
+            if (blueprintValue != null) {
+                return BaseItemModel.ofBBModel(BBModelConverter.convert(pack, path, "item", section.getValue(PATH), blueprintValue), tints, transformation);
+            }
+            Key modelPath = section.getNonNullAssetPath(PATH);
             ConfigSection generation = section.getSection("generation");
             ModelGeneration modelGeneration = null;
             if (generation != null) {
@@ -118,9 +137,9 @@ public final class BaseItemModel implements ItemModel {
             }
             return new BaseItemModel(
                     modelPath,
-                    section.getList("tints", Tints::fromConfig),
+                    tints,
                     modelGeneration,
-                    section.getValue("transformation", Transformation::fromConfig)
+                    transformation
             );
         }
     }

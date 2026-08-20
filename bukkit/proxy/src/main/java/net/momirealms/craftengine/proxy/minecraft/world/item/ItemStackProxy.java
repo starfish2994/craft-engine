@@ -38,6 +38,9 @@ public interface ItemStackProxy extends DataComponentHolderProxy, ItemInstancePr
     @FieldGetter(name = "OPTIONAL_STREAM_CODEC", isStatic = true, activeIf = "min_version=1.20.5")
     Object getOptionalStreamCodec();
 
+    @FieldGetter(name = "OPTIONAL_UNTRUSTED_STREAM_CODEC", isStatic = true, activeIf = "min_version=1.21.5")
+    Object getOptionalUntrustedStreamCodec();
+
     @MethodInvoker(name = "hurtAndBreak", activeIf = "min_version=1.20.5")
     void hurtAndBreak(Object target, int amount, @Type(clazz = LivingEntityProxy.class) Object entity, @Type(clazz = EquipmentSlotProxy.class) Object slot);
 

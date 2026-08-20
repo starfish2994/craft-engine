@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.condition;
 
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -48,7 +49,7 @@ public final class MatchBlockCondition<CTX extends Context> implements Condition
     }
 
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, MatchBlockCondition<CTX>> {
-        private static final String[] ID = new String[] {"id", "block", "blocks"};
+        private static final String[] ID = ConfigKeys.of("id|block(s)");
 
         @Override
         public MatchBlockCondition<CTX> create(ConfigSection section) {

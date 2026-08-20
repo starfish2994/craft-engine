@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.plugin.context.function;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.Platform;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.*;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
@@ -68,10 +69,10 @@ public final class CommandFunction<CTX extends Context> extends AbstractConditio
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, CommandFunction<CTX>> {
-        private static final String[] COMMAND = new String[]{"command", "commands"};
-        private static final String[] AS_PLAYER = new String[]{"as_player", "as-player"};
-        private static final String[] AS_EVENT = new String[]{"as_event", "as-event"};
-        private static final String[] AS_OP = new String[]{"as_op", "as-op"};
+        private static final String[] COMMAND = ConfigKeys.of("command(s)");
+        private static final String[] AS_PLAYER = ConfigKeys.of("as_player");
+        private static final String[] AS_EVENT = ConfigKeys.of("as_event");
+        private static final String[] AS_OP = ConfigKeys.of("as_op");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

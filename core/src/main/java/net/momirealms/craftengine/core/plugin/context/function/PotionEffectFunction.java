@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.*;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
@@ -57,8 +58,8 @@ public final class PotionEffectFunction<CTX extends Context> extends AbstractCon
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, PotionEffectFunction<CTX>> {
-        private static final String[] POTION_EFFECTS = new String[] {"potion_effect", "potion-effect"};
-        private static final String[] SHOW_ICON = new String[] {"show_icon", "show-icon"};
+        private static final String[] POTION_EFFECTS = ConfigKeys.of("potion_effect");
+        private static final String[] SHOW_ICON = ConfigKeys.of("show_icon");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

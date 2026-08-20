@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.block.property.BooleanProperty;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.number.NumberProvider;
 import net.momirealms.craftengine.core.util.Direction;
@@ -209,8 +210,8 @@ public final class VineCropBodyBlockBehavior extends AbstractCanSurviveBlockBeha
     }
 
     private static class Factory implements BlockBehaviorFactory<VineCropBodyBlockBehavior> {
-        private static final String[] BONE_MEAL = new String[] {"bone_meal", "bone-meal"};
-        private static final String[] GROW_BLOCKS = new String[] {"grow_blocks", "grow-blocks"};
+        private static final String[] BONE_MEAL = ConfigKeys.of("bone_meal");
+        private static final String[] GROW_BLOCKS = ConfigKeys.of("grow_blocks");
 
         @Override
         public VineCropBodyBlockBehavior create(BlockDefinition block, ConfigSection section) {

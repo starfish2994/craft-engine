@@ -59,7 +59,7 @@ public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnit
     public void showInternal(Player player) {
         player.sendPacket(ClientboundBundlePacketProxy.INSTANCE.newInstance(List.of(
                 this.cachedSpawnPacket,
-                ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player, this.tintSource))
+                ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player, this.tintSource, false))
         )), false);
     }
 
@@ -71,9 +71,9 @@ public final class ItemDisplayFurnitureElement extends AbstractConditionalFurnit
     @Override
     public void update(Player player) {
         if (this.cachedUpdatePosPacket != null) {
-            player.sendPackets(List.of(this.cachedUpdatePosPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player, this.tintSource))), false);
+            player.sendPackets(List.of(this.cachedUpdatePosPacket, ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player, this.tintSource, true))), false);
         } else {
-            player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player, this.tintSource)), false);
+            player.sendPacket(ClientboundSetEntityDataPacketProxy.INSTANCE.newInstance(this.entityId, this.config.metadata.apply(player, this.tintSource, true)), false);
         }
     }
 

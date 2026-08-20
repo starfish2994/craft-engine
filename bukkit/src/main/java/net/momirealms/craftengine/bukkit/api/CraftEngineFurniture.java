@@ -218,6 +218,9 @@ public final class CraftEngineFurniture {
      * @return is collision entity or not
      */
     public static boolean isCollisionEntity(@NotNull Entity entity) {
+        if (!BukkitFurnitureManager.COLLISION_ENTITY_CLASS.isInstance(entity)) {
+            return false;
+        }
         Object nmsEntity = CraftEntityProxy.INSTANCE.getEntity(entity);
         return nmsEntity instanceof CollisionEntity;
     }
@@ -363,11 +366,11 @@ public final class CraftEngineFurniture {
      * @param dropLoot whether to drop loots
      * @param playSound whether to play break sound
      */
-    public static void remove(@NotNull Furniture furniture,
+    public static boolean remove(@NotNull Furniture furniture,
                               @Nullable net.momirealms.craftengine.core.entity.player.Player player,
                               boolean dropLoot,
                               boolean playSound) {
-        if (!furniture.isValid()) return;
+        if (!furniture.isValid()) return false;
         Location location = ((BukkitFurniture) furniture).getDropLocation();
         furniture.destroy(player);
         Loot loot = furniture.config.loot();
@@ -391,5 +394,6 @@ public final class CraftEngineFurniture {
         if (playSound) {
             world.playBlockSound(position, furniture.config.settings().sounds().breakSound());
         }
+        return true;
     }
 }

@@ -46,8 +46,8 @@ items:
             resistance: 1.8
             instrument: basedrum
             map_color: 45
-            correct_tools:
-              template: default:pickaxe_power/level_1
+            correct_tools: ["#minecraft:pickaxes"]
+            required_break_power: 1
         state:
           auto_state: solid
           texture: minecraft:block/custom/solid_gunpowder_block

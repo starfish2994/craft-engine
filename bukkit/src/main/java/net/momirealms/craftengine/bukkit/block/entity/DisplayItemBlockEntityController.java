@@ -14,13 +14,13 @@ import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.TintSource;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.chunk.CEChunk;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.IntTag;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 
 import java.util.function.Consumer;
 
@@ -30,12 +30,12 @@ public class DisplayItemBlockEntityController extends BlockEntityController {
     @NotNull
     private Item displayItem;
     private WorldPosition displayItemPosition;
-    private final Vector3f blockCenter;
+    private final Vec3d blockCenter;
 
     public DisplayItemBlockEntityController(BlockEntity blockEntity, DisplayItemBlockBehavior behavior) {
         super(blockEntity);
         this.behavior = behavior;
-        this.blockCenter = new Vector3f((float) (blockEntity.pos.x + 0.5), (float) (blockEntity.pos.y + 0.5), (float) (blockEntity.pos.z + 0.5));
+        this.blockCenter = new Vec3d(blockEntity.pos.x + 0.5, blockEntity.pos.y + 0.5, blockEntity.pos.z + 0.5);
         this.displayItem = Item.empty();
         this.displayItemPosition = this.calculateDisplayItemPosition(blockEntity.blockState);
         this.element = new DynamicDisplayItemBlockEntityElement(this, this.displayItemPosition);

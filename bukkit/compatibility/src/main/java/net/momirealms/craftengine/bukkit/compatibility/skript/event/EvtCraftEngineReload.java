@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.compatibility.skript.event;
 
 import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Literal;
@@ -15,8 +16,14 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 
 @Name("On CraftEngine Reload")
 @Description({"Fires when CraftEngine reload"})
+@Example("""
+        on craftengine first load:
+            send "CraftEngine loaded!"
+        """)
 @Since("1.0")
 public final class EvtCraftEngineReload extends SkriptEvent {
+    private static boolean firstLoadConsumed = false;
+    private boolean onlyCheckFirstCall;
 
     public static void register(SkriptAddon addon) {
         BukkitSyntaxInfos.Event<EvtCraftEngineReload> reloadEvent = BukkitSyntaxInfos.Event.builder(EvtCraftEngineReload.class, "CraftEngine Loaded")
@@ -26,9 +33,6 @@ public final class EvtCraftEngineReload extends SkriptEvent {
                 .build();
         addon.registry(SyntaxRegistry.class).register(BukkitSyntaxInfos.Event.KEY, reloadEvent);
     }
-
-    private boolean onlyCheckFirstCall;
-    private static boolean hasBeenCalled = false;
 
     @Override
     public boolean init(Literal<?>[] args, int matchedPattern, SkriptParser.ParseResult parser) {
@@ -42,20 +46,14 @@ public final class EvtCraftEngineReload extends SkriptEvent {
     public boolean check(Event event) {
         if (!(event instanceof CraftEngineReloadEvent)) return false;
         if (onlyCheckFirstCall) {
-            if (hasBeenCalled) return false; // 如果 hasBeenCalled 已经为 true，代表已经调用过了, 故返回 false。
-            hasBeenCalled = true;
-            return true;
+            if (firstLoadConsumed) return false; // first load 只应触发一次
+            firstLoadConsumed = true;
         }
-        hasBeenCalled = true;
         return true;
     }
 
     @Override
     public String toString(@Nullable Event event, boolean debug) {
         return onlyCheckFirstCall ? "craftengine first load" : "craftengine reload";
-    }
-
-    public static boolean hasBeenLoad() {
-        return hasBeenCalled;
     }
 }

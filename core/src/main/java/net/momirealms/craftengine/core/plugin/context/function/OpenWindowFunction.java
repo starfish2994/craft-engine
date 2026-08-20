@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.*;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
@@ -33,7 +34,7 @@ public final class OpenWindowFunction<CTX extends Context> extends AbstractCondi
             ctx.getOptionalParameter(DirectContextParameters.PLAYER).ifPresent(it -> {
                 CraftEngine.instance().guiManager().openInventory(it, this.guiType);
                 if (this.optionalTitle != null) {
-                    CraftEngine.instance().guiManager().updateInventoryTitle(it, AdventureHelper.miniMessage().deserialize(this.optionalTitle, ctx.tagResolvers()));
+                    CraftEngine.instance().guiManager().updateInventoryTitle(it, AdventureHelper.deserialize(this.optionalTitle, ctx));
                 }
             });
         } else {
@@ -41,7 +42,7 @@ public final class OpenWindowFunction<CTX extends Context> extends AbstractCondi
                 CraftEngine.instance().guiManager().openInventory(viewer, this.guiType);
                 if (this.optionalTitle != null) {
                     RelationalContext relationalContext = ViewerContext.of(ctx, PlayerOptionalContext.of(viewer));
-                    CraftEngine.instance().guiManager().updateInventoryTitle(viewer, AdventureHelper.miniMessage().deserialize(this.optionalTitle, relationalContext.tagResolvers()));
+                    CraftEngine.instance().guiManager().updateInventoryTitle(viewer, AdventureHelper.deserialize(this.optionalTitle, relationalContext));
                 }
             }
         }
@@ -52,7 +53,7 @@ public final class OpenWindowFunction<CTX extends Context> extends AbstractCondi
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, OpenWindowFunction<CTX>> {
-        private static final String[] GUI_TYPE = new String[] {"gui_type", "gui-type"};
+        private static final String[] GUI_TYPE = ConfigKeys.of("gui_type");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

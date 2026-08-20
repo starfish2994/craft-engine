@@ -40,7 +40,12 @@ public final class TemplateManagerImpl implements TemplateManager {
     }
 
     public final class TemplateParser extends IdValueConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[]{"templates", "template"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("template(s)");
+
+        @Override
+        public Key type() {
+            return Key.ce("template");
+        }
 
         @Override
         public String[] sectionId() {

@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.plugin.context.parameter;
 
+import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.Entity;
@@ -9,6 +10,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.plugin.context.NamedRandoms;
 import net.momirealms.craftengine.core.util.Cancellable;
 import net.momirealms.craftengine.core.util.GameEdition;
 import net.momirealms.craftengine.core.util.Key;
@@ -22,8 +24,7 @@ import java.util.UUID;
 public final class DirectContextParameters {
     private DirectContextParameters() {}
 
-    public static final ContextKey<Double> RANDOM = ContextKey.direct("random");
-    public static final ContextKey<Double> LAST_RANDOM = ContextKey.direct("last_random");
+    public static final ContextKey<NamedRandoms> RANDOM = ContextKey.direct("random");
     public static final ContextKey<World> WORLD = ContextKey.direct("world");
     public static final ContextKey<Item> FURNITURE_ITEM = ContextKey.direct("furniture_item");
     public static final ContextKey<Item> ITEM_IN_HAND = ContextKey.direct("item_in_hand");
@@ -35,6 +36,7 @@ public final class DirectContextParameters {
     public static final ContextKey<Position> COORDINATE = ContextKey.direct("coordinate");
     public static final ContextKey<WorldPosition> POSITION = ContextKey.direct("position");
     public static final ContextKey<String> NAME = ContextKey.direct("name");
+    public static final ContextKey<Component> HOVER_COMPONENT = ContextKey.direct("hover_component");
     public static final ContextKey<Double> X = ContextKey.direct("x");
     public static final ContextKey<Double> Y = ContextKey.direct("y");
     public static final ContextKey<Double> Z = ContextKey.direct("z");
@@ -70,4 +72,15 @@ public final class DirectContextParameters {
     public static final ContextKey<Integer> HIT_TIMES = ContextKey.direct("hit_times");
     public static final ContextKey<GameEdition> GAME_EDITION = ContextKey.direct("game_edition");
     public static final ContextKey<Double> MOB_LEVEL = ContextKey.direct("mob_level");
+    public static final ContextKey<Boolean> OPEN_WATER = ContextKey.direct("open_water");
+    public static final ContextKey<Key> BIOME = ContextKey.direct("biome");
+    public static final ContextKey<Key> FIRE_TICKS = ContextKey.direct("fire_ticks");
+    public static final ContextKey<Double> ORIGINAL_DAMAGE = ContextKey.direct("original_damage");
+    public static final ContextKey<Double> DAMAGE = ContextKey.direct("damage");
+    public static final ContextKey<Boolean> IS_CRITICAL = ContextKey.direct("is_critical");
+    public static final ContextKey<Boolean> IS_SWEEP = ContextKey.direct("is_sweep");
+    public static final ContextKey<Boolean> IS_ATTACK_READY = ContextKey.direct("is_attack_ready");
+    public static final ContextKey<Float> ATTACK_STRENGTH = ContextKey.direct("attack_strength");
+    public static final ContextKey<Entity> CAUSING_ENTITY = ContextKey.direct("causing_entity");
+    public static final ContextKey<Double> HEALTH = ContextKey.direct("health");
 }

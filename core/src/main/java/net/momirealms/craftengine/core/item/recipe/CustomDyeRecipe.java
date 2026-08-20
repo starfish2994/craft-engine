@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.item.recipe.input.CraftingInput;
 import net.momirealms.craftengine.core.item.recipe.input.RecipeInput;
 import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
@@ -182,7 +183,7 @@ public final class CustomDyeRecipe extends CustomCraftingTableRecipe {
     }
 
     public static class Serializer extends AbstractRecipeSerializer<CustomDyeRecipe> {
-        private static final String[] RESULT_OR_TARGET = new String[] {"result", "target"}; // 必须先 result 后 target
+        private static final String[] RESULT_OR_TARGET = ConfigKeys.of("result|target"); // 必须先 result 后 target
 
         @SuppressWarnings("unchecked")
         @Override

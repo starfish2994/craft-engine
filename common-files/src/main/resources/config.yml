@@ -289,6 +289,12 @@ item:
   # The default material to use as base item if not specified
   default-material: nether_brick
 
+  # Overrides the hardcoded break power of vanilla items. This only works for custom blocks.
+  # A tool can only break a block with 'required_break_power' when its break power is greater than or equal to the required value.
+  # break-power:
+  #   minecraft:golden_pickaxe: 3
+  break-power: {}
+
   # Defines the trigger condition for the item updater.
   #
   # Warning: This operation is performance-intensive. Enable only if needed.
@@ -403,9 +409,18 @@ emoji:
   # Prevent lag or oversized packet when processing emoji-heavy content
   max-emojis-per-parse: 16
 
-loot:
+entity:
   # Add supported plugins to this list to allow customizing mob drops from certain plugins. For example, MythicMobs.
-  entity-sources: []
+  id-sources: []
+  # Entity tracking determines whether the plugin actively tracks entities
+  # This comes with additional per-tick processing costs to maintain potion effects and attributes.
+  tracking:
+    enable: true
+    # whitelist tracks only listed IDs; blacklist tracks every ID except those listed.
+    # IDs come from id-sources when available, otherwise the vanilla entity type is used.
+    mode: whitelist
+    list:
+      - minecraft:player
 
 image:
   # Prevents players from spamming the chat or other systems by sending raw characters.
@@ -506,6 +521,7 @@ network:
     item: true
     advancement: true   # Toast
     player-chat: true
+    combat-kill: true   # Death messages
     dialog: true
 
   # Settings related to communication with CraftEngine Mod
@@ -513,6 +529,7 @@ network:
     requires-permission: false
     logging-permission-denied: true
     creative-tab-max-items-per-packet: 10
+    visual-block-states-max-per-packet: 5000
 
   # Encrypt the raw component information before sending it to the client.
   # Requires a restart to apply.
@@ -558,6 +575,53 @@ recipe:
 
   # Inject furnace block entities to support custom condition. This option requires a restart to apply.
   inject-block-entities: true
+
+attribute:
+  # Master switch for custom attribute system
+  # Requires a server restart to take effect
+  enable: false
+  # If your player has a large amount of health, it can easily cause FPS drops and block the screen. This option allows you to scale the player's health bar
+  health-scaling:
+    # Master switch for health scaling
+    enable: false
+    # Scaling applies only when the player's real max health exceeds this value
+    threshold: 20
+    # The visual max health shown to the client after scaling
+    visual-max-health: 20
+
+damage-indicator:
+  # Master switch for floating damage numbers
+  enable: false
+  # Default visibility for players who have never set their preference: none / self / all
+  # none = indicators are invisible; self = only own damage is visible; all = everyone's damage is visible
+  default-visibility: self
+  # Cancel vanilla damage indicator particles (vanilla spawns them scaled by damage; custom damage formulas with big numbers would flood the screen)
+  disable-vanilla-particles: false
+  # Display schemes triggered on damage
+  schemes:
+    - type: text
+      # Displayed text in MiniMessage format. <arg:damage> is replaced with the final damage value
+      text: "<white><expr:#.#:'<arg:damage>'></white>"
+      # The indicator spawns near the first intersection of the attacker's view ray with the victim's bounding cylinder
+      # (radius = distance from the bounding box bottom center to a bottom corner: sqrt(width² + depth²) / 2)
+      position:
+        # Random angular spread around the intersection point (degrees)
+        angle-spread: 30
+        # Random vertical spread, as a fraction of the victim's bounding box height
+        height-spread: 0.15
+      # Scale pop animation
+      animation:
+        # Initial scale when the indicator spawns
+        spawn-scale: 0.1
+        # The scale it pops up to
+        pop-scale: 1.25
+        # The scale it settles at
+        settle-scale: 1.0
+        # Tick timing of each animation stage
+        pop-delay: 1
+        settle-delay: 5
+        shrink-delay: 16
+        remove-delay: 19
 
 gui:
   browser:
@@ -620,19 +684,31 @@ gui:
 chunk-system:
   # Storage format for chunk data persistence
   #
-  # mca: Minecraft Anvil format (Independent storage ensures that the custom block will not be corrupted when loaded in other scenarios)
-  # pdc: Persistent Data Container provided by Bukkit (Faster, but can only run on Bukkit and its downstream platforms)
-  # none: No persistent storage (In-memory only)
+  # mca: Minecraft Anvil format
+  # linear: Linear format
+  # pdc: Persistent Data Container provided by Bukkit
+  # none: No persistent storage
   #
-  # The SlimeWorld will automatically use the Slime format for storage without requiring any configuration.
+  # Slime worlds will automatically use the Slime format for storage without requiring any configuration.
   #
-  # To migrate world storage, first change the storage type in the configuration.
-  # Then run the command: /ce feature migrate-world-storage [world] [previous_type]
-  # Once the migration is complete, restart the server.
+  # To migrate world storage, run the command: /ce feature migrate-world-storage [world] [from|to] [type]
+  # 'to' migrates from the current storage type to the specified one; 'from' is the reverse.
+  # After a 'to' migration, switch the storage type in the configuration and restart the server.
   #
-  storage-type: mca
+  storage-type: linear
+  # Worlds whose name matches any of these regex patterns will always use 'none' storage mode (in-memory only)
+  # Useful for temporary or frequently reset worlds where persistence is unnecessary
+  blacklisted-worlds: []
   # Caches serialized chunk data to reduce I/O overhead for frequently loaded/unloaded chunks
   cache-system: true
+  # Writes chunk data asynchronously on dedicated IO threads instead of blocking the server thread
+  # Requires server restart to take effect
+  async-write: true
+  # Hooks into the server's chunk loading pipeline to read and cache chunk data
+  # before the chunk load event, avoiding synchronous disk I/O on the main thread
+  # Only works on Paper 1.21.4+. Falls back to synchronous reads if the injection fails
+  # Requires server restart to take effect
+  async-read: true
   # Compression algorithm for chunk data
   # 1 = NONE      |  Compression Speed | Decompress Speed | Compression Ratio | Memory Usage   |
   # 2 = DEFLATE   |     Medium-Slow           Medium          Moderate              Low        |
@@ -701,6 +777,19 @@ client-optimization:
       # Controls how quickly the bucket refills
       restore-per-tick: 25
 
+scripting:
+  js:
+    # Enables the JavaScript scripting system
+    # Requires server restart to fully apply
+    enable: false
+    # JS engine implementation: graaljs (~68MB) or nashorn (~2.4MB)
+    engine: nashorn
+    # Strict mode: throws on common JS mistakes (undeclared variables etc.)
+    strict: true
+    # Applicable only when GraalJS is in use
+    # Nashorn compatibility mode: bean getter mapping (event.block -> getBlock()) etc.
+    nashorn-compat: false
+
 misc:
   # Suppresses connection logs during server configuration phase
   filter-configuration-phase-disconnect: false
@@ -716,6 +805,9 @@ misc:
   # Enables AxiomPaper integration to register custom items as Axiom display items
   # This option requires a restart to apply.
   hook-axiompaper: true
+  # There are many plugins that can cause world leaks, eventually leading to a large number of chunks being leaked.
+  # Enabling this option can mitigate the world leak issues caused by most plugins.
+  fix-world-memory-leak: false
 
 debug:
   common: false

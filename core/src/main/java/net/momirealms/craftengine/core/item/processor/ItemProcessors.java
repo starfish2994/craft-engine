@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.item.processor;
 
+import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.item.processor.lore.*;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -9,7 +10,6 @@ import net.momirealms.craftengine.core.registry.Registries;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
 import net.momirealms.craftengine.core.util.*;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public final class ItemProcessors {
@@ -62,7 +62,10 @@ public final class ItemProcessors {
     public static final ItemProcessorType<OverwritableDyedColorProcessor> OVERWRITABLE_DYED_COLOR = register(Key.ce("overwritable_dyed_color"), OverwritableDyedColorProcessor.FACTORY);
     public static final ItemProcessorType<UseRemainderProcessor> USE_REMAINDER = register(Key.ce("use_remainder"), UseRemainderProcessor.FACTORY, VersionHelper.isOrAbove1_21_2);
     public static final ItemProcessorType<WrittenBookTagsProcessor> PROCESS_WRITTEN_BOOK_TAGS = register(Key.ce("process_written_book_tags"), WrittenBookTagsProcessor.FACTORY);
+    public static final ItemProcessorType<WrittenBookContentProcessor> WRITTEN_BOOK_CONTENT = register(Key.ce("written_book_content"), WrittenBookContentProcessor.FACTORY, VersionHelper.COMPONENT_RELEASE);
     public static final ItemProcessorType<PaintingVariantProcessor> PAINTING_VARIANT = register(Key.ce("painting_variant"), PaintingVariantProcessor.FACTORY);
+    public static final ItemProcessorType<RandomValuesProcessor> RANDOM_VALUES = register(Key.ce("random_values"), RandomValuesProcessor.FACTORY);
+    public static final ItemProcessorType<RandomValuesProcessor> RANDOMS = register(Key.ce("randoms"), RandomValuesProcessor.FACTORY);
 
     public static <T extends ItemProcessor> ItemProcessorType<T> register(Key key, ItemProcessorFactory<T> factory) {
         ItemProcessorType<T> type = new ItemProcessorType<>(key, factory);
@@ -83,12 +86,19 @@ public final class ItemProcessors {
                 if (value == null) continue;
                 String key = StringUtils.normalizeSettingsType(type);
                 errorCollector.runCatching(() -> {
-                    Optional.ofNullable(BuiltInRegistries.ITEM_PROCESSOR_TYPE.getValue(Key.ce(key))).ifPresent(processorType -> {
+                    ItemProcessorType<?> processorType = BuiltInRegistries.ITEM_PROCESSOR_TYPE.getValue(Key.ce(key));
+                    if (processorType != null) {
                         ItemProcessorFactory<? extends ItemProcessor> factory = processorType.factory();
                         if (factory != null) {
                             callback.accept(factory.create(value));
                         }
-                    });
+                    } else if (VersionHelper.COMPONENT_RELEASE) {
+                        // 找不到对应的 data 类型时，若键是已知的组件类型，则按组件处理
+                        Key componentKey = Key.of(key);
+                        if (DataComponentKeys.contains(componentKey)) {
+                            callback.accept(ComponentsProcessor.createSingle(componentKey, value));
+                        }
+                    }
                 });
             }
         }

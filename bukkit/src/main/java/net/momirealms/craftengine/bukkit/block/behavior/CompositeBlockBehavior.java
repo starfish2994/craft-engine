@@ -532,4 +532,14 @@ public final class CompositeBlockBehavior extends BukkitBlockBehavior implements
         }
         return false;
     }
+
+    @Override
+    public boolean canUseOnBlockIfSecondaryUseActive(UseOnContext context, ImmutableBlockState state) {
+        for (BlockBehavior behavior : this.behaviors) {
+            if (behavior.canUseOnBlockIfSecondaryUseActive(context, state)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

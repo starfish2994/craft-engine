@@ -32,6 +32,9 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class ItemStackUtils {
     private ItemStackUtils() {}
 
@@ -106,6 +109,14 @@ public final class ItemStackUtils {
         } else {
             return asCraftMirror(itemStack);
         }
+    }
+
+    public static List<ItemStack> getBukkitStacks(List<Item> items) {
+        List<ItemStack> result = new ArrayList<>(items.size());
+        for (Item item : items) {
+            result.add((ItemStack) item.platformItem());
+        }
+        return result;
     }
 
     public static ItemStack getBukkitStack(Item item) {

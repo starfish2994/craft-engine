@@ -32,4 +32,10 @@ public interface EntityData<T> {
     default void addEntityData(T value, List<Object> list) {
         list.add(create(entityDataAccessor(), value));
     }
+
+    default void addEntityData(T value, List<Object> list, boolean force) {
+        if (force || !defaultValue().equals(value)) {
+            list.add(create(entityDataAccessor(), value));
+        }
+    }
 }

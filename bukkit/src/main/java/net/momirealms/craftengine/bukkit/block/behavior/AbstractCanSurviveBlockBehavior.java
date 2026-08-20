@@ -86,11 +86,11 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
     protected abstract boolean canSurvive(Object thisBlock, Object state, Object level, Object blockPos);
 
     protected static TagsAndState readTagsAndState(ConfigSection section, String prefix) {
-        List<Object> mcTags = section.getList(new String[] {prefix + "_block_tags", prefix.replace("_", "-") + "-block-tags"}, v -> BlockTags.getOrCreate(v.getAsIdentifier()));
+        List<Object> mcTags = section.getList(new String[]{prefix + "_block_tags", prefix.replace("_", "-") + "-block-tags"}, v -> BlockTags.getOrCreate(v.getAsIdentifier()));
         Set<Object> blockStates = new HashSet<>();
         List<Key> customBlocks = new ArrayList<>();
         List<String> customStates = new ArrayList<>();
-        for (String blockState : section.getStringList(new String[] {prefix + "_blocks", prefix.replace("_", "-") + "-blocks"})) {
+        for (String blockState : section.getStringList(new String[]{prefix + "_blocks", prefix.replace("_", "-") + "-blocks"})) {
             int index = blockState.indexOf('[');
             Key blockType = index != -1 ? Key.of(blockState.substring(0, index)) : Key.of(blockState);
             Object block = RegistryUtils.getRegistryValue(BuiltInRegistriesProxy.BLOCK, KeyUtils.toIdentifier(blockType));
@@ -109,7 +109,7 @@ public abstract class AbstractCanSurviveBlockBehavior extends BukkitBlockBehavio
                 }
             }
         }
-        return new TagsAndState(mcTags, LazyReference.lazyReference(() -> {
+        return new TagsAndState(mcTags, LazyReference.untilNotNull(() -> {
             for (Key customBlock : customBlocks) {
                 BukkitBlockManager.instance().blockById(customBlock).ifPresent(block -> {
                     for (ImmutableBlockState state : block.variantProvider().states()) {

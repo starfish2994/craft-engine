@@ -34,6 +34,7 @@ dependencies {
     // leafpile
     implementation(files("${rootProject.rootDir}/libs/leafpile-${rootProject.properties["leafpile_version"]}.jar"))
 
+    implementation("net.momirealms:sparrow-minimessage:${rootProject.properties["sparrow_minimessage_version"]}")
     implementation("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
     implementation("net.momirealms:craft-engine-nms-helper-mojmap:${rootProject.properties["nms_helper_version"]}")
     implementation("cn.gtemc:itembridge:${rootProject.properties["itembridge_version"]}")
@@ -64,11 +65,20 @@ paper {
         }
 
         register("PlaceholderAPI") { required = false }
-        register("Skript") { required = false }
+        register("Skript") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.AFTER
+        }
+        register("Denizen") {
+            required = false
+            load = PaperPluginDescription.RelativeLoadOrder.AFTER
+        }
         register("LuckPerms") { required = false }
         register("ViaVersion") { required = false }
+        register("Vault") { required = false }
         register("AxiomPaper") { required = false }
         register("QuickShop-Hikari") { required = false }
+        register("CoreProtect") { required = false }
 
         // PacketEvents
         register("GrimAC") { required = false }

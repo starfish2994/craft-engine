@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.PendingConfigSection;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Direction;
@@ -51,7 +52,7 @@ public final class LiquidCollisionBlockItemBehavior extends BlockItemBehavior {
     public InteractionResult use(World world, @Nullable Player player, InteractionHand hand) {
         try {
             if (player == null) return InteractionResult.FAIL;
-            Object blockHitResult = ItemProxy.INSTANCE.getPlayerPOVHitResult(world.minecraftWorld(), player.serverPlayer(), ClipContextProxy.FluidProxy.SOURCE_ONLY);
+            Object blockHitResult = ItemProxy.INSTANCE.getPlayerPOVHitResult(world.minecraftWorld(), player.minecraftPlayer(), ClipContextProxy.FluidProxy.SOURCE_ONLY);
             Object blockPos = BlockHitResultProxy.INSTANCE.getBlockPos(blockHitResult);
             BlockPos above = new BlockPos(Vec3iProxy.INSTANCE.getX(blockPos), Vec3iProxy.INSTANCE.getY(blockPos) + offsetY, Vec3iProxy.INSTANCE.getZ(blockPos));
             Direction direction = DirectionUtils.fromNMSDirection(BlockHitResultProxy.INSTANCE.getDirection(blockHitResult));
@@ -74,7 +75,7 @@ public final class LiquidCollisionBlockItemBehavior extends BlockItemBehavior {
     }
 
     private static class Factory implements ItemBehaviorFactory<LiquidCollisionBlockItemBehavior> {
-        private static final String[] Y_OFFSET = new String[]{"y_offset", "y-offset"};
+        private static final String[] Y_OFFSET = ConfigKeys.of("y_offset");
 
         @Override
         public LiquidCollisionBlockItemBehavior create(Pack pack, Path path, Key key, ConfigSection section) {

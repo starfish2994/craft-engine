@@ -5,6 +5,8 @@ import net.momirealms.craftengine.core.util.Key;
 public class EntityTypeKeys {
     private EntityTypeKeys() {}
 
+    public static final Key PLAYER = Key.of("minecraft:player");
+
     public static final Key BEE = Key.of("minecraft:bee");
     public static final Key FOX = Key.of("minecraft:fox");
     public static final Key FROG = Key.of("minecraft:frog");

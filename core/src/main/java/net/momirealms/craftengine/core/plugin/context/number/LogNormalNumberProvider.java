@@ -1,9 +1,11 @@
 package net.momirealms.craftengine.core.plugin.context.number;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.KnownResourceException;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.util.MiscUtils;
-import net.momirealms.craftengine.core.util.random.RandomSource;
+
 
 /**
  * 对数正态分布提供器 (Log-Normal Distribution)
@@ -27,17 +29,17 @@ public record LogNormalNumberProvider(
     private static final double EPSILON = 1e-6; // 防止 log(0) 的极小值
 
     @Override
-    public int getInt(RandomSource random) {
-        return (int) Math.round(getDouble(random));
+    public int getInt(Context context) {
+        return (int) Math.round(getDouble(context));
     }
 
     @Override
-    public float getFloat(RandomSource random) {
-        return (float) getDouble(random);
+    public float getFloat(Context context) {
+        return (float) getDouble(context);
     }
 
     @Override
-    public double getDouble(RandomSource random) {
+    public double getDouble(Context context) {
         // 快速路径：如果范围极小，直接返回均值
         if (max - min < EPSILON) {
             return min;
@@ -45,7 +47,7 @@ public record LogNormalNumberProvider(
 
         for (int attempts = 0; attempts < this.maxAttempts; attempts++) {
             // 核心算法：X = exp(μ + σZ), 其中 Z ~ N(0, 1)
-            double normalValue = random.nextGaussian() * this.scale + this.location;
+            double normalValue = context.random().nextGaussian() * this.scale + this.location;
 
             // 性能优化：在进行昂贵的 exp 运算前，先检查指数范围防止 Infinity
             if (normalValue > 700) { // Math.exp(710) > Double.MAX_VALUE
@@ -97,8 +99,8 @@ public record LogNormalNumberProvider(
     }
 
     private static class Factory implements NumberProviderFactory<LogNormalNumberProvider> {
-        private static final String[] STD_DEV = new String[] {"std_dev", "std-dev"};
-        private static final String[] MAX_ATTEMPTS = new String[] {"max_attempts", "max-attempts"};
+        private static final String[] STD_DEV = ConfigKeys.of("std_dev");
+        private static final String[] MAX_ATTEMPTS = ConfigKeys.of("max_attempts");
 
         @Override
         public LogNormalNumberProvider create(ConfigSection section) {

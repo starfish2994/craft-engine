@@ -26,11 +26,10 @@ import net.momirealms.craftengine.core.world.chunk.client.light.UniformLightStor
 import net.momirealms.craftengine.core.world.chunk.client.occlusion.OccludingSection;
 import net.momirealms.craftengine.core.world.chunk.client.occlusion.PackedOcclusionStorage;
 import net.momirealms.craftengine.core.world.chunk.client.occlusion.UniformOcclusionStorage;
-import net.momirealms.craftengine.core.world.chunk.packet.BlockEntityData;
 import net.momirealms.craftengine.core.world.chunk.packet.MCSection;
 import net.momirealms.sparrow.nbt.Tag;
 
-import java.util.*;
+import java.util.Arrays;
 import java.util.function.Predicate;
 
 public final class LevelChunkWithLightListener implements ByteBufferPacketListener {
@@ -57,12 +56,14 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
         FriendlyByteBuf buf = event.getBuffer();
         int chunkX = buf.readInt();
         int chunkZ = buf.readInt();
-        ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
+        long chunkKey = ChunkPos.asLong(chunkX, chunkZ);
+
         boolean named = !VersionHelper.isOrAbove1_20_2;
 
         int[] remapper = user.clientCustomBlockEnabled() ? this.modBlockStateMapper : this.blockStateMapper;
 
-        // 读取区块数据
+        /*
+        // 标准实现: 解析高度图
         int heightmapsCount = 0;
         Map<Integer, long[]> heightmapsMap = null;
         Tag heightmaps = null;
@@ -81,13 +82,33 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
         int chunkDataBufferSize = buf.readVarInt();
         byte[] chunkDataBytes = new byte[chunkDataBufferSize];
         buf.readBytes(chunkDataBytes);
+        FriendlyByteBuf chunkDataByteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(chunkDataBytes));
+        */
+
+        // 跳过高度图, 不做解析; 需要改写时原样拷贝原始字节
+        int heightmapsStart = buf.readerIndex();
+        Tag heightmaps = null;
+        if (VersionHelper.isOrAbove1_21_5) {
+            int heightmapsCount = buf.readVarInt();
+            for (int i = 0; i < heightmapsCount; i++) {
+                buf.readVarInt();
+                buf.skipBytes(buf.readVarInt() * 8);
+            }
+        } else {
+            // 旧版无法跳过NBT, 只能解析
+            heightmaps = buf.readNbt(named);
+        }
+        int heightmapsLength = buf.readerIndex() - heightmapsStart;
+
+        int chunkDataBufferSize = buf.readVarInt();
+        // 切片
+        FriendlyByteBuf chunkDataByteBuf = new FriendlyByteBuf(buf.readSlice(chunkDataBufferSize));
 
         // 客户端侧section数量很重要，不能读取此时玩家所在的真实世界，包具有滞后性
         net.momirealms.craftengine.core.world.World clientSideWorld = player.clientSideWorld();
         WorldHeight worldHeight = clientSideWorld.worldHeight();
         int count = worldHeight.getSectionsCount();
         MCSection[] sections = new MCSection[count];
-        FriendlyByteBuf chunkDataByteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(chunkDataBytes));
 
         boolean hasChangedAnyBlock = false;
         boolean hasGlobalPalette = false;
@@ -103,8 +124,11 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
 
             PalettedContainer<Integer> container = mcSection.blockStateContainer();
             // 重定向生物群系
-            if (biomeRemapper.remap(player, chunkPos, mcSection.biomeContainer())) {
-                hasChangedAnyBlock = true;
+            if (biomeRemapper != BiomeRemapper.DUMMY) {
+                ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
+                if (biomeRemapper.remap(player, chunkPos, mcSection.biomeContainer())) {
+                    hasChangedAnyBlock = true;
+                }
             }
 
             Palette<Integer> palette = container.data().palette();
@@ -232,7 +256,8 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
             sections[i] = mcSection;
         }
 
-        // 只有被修改了，才读后续内容，并改写
+        /*
+        // 标准实现: 解析全部尾部数据(方块实体NBT/光照)再逐个写回
         if (hasChangedAnyBlock || (this.needsDowngrade && hasGlobalPalette)) {
             // 读取其他非必要信息
             int blockEntitiesDataCount = buf.readVarInt();
@@ -291,15 +316,50 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
             buf.writeByteArrayList(skyUpdates);
             buf.writeByteArrayList(blockUpdates);
         }
+        */
+
+        // 只有被修改了才改写; 高度图与尾部数据(方块实体/光照)原样透传, 不做解析
+        if (hasChangedAnyBlock || (this.needsDowngrade && hasGlobalPalette)) {
+            int tailLength = buf.readableBytes();
+            // 高度图
+            FriendlyByteBuf staging = new FriendlyByteBuf(Unpooled.buffer(heightmapsLength + chunkDataBufferSize + 16 + tailLength));
+            try {
+                if (VersionHelper.isOrAbove1_21_5) {
+                    staging.writeBytes(buf, heightmapsStart, heightmapsLength);
+                } else {
+                    staging.writeNbt(heightmaps, named);
+                }
+                // 区块数据
+                int writtenHeightmapsLength = staging.writerIndex();
+                for (int i = 0; i < count; i++) {
+                    sections[i].writePacket(staging);
+                }
+                // 其他数据
+                int newChunkDataLength = staging.writerIndex() - writtenHeightmapsLength;
+                staging.writeBytes(buf, tailLength);
+
+                // 开始修改
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeInt(chunkX);
+                buf.writeInt(chunkZ);
+                buf.writeBytes(staging, writtenHeightmapsLength);
+                buf.writeVarInt(newChunkDataLength);
+                buf.writeBytes(staging, staging.readableBytes());
+            } finally {
+                staging.release();
+            }
+        }
 
         // 记录加载的区块
-        player.addTrackedChunk(chunkPos.longKey, new ClientChunk(occludingSections, lightSections, worldHeight));
+        player.addTrackedChunk(chunkKey, new ClientChunk(occludingSections, lightSections, worldHeight));
 
         // 生成方块实体
         CEWorld ceWorld = clientSideWorld.storageWorld();
         // 世界可能被卸载，因为包滞后
         if (ceWorld != null) {
-            CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(chunkPos.longKey);
+            CEChunk ceChunk = ceWorld.getChunkAtIfLoaded(chunkKey);
             if (ceChunk != null) {
                 // 生成方块实体
                 ceChunk.spawnBlockEntities(player);

@@ -4,6 +4,7 @@ import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.DirectionUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
@@ -102,8 +103,8 @@ public final class SturdyBaseBlockBehavior extends AbstractCanSurviveBlockBehavi
     }
 
     private static class Factory implements BlockBehaviorFactory<SturdyBaseBlockBehavior> {
-        private static final String[] SUPPORT_TYPES = new String[] {"support_types", "support-types"};
-        private static final String[] MAX_HEIGHT = new String[] {"max_height", "max-height"};
+        private static final String[] SUPPORT_TYPES = ConfigKeys.of("support_types");
+        private static final String[] MAX_HEIGHT = ConfigKeys.of("max_height");
 
         @Override
         public SturdyBaseBlockBehavior create(BlockDefinition block, ConfigSection section) {

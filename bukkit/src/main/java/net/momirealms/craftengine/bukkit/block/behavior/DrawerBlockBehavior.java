@@ -6,7 +6,6 @@ import net.momirealms.craftengine.bukkit.block.entity.DrawerBlockEntityControlle
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -20,16 +19,14 @@ import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.MiscUtils;
-import net.momirealms.craftengine.core.world.BlockPos;
-import net.momirealms.craftengine.core.world.CEWorld;
-import net.momirealms.craftengine.core.world.Vec3d;
-import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.*;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
@@ -100,7 +97,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
 
     @Override
     public Object getContainer(Object thisBlock, Object[] args) {
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(LevelProxy.INSTANCE.getWorld(args[1]));
+        CEWorld ceWorld = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(args[1])).storageWorld();
         BlockPos blockPos = LocationUtils.fromBlockPos(args[2]);
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(blockPos);
         if (blockEntity == null) return null;
@@ -133,6 +130,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             boolean isDoubleClick = playerId.equals(lastClickPlayer) && (now - lastClickTime) <= 500;
             boolean hasStoredItem = !storedItem.isEmpty();
             boolean handHasItem = !itemInHand.isEmpty();
+            Item oldItem = snapshotItem(controller);
 
             // 双击批量放入背包里所有相似物品
             if (hasStoredItem && isDoubleClick) {
@@ -144,6 +142,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                 int actuallyAdded = controller.add(matchedCount);
                 if (actuallyAdded > 0) {
                     player.clearOrCountMatchingInventoryItems(item -> item.isSimilar(storedItem), actuallyAdded);
+                    logTransaction(player, world, pos, oldItem, controller);
                     if (this.putSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.putSound);
                     player.swingHand(hand);
                     return InteractionResult.SUCCESS_AND_CANCEL;
@@ -155,6 +154,9 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
                 int count = itemInHand.count();
                 int actuallyPut = controller.put(itemInHand.copyWithCount(1), count);
                 itemInHand.shrink(actuallyPut);
+                if (actuallyPut > 0) {
+                    logTransaction(player, world, pos, oldItem, controller);
+                }
                 // 更新点击时间, 等待可能的二次点击
                 controller.lastClickTime(now);
                 controller.lastClickPlayer(playerId);
@@ -183,6 +185,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         blockEntity.controller.let(DrawerBlockEntityController.class, this.controllerId, controller -> {
             Item storedItem = controller.item();
             if (storedItem.isEmpty() || controller.itemCount() <= 0) return;
+            Item oldItem = snapshotItem(controller);
 
             Item itemInHand = player.getItemInHand(InteractionHand.MAIN_HAND);
             boolean handEmpty = itemInHand.isEmpty();
@@ -203,17 +206,43 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
             }
 
             // 取出物品
-            controller.take(takeAmount, item -> {
+            int actuallyTaken = controller.take(takeAmount, item -> {
                 if (handEmpty) {
                     player.setItemInHand(InteractionHand.MAIN_HAND, item);
                 } else {
                     itemInHand.grow(item.count());
                 }
             }, true);
+            if (actuallyTaken > 0) {
+                logTransaction(player, world, pos, oldItem, controller);
+            }
 
             player.swingHand(InteractionHand.MAIN_HAND);
             if (this.takeSound != null) world.playBlockSound(Vec3d.atCenterOf(pos), this.takeSound);
         });
+    }
+
+    private static void logTransaction(Player player,
+                                       World world,
+                                       BlockPos pos,
+                                       @Nullable Item oldItem,
+                                       DrawerBlockEntityController controller) {
+        BukkitCraftEngine.instance().compatibilityManager().logSingleSlotContainerTransaction(
+                player,
+                new WorldPosition(world, pos),
+                oldItem,
+                snapshotItem(controller)
+        );
+    }
+
+    @Nullable
+    private static Item snapshotItem(DrawerBlockEntityController controller) {
+        Item item = controller.item();
+        int count = controller.itemCount();
+        if (item.isEmpty() || count <= 0) {
+            return null;
+        }
+        return item.copyWithCount(count);
     }
 
     // 比较器红石信号.
@@ -224,7 +253,7 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
         Object blockPos = args[2];
         BlockPos pos = LocationUtils.fromBlockPos(blockPos);
         org.bukkit.World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(bukkitWorld.getUID());
+        CEWorld ceWorld = BukkitAdaptor.adapt(bukkitWorld).storageWorld();
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) {
             return 0;
@@ -243,16 +272,16 @@ public final class DrawerBlockBehavior extends BukkitBlockBehavior implements En
     }
 
     private static class Factory implements BlockBehaviorFactory<DrawerBlockBehavior> {
-        private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
-        private static final String[] ITEM_POSITION = new String[] {"item_position", "item-position"};
-        private static final String[] TEXT_POSITION = new String[] {"text_position", "text-position"};
-        private static final String[] ITEM_SCALE = new String[] {"item_scale", "item-scale"};
-        private static final String[] TEXT_SCALE = new String[] {"text_scale", "text-scale"};
-        private static final String[] MAX_STACKS = new String[] {"max_stacks", "max-stacks"};
-        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
-        private static final String[] ALLOW_INPUT = new String[]{"allow_input", "allow-input"};
-        private static final String[] ALLOW_OUTPUT = new String[]{"allow_output", "allow-output"};
-        private static final String[] COMPATIBLE_MODE = new String[] {"compatible_mode", "compatible-mode"};
+        private static final String[] HAS_SIGNAL = ConfigKeys.of("has_signal");
+        private static final String[] ITEM_POSITION = ConfigKeys.of("item_position");
+        private static final String[] TEXT_POSITION = ConfigKeys.of("text_position");
+        private static final String[] ITEM_SCALE = ConfigKeys.of("item_scale");
+        private static final String[] TEXT_SCALE = ConfigKeys.of("text_scale");
+        private static final String[] MAX_STACKS = ConfigKeys.of("max_stacks");
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
+        private static final String[] ALLOW_INPUT = ConfigKeys.of("allow_input");
+        private static final String[] ALLOW_OUTPUT = ConfigKeys.of("allow_output");
+        private static final String[] COMPATIBLE_MODE = ConfigKeys.of("compatible_mode");
 
         @Override
         public DrawerBlockBehavior create(BlockDefinition block, ConfigSection section) {

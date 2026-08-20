@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.entity.projectile;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Tristate;
 
@@ -12,9 +13,9 @@ public record ProjectileMeta(ProjectileDisplay display,
                              double damage,
                              int pierceLevel,
                              ProjectileSounds sounds) {
-    private static final String[] IGNORE_INFINITY_ENCHANTMENT = new String[] {"ignore_infinity_enchantment", "ignore-infinity-enchantment"};
-    private static final String[] REMOVE_ON_HIT = new String[] {"remove_on_hit", "remove-on-hit"};
-    private static final String[] PIERCE_LEVEL = new String[] {"pierce_level", "pierce-level"};
+    private static final String[] IGNORE_INFINITY_ENCHANTMENT = ConfigKeys.of("ignore_infinity_enchantment");
+    private static final String[] REMOVE_ON_HIT = ConfigKeys.of("remove_on_hit");
+    private static final String[] PIERCE_LEVEL = ConfigKeys.of("pierce_level");
 
     public static ProjectileMeta fromConfig(ConfigSection section) {
         ConfigSection soundsSection = section.getSection("sounds");

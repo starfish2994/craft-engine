@@ -17,4 +17,10 @@ public interface FileToIdConverterProxy {
 
     @MethodInvoker(name = "listMatchingResources")
     Map<Object, Object> listMatchingResources(Object target, @Type(clazz = ResourceManagerProxy.class) Object resourceManager);
+
+    @MethodInvoker(name = "listMatchingResourceStacks")
+    Map<Object, java.util.List<Object>> listMatchingResourceStacks(Object target, @Type(clazz = ResourceManagerProxy.class) Object resourceManager);
+
+    @MethodInvoker(name = "fileToId")
+    Object fileToId(Object target, @Type(clazz = IdentifierProxy.class) Object file);
 }

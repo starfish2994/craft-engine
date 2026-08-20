@@ -15,7 +15,8 @@ import org.skriptlang.skript.addon.SkriptAddon;
 import java.io.StreamCorruptedException;
 
 public final class CraftEngineClasses {
-    private CraftEngineClasses() {}
+    private CraftEngineClasses() {
+    }
 
     public static void register(SkriptAddon addon) {
         Classes.registerClass(new ClassInfo<>(ImmutableBlockState.class, "customblockstate")
@@ -67,7 +68,11 @@ public final class CraftEngineClasses {
 
                     @Override
                     public @Nullable ImmutableBlockState parse(String s, ParseContext context) {
-                        return BlockStateParser.deserialize(s);
+                        try {
+                            return BlockStateParser.deserialize(s);
+                        } catch (IllegalArgumentException e) {
+                            return null;
+                        }
                     }
                 })
         );
@@ -121,7 +126,11 @@ public final class CraftEngineClasses {
 
                     @Override
                     public @Nullable UnsafeBlockStateMatcher parse(String s, ParseContext context) {
-                        return UnsafeBlockStateMatcher.deserialize(s);
+                        try {
+                            return UnsafeBlockStateMatcher.deserialize(s);
+                        } catch (IllegalArgumentException e) {
+                            return null;
+                        }
                     }
                 })
         );

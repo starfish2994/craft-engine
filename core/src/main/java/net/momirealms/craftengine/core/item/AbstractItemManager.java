@@ -32,6 +32,7 @@ import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
 import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
+import net.momirealms.craftengine.core.plugin.context.NamedRandoms;
 import net.momirealms.craftengine.core.plugin.context.number.ConstantNumberProvider;
 import net.momirealms.craftengine.core.util.*;
 import org.incendo.cloud.suggestion.Suggestion;
@@ -74,6 +75,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     // 其他设置
     protected boolean featureFlag$keepOnDeathChance = false;
     protected boolean featureFlag$destroyOnDeathChance = false;
+    protected boolean featureFlag$preventBreak = false;
     // 用语弩和弓的弹药判定
     protected final ProjectilePredicate ARROW_ONLY = new ProjectilePredicate(k -> k.hasVanillaTag(ItemTags.ARROWS));
     protected final ProjectilePredicate ARROW_OR_FIREWORK = new ProjectilePredicate(k -> k.hasVanillaTag(ItemTags.ARROWS) || k.id().equals(ItemKeys.FIREWORK_ROCKET));
@@ -84,6 +86,8 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         this.equipmentParser = new EquipmentParser();
         CustomDataSerializers.registerSerializer(FurnitureDebugStickData.class, FurnitureDebugStickDataSerializer.INSTANCE);
         CustomDataSerializers.registerSerializer(BlockDebugStickData.class, BlockDebugStickDataSerializer.INSTANCE);
+        CustomDataSerializers.registerSerializer(ItemAttributeModifiersData.class, ItemAttributeModifiersDataSerializer.INSTANCE);
+        CustomDataSerializers.registerSerializer(NamedRandoms.class, NamedRandomsSerializer.INSTANCE);
     }
 
     protected static void registerVanillaItemExtraBehavior(ItemBehavior behavior, Key... items) {
@@ -119,6 +123,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     private void clearFeatureFlags() {
         this.featureFlag$keepOnDeathChance = false;
         this.featureFlag$destroyOnDeathChance = false;
+        this.featureFlag$preventBreak = false;
     }
 
     public boolean isCrossbowAmmo(Item item) {
@@ -249,7 +254,13 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         return featureFlag$destroyOnDeathChance;
     }
 
+    public boolean featureFlag$preventBreak() {
+        return featureFlag$preventBreak;
+    }
+
     protected abstract ItemDefinition.Builder createPlatformItemBuilder(String path, UniqueKey id, Key material, Key clientBoundMaterial);
+
+    public abstract void resetItemProviders();
 
     protected abstract void registerArmorTrimPattern(Collection<Key> equipments);
 
@@ -259,7 +270,12 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     }
 
     private final class EquipmentParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"equipments", "equipment"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("equipment(s)");
+
+        @Override
+        public Key type() {
+            return Key.ce("equipment");
+        }
 
         @Override
         public String[] sectionId() {
@@ -309,10 +325,15 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
     }
 
     private final class ItemParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"items", "item"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("item(s)");
         private final Map<Key, IdAllocator> idAllocators = new HashMap<>();
         private final List<CompletableFuture<?>> futures = Collections.synchronizedList(new ArrayList<>());
         private final Map<Key, List<Key>> tempCategories = new ConcurrentHashMap<>();
+
+        @Override
+        public Key type() {
+            return Key.ce("item");
+        }
 
         @Override
         public int count() {
@@ -332,7 +353,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
         }
 
         private boolean needsItemModelCompatibility() {
-            return Config.packMaxVersion().isAtOrAbove(MinecraftVersion.V1_21_2) && VersionHelper.isOrAbove1_21_2; //todo 能否通过客户端包解决问题
+            return Config.packMaxVersion().isAtOrAbove(MinecraftVersion.V1_21_2) && VersionHelper.isOrAbove1_21_2;
         }
 
         @Override
@@ -402,6 +423,9 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 if (itemDefinition != null) {
                     Key id = itemDefinition.id();
                     AbstractItemManager.this.orderedItemIds.add(id);
+                    if (itemDefinition.settings().preventBreak()) {
+                        AbstractItemManager.this.featureFlag$preventBreak = true;
+                    }
                     List<Key> categories = this.tempCategories.get(id);
                     if (categories != null) {
                         AbstractItemManager.this.plugin.itemBrowserManager().addExternalCategoryMember(id, categories);
@@ -462,22 +486,22 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
             });
         }
 
-        private static final String[] MODEL_KEYS = new String[] {"model", "models", "texture", "textures", "legacy-model", "legacy_model"};
-        private static final String[] CLIENT_BOUND_MATERIAL = new String[] {"client_bound_material", "client-bound-material"};
-        private static final String[] CUSTOM_MODEL_DATA = new String[] {"custom_model_data", "custom-model-data"};
-        private static final String[] ITEM_MODEL = new String[] {"item_model", "item-model"};
-        private static final String[] CLIENT_BOUND_MODEL = new String[] {"client_bound_model", "client-bound-model"};
-        private static final String[] CLIENT_BOUND_DATA = new String[] {"client_bound_data", "client-bound-data"};
-        private static final String[] MODEL = new String[] {"model", "models"};
-        private static final String[] TEXTURES = new String[] {"texture", "textures"};
-        private static final String[] EVENTS = new String[] {"events", "event"};
-        private static final String[] BEHAVIORS = new String[] {"behaviors", "behavior"};
-        private static final String[] LEGACY_MODEL = new String[] {"legacy_model", "legacy-model"};
-        private static final String[] OVERSIZED_IN_GUI = new String[] {"oversized_in_gui", "oversized-in-gui"};
-        private static final String[] HAND_ANIMATION_ON_SWAP = new String[] {"hand_animation_on_swap", "hand-animation-on-swap"};
-        private static final String[] SWAP_ANIMATION_SCALE = new String[] {"swap_animation_scale", "swap-animation-scale"};
-        private static final String[] CATEGORIES = new String[] {"category", "categories"};
-        private static final String[] SKIP_OBFUSCATION = new String[] {"skip_obfuscation", "skip-obfuscation"};
+        private static final String[] MODEL_KEYS = ConfigKeys.of("model(s)|texture(s)|blueprint|legacy_model");
+        private static final String[] CLIENT_BOUND_MATERIAL = ConfigKeys.of("client_bound_material");
+        private static final String[] CUSTOM_MODEL_DATA = ConfigKeys.of("custom_model_data");
+        private static final String[] ITEM_MODEL = ConfigKeys.of("item_model");
+        private static final String[] CLIENT_BOUND_MODEL = ConfigKeys.of("client_bound_model");
+        private static final String[] CLIENT_BOUND_DATA = ConfigKeys.of("client_bound_data");
+        private static final String[] MODEL = ConfigKeys.of("model(s)");
+        private static final String[] TEXTURES = ConfigKeys.of("texture(s)");
+        private static final String[] EVENTS = ConfigKeys.of("event(s)");
+        private static final String[] BEHAVIORS = ConfigKeys.of("behavior(s)");
+        private static final String[] LEGACY_MODEL = ConfigKeys.of("legacy_model");
+        private static final String[] OVERSIZED_IN_GUI = ConfigKeys.of("oversized_in_gui");
+        private static final String[] HAND_ANIMATION_ON_SWAP = ConfigKeys.of("hand_animation_on_swap");
+        private static final String[] SWAP_ANIMATION_SCALE = ConfigKeys.of("swap_animation_scale");
+        private static final String[] CATEGORIES = ConfigKeys.of("category|categor(y|ies)");
+        private static final String[] SKIP_OBFUSCATION = ConfigKeys.of("skip_obfuscation");
 
         @Override
         public void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
@@ -590,8 +614,9 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 // 模型配置区域，如果这里被配置了，那么用户可以配置custom-model-data或item-model
                 ConfigValue modelValue = section.getValue(MODEL);
                 ConfigValue textureValue = section.getValue(TEXTURES);
+                ConfigValue blueprintValue = section.getValue("blueprint");
                 ConfigSection legacyModelSection = section.getSection(LEGACY_MODEL);
-                boolean hasModelSection = modelValue != null || textureValue != null || legacyModelSection != null;
+                boolean hasModelSection = modelValue != null || textureValue != null || blueprintValue != null || legacyModelSection != null;
 
                 if (customModelData > 0 && (hasModelSection || forceCustomModelData)) {
                     if (clientBoundModel) itemBuilder.clientBoundProcessor(new OverwritableCustomModelDataProcessor(ConstantNumberProvider.constant(customModelData)));
@@ -638,7 +663,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 }
 
                 // 设置
-                ItemSettings settings = ItemSettings.of().disableVanillaBehavior(!isVanillaItem).triggerAdvancement(isVanillaItem);
+                ItemSettings settings = ItemSettings.forItem(isVanillaItem);
                 try {
                     ItemSettings.applyModifiers(settings, section.getSection("settings"));
                 } catch (KnownResourceException e) {
@@ -725,13 +750,17 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 TreeSet<LegacyOverridesModel> legacyOverridesModels;
                 // 如果需要支持新版item model 或者用户需要旧版本兼容，但是没配置legacy-model
                 if (isModernFormatRequired() || (needsLegacyCompatibility() && legacyModelSection == null)) {
-                    if (textureValue != null) {
+                    if (blueprintValue != null) {
+                        Key templateModel = itemModel != null && AbstractPackManager.PRESET_MODERN_MODELS_ITEM.containsKey(itemModel) ? itemModel : clientBoundMaterial;
+                        SimplifiedItemModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
+                        modernModel = simplifiedModelReader.readBlueprints(blueprintValue, modelValue, pack, path);
+                    } else if (textureValue != null) {
                         Key templateModel = itemModel != null && AbstractPackManager.PRESET_MODERN_MODELS_ITEM.containsKey(itemModel) ? itemModel : clientBoundMaterial;
                         SimplifiedItemModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
                         modernModel = simplifiedModelReader.read(textureValue, Optional.ofNullable(modelValue).map(it -> {
                             if (it.is(Map.class)) {
                                 ConfigSection modelSection = it.getAsSection();
-                                return modelSection.getValue(new String[] {"path", "model"});
+                                return modelSection.getValue(ConfigKeys.of("path|model"));
                             }
                             return it;
                         }), id);
@@ -741,7 +770,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                             SimplifiedItemModelReader simplifiedModelReader = AbstractPackManager.SIMPLIFIED_MODEL_READERS.get(templateModel);
                             modernModel = simplifiedModelReader.read(modelValue);
                         } else {
-                            modernModel = ItemModels.fromConfig(modelValue);
+                            modernModel = ItemModels.fromConfig(pack, path, modelValue);
                         }
                     } else {
                         throw KnownResourceException.missingArgument("model", ConfigConstants.ARGUMENT_ITEM_MODEL_DEFINITION);
@@ -753,7 +782,7 @@ public abstract class AbstractItemManager extends AbstractModelGenerator impleme
                 // 如果需要旧版本兼容
                 if (needsLegacyCompatibility()) {
                     if (legacyModelSection != null) {
-                        LegacyItemModel legacyItemModel = LegacyItemModel.fromConfig(legacyModelSection, customModelData);
+                        LegacyItemModel legacyItemModel = LegacyItemModel.fromConfig(pack, path, legacyModelSection, customModelData);
                         legacyItemModel.prepareModelGeneration(AbstractItemManager.this::prepareModelGeneration);
                         legacyOverridesModels = new TreeSet<>(legacyItemModel.overrides());
                     } else {

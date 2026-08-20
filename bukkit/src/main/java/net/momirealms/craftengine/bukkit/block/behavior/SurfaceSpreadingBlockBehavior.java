@@ -7,6 +7,7 @@ import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -39,7 +40,7 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior imp
         this.lightRequirement = lightRequirement;
         this.maxLightRequirement = maxLightRequirement;
         this.snowyProperty = snowyProperty;
-        this.baseBlock = LazyReference.lazyReference(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(baseBlock)).minecraftState());
+        this.baseBlock = LazyReference.untilNotNull(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(baseBlock)).minecraftState());
     }
 
     @Override
@@ -114,9 +115,9 @@ public final class SurfaceSpreadingBlockBehavior extends BukkitBlockBehavior imp
     }
 
     private static class Factory implements BlockBehaviorFactory<SurfaceSpreadingBlockBehavior> {
-        private static final String[] LIGHT_REQUIREMENT = new String[]{"light_requirement", "light-requirement", "required_light", "required-light"};
-        private static final String[] MAX_LIGHT_REQUIREMENT = new String[]{"max_light_requirement", "max-light-requirement"};
-        private static final String[] BASE_BLOCK = new String[]{"base_block", "base-block"};
+        private static final String[] LIGHT_REQUIREMENT = ConfigKeys.of("light_requirement|required_light");
+        private static final String[] MAX_LIGHT_REQUIREMENT = ConfigKeys.of("max_light_requirement");
+        private static final String[] BASE_BLOCK = ConfigKeys.of("base_block");
 
         @Override
         public SurfaceSpreadingBlockBehavior create(BlockDefinition block, ConfigSection section) {

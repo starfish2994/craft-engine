@@ -15,7 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Optional;
 import java.util.Set;
 
-public class PaperItemEventListener implements Listener {
+public final class PaperItemEventListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onReadyArrow(PlayerReadyArrowEvent event) {

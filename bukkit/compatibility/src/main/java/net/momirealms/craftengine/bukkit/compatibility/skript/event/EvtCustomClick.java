@@ -4,6 +4,7 @@ import ch.njol.skript.Skript;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.bukkitutil.ClickEventTracker;
 import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Literal;
@@ -21,6 +22,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.bukkit.lang.eventvalue.EventValue;
@@ -32,11 +34,16 @@ import java.util.function.Predicate;
 
 @Name("On Click on Custom Block and Furniture")
 @Description({"Fires when click on custom block and furniture"})
+@Example("""
+        on right click of ce on "mynamespace:my_furniture":
+            send "You clicked the furniture!"
+        """)
 @Since("1.0")
 public final class EvtCustomClick extends SkriptEvent {
-
-    private final static int RIGHT = 1, LEFT = 2, ANY = RIGHT | LEFT;
-    public final static ClickEventTracker INTERACT_TRACKER = new ClickEventTracker(Skript.getInstance());
+    public final static ClickEventTracker INTERACT_TRACKER = new ClickEventTracker(JavaPlugin.getPlugin(Skript.class));    private final static int RIGHT = 1, LEFT = 2, ANY = RIGHT | LEFT;
+    private @Nullable Literal<?> type;
+    private @Nullable Literal<ItemType> tools;
+    private int click = ANY;
 
     @SuppressWarnings("unchecked")
     public static void register(SkriptAddon addon) {
@@ -63,10 +70,6 @@ public final class EvtCustomClick extends SkriptEvent {
         valueRegistry.register(EventValue.builder(FurnitureInteractEvent.class, World.class).getter(e -> e.location().getWorld()).time(EventValue.Time.NOW).build());
     }
 
-    private @Nullable Literal<?> type;
-    private @Nullable Literal<ItemType> tools;
-    private int click = ANY;
-
     @Override
     public boolean check(Event event) {
         ImmutableBlockState block;
@@ -75,7 +78,7 @@ public final class EvtCustomClick extends SkriptEvent {
             furnitureId = null;
             CustomBlockInteractEvent.Action action = interactEvent.action();
             int click;
-            switch (action)  {
+            switch (action) {
                 case LEFT_CLICK -> click = LEFT;
                 case RIGHT_CLICK -> click = RIGHT;
                 default -> {
@@ -114,7 +117,7 @@ public final class EvtCustomClick extends SkriptEvent {
             return type.check(event, (Predicate<Object>) object -> {
                 if (object instanceof String id && furnitureId != null) {
                     return id.equals(furnitureId);
-                } else if (object instanceof UnsafeBlockStateMatcher matcher && block != null)  {
+                } else if (object instanceof UnsafeBlockStateMatcher matcher && block != null) {
                     return matcher.matches(block);
                 }
                 return false;
@@ -141,4 +144,6 @@ public final class EvtCustomClick extends SkriptEvent {
         } + "click" + (type != null ? " on " + type.toString(event, debug) : "") +
                 (tools != null ? " holding " + tools.toString(event, debug) : "");
     }
+
+
 }

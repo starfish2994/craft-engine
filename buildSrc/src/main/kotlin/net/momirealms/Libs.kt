@@ -39,6 +39,8 @@ fun DependencyHandlerScope.common(project: Project, configuration: String = Java
     configuration("com.bucket4j:bucket4j_jdk17-core:${v("bucket4j_version")}")
     configuration("com.ezylang:EvalEx:${v("evalex_version")}")
     configuration("com.google.jimfs:jimfs:${v("jimfs_version")}")
+    configuration("org.graalvm.polyglot:polyglot:${v("graaljs_version")}")
+    configuration("org.openjdk.nashorn:nashorn-core:${v("nashorn_version")}")
 }
 
 fun DependencyHandlerScope.netty(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
@@ -54,8 +56,8 @@ fun DependencyHandlerScope.compression(project: Project, configuration: String =
 fun DependencyHandlerScope.cloud(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
     configuration("com.mojang:brigadier:${project.ver("mojang_brigadier_version")}")
     configuration("org.incendo:cloud-core:${project.ver("cloud_core_version")}")
-    configuration("org.incendo:cloud-minecraft-extras:${project.ver("cloud_minecraft_extras_version")}")
-    configuration("org.incendo:cloud-paper:${project.ver("cloud_paper_version")}")
+    configuration("org.incendo:cloud-minecraft-extras:${project.ver("cloud_platform_version")}")
+    configuration("org.incendo:cloud-paper:${project.ver("cloud_platform_version")}")
 }
 
 fun DependencyHandlerScope.paperServer(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
@@ -70,10 +72,10 @@ fun DependencyHandlerScope.asm(project: Project, configuration: String = JavaPlu
 
 fun DependencyHandlerScope.adventure(project: Project, configuration: String = JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME) {
     configuration("net.kyori:adventure-api:${project.ver("adventure_bundle_version")}")
-    configuration("net.kyori:adventure-text-minimessage:${project.ver("adventure_bundle_version")}")
     configuration("net.kyori:adventure-text-serializer-json-legacy-impl:${project.ver("adventure_bundle_version")}")
     configuration("net.kyori:adventure-text-serializer-legacy:${project.ver("adventure_bundle_version")}")
     configuration("net.kyori:adventure-text-serializer-gson:${project.ver("adventure_bundle_version")}").apply {
         (this as? ExternalModuleDependency)?.exclude("com.google.code.gson", "gson")
     }
+    configuration("net.momirealms:sparrow-minimessage:${project.ver("sparrow_minimessage_version")}")
 }

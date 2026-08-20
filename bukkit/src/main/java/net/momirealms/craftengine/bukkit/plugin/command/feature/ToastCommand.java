@@ -76,7 +76,7 @@ public final class ToastCommand extends BukkitCommandFeature<CommandSender> {
                         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
                         if (serverPlayer == null) continue;
                         Item icon = buildableItem.get().buildItem(serverPlayer);
-                        Component text = AdventureHelper.miniMessage().deserialize(AdventureHelper.legacyToMiniMessage(message), PlayerOptionalContext.of(serverPlayer).tagResolvers());
+                        Component text = AdventureHelper.deserialize(AdventureHelper.legacyToMiniMessage(message), PlayerOptionalContext.of(serverPlayer));
                         serverPlayer.sendToast(text, icon, type);
                     }
                     if (players.size() == 1) {

@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.item.processor;
 
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
@@ -35,13 +36,12 @@ public final class ConditionalProcessor implements ItemProcessor {
     }
 
     @Override
-    public Item prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
+    public void prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
         if (this.condition.test(context)) {
             for (ItemProcessor m : this.modifiers) {
-                item = m.prepareNetworkItem(item, context, networkData);
+                m.prepareNetworkItem(item, context, networkData);
             }
         }
-        return item;
     }
 
     private static class Factory implements ItemProcessorFactory<ConditionalProcessor> {
@@ -49,7 +49,7 @@ public final class ConditionalProcessor implements ItemProcessor {
         @Override
         public ConditionalProcessor create(ConfigValue value) {
             ConfigSection section = value.getAsSection();
-            List<Condition<Context>> conditions = section.getList("conditions", CommonConditions::fromConfig);
+            List<Condition<Context>> conditions = section.getList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             List<ItemProcessor> modifiers = new ArrayList<>();
             ItemProcessors.collectProcessors(section.getNonNullSection("data"), modifiers::add);
             return new ConditionalProcessor(MiscUtils.allOf(conditions), modifiers.toArray(new ItemProcessor[0]));

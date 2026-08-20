@@ -28,6 +28,7 @@ dependencies {
     // leafpile
     implementation(files("${rootProject.rootDir}/libs/leafpile-${rootProject.properties["leafpile_version"]}.jar"))
 
+    implementation("net.momirealms:sparrow-minimessage:${rootProject.properties["sparrow_minimessage_version"]}")
     implementation("net.momirealms:sparrow-util:${rootProject.properties["sparrow_util_version"]}")
     implementation("net.momirealms:craft-engine-nms-helper:${rootProject.properties["nms_helper_version"]}")
     implementation("cn.gtemc:itembridge:${rootProject.properties["itembridge_version"]}")

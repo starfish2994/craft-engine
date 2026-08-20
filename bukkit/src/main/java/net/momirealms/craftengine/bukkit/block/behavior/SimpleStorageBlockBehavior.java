@@ -1,12 +1,12 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.antigrieflib.Flag;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.entity.SimpleStorageBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.plugin.gui.BukkitInventory;
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -16,6 +16,7 @@ import net.momirealms.craftengine.core.block.entity.BlockEntity;
 import net.momirealms.craftengine.core.block.entity.BlockEntityController;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
@@ -99,7 +100,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         if (blockEntity == null) return InteractionResult.FAIL;
         blockEntity.controller.let(SimpleStorageBlockEntityController.class, this.controllerId, c -> {
             c.onPlayerOpen(player);
-            new BukkitInventory(c.inventory()).open(player, AdventureHelper.miniMessage().deserialize(this.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
+            new BukkitInventory(c.inventory()).open(player, AdventureHelper.deserialize(this.containerTitle, PlayerOptionalContext.of(player)));
         });
         return InteractionResult.SUCCESS_AND_CANCEL;
     }
@@ -118,7 +119,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         Object blockPos = args[2];
         BlockPos pos = LocationUtils.fromBlockPos(blockPos);
         World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(bukkitWorld.getUID());
+        CEWorld ceWorld = BukkitAdaptor.adapt(bukkitWorld).storageWorld();
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) return;
         blockEntity.controller.let(SimpleStorageBlockEntityController.class, this.controllerId, c -> {
@@ -133,7 +134,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
         Object blockPos = args[2];
         BlockPos pos = LocationUtils.fromBlockPos(blockPos);
         World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(bukkitWorld.getUID());
+        CEWorld ceWorld = BukkitAdaptor.adapt(bukkitWorld).storageWorld();
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) return 0;
         return blockEntity.controller.let(SimpleStorageBlockEntityController.class, this.controllerId, c -> {
@@ -160,7 +161,7 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
 
     @Override
     public Object getContainer(Object thisBlock, Object[] args) {
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(LevelProxy.INSTANCE.getWorld(args[1]));
+        CEWorld ceWorld = BukkitAdaptor.adapt(LevelProxy.INSTANCE.getWorld(args[1])).storageWorld();
         BlockPos blockPos = LocationUtils.fromBlockPos(args[2]);
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(blockPos);
         if (blockEntity == null) return null;
@@ -170,10 +171,10 @@ public final class SimpleStorageBlockBehavior extends BukkitBlockBehavior implem
     }
 
     private static class Factory implements BlockBehaviorFactory<SimpleStorageBlockBehavior> {
-        private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
-        private static final String[] ALLOW_INPUT = new String[]{"allow_input", "allow-input"};
-        private static final String[] ALLOW_OUTPUT = new String[]{"allow_output", "allow-output"};
-        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
+        private static final String[] HAS_SIGNAL = ConfigKeys.of("has_signal");
+        private static final String[] ALLOW_INPUT = ConfigKeys.of("allow_input");
+        private static final String[] ALLOW_OUTPUT = ConfigKeys.of("allow_output");
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
 
 
         @Override

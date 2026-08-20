@@ -51,7 +51,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.*;
@@ -573,8 +572,12 @@ public final class RecipeEventListener implements Listener {
         }
 
         boolean hasResult = true;
-        
-        int realDurabilityPerItem = (int) (repairItem.amount() + repairItem.percent() * maxDamage);
+
+        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
+        BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
+        PlayerOptionalContext context = serverPlayer != null ? PlayerOptionalContext.of(serverPlayer) : null;
+
+        int realDurabilityPerItem = repairItem.durabilityPerItem(maxDamage, context);
         if (realDurabilityPerItem == 0) {
             return;
         }
@@ -603,8 +606,12 @@ public final class RecipeEventListener implements Listener {
         int repairPenalty = wrappedFirst.repairCost().orElse(0) + wrappedSecond.repairCost().orElse(0);
 
         if (renameText != null && !renameText.isBlank()) {
-            if (!renameText.equals(ComponentProxy.INSTANCE.getString(ComponentUtils.jsonToMinecraft(wrappedFirst.hoverNameJson().orElse(AdventureHelper.EMPTY_COMPONENT))))) {
-                wrappedFirst.customNameJson(AdventureHelper.componentToJson(Component.text(renameText)));
+            String hoverName = wrappedFirst.hoverNameJson()
+                    .map(ComponentUtils::jsonElementToMinecraft)
+                    .map(ComponentProxy.INSTANCE::getString)
+                    .orElse("");
+            if (!renameText.equals(hoverName)) {
+                wrappedFirst.customNameJson(AdventureHelper.componentToJsonElement(Component.text(renameText)));
                 repairCost += 1;
             } else if (repairCost == 0) {
                 hasResult = false;
@@ -637,9 +644,6 @@ public final class RecipeEventListener implements Listener {
             LegacyInventoryUtils.setRepairCostAmount(inventory, actualConsumedAmount);
         }
 
-        Player player = InventoryUtils.getPlayerFromInventoryEvent(event);
-
-        BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         if (serverPlayer == null) return;
         if (finalCost >= maxRepairCost && !serverPlayer.canInstabuild()) {
             hasResult = false;
@@ -679,7 +683,11 @@ public final class RecipeEventListener implements Listener {
                     renameText = LegacyInventoryUtils.getRenameText(inventory);
                 }
                 if (renameText != null && !renameText.isBlank()) {
-                    if (!renameText.equals(ComponentProxy.INSTANCE.getString(ComponentUtils.jsonToMinecraft(wrappedFirst.hoverNameJson().orElse(AdventureHelper.EMPTY_COMPONENT))))) {
+                    String hoverName = wrappedFirst.hoverNameJson()
+                            .map(ComponentUtils::jsonElementToMinecraft)
+                            .map(ComponentProxy.INSTANCE::getString)
+                            .orElse("");
+                    if (!renameText.equals(hoverName)) {
                         event.setResult(null);
                     }
                 }
@@ -689,6 +697,35 @@ public final class RecipeEventListener implements Listener {
 
     public static int calculateIncreasedRepairCost(int cost) {
         return (int) Math.min((long) cost * 2L + 1L, 2147483647L);
+    }
+
+    /*
+    处理砂轮合并修复。只关心两个输入槽都有物品的情况，单物品祛魔不属于修复逻辑。
+    原版砂轮只判断物品类型是否相同，无法区分相同原版材质的不同自定义物品，因此需要在此处拦截。
+     */
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onGrindstoneEvent(PrepareGrindstoneEvent event) {
+        if (event.getResult() == null) return;
+        GrindstoneInventory inventory = event.getInventory();
+        ItemStack first = inventory.getItem(0);
+        ItemStack second = inventory.getItem(1);
+        if (ItemStackUtils.isEmpty(first) || ItemStackUtils.isEmpty(second)) return;
+        Item wrappedFirst = BukkitItemManager.instance().wrap(first);
+        Optional<ItemDefinition> firstCustom = wrappedFirst.getDefinition();
+        Item wrappedSecond = BukkitItemManager.instance().wrap(second);
+        Optional<ItemDefinition> secondCustom = wrappedSecond.getDefinition();
+        // 两个都是原版物品
+        if (firstCustom.isEmpty() && secondCustom.isEmpty()) {
+            return;
+        }
+        // 自定义物品只能与相同id的物品合并，防止原版砂轮吞掉自定义数据
+        if (!wrappedFirst.customId().equals(wrappedSecond.customId())) {
+            event.setResult(null);
+            return;
+        }
+        if (firstCustom.isPresent() && firstCustom.get().settings().repairable().grindstoneRepair() == Tristate.FALSE) {
+            event.setResult(null);
+        }
     }
 
     // only handle repair items for the moment
@@ -853,7 +890,7 @@ public final class RecipeEventListener implements Listener {
             }
         }
 
-        Object mcPlayer = serverPlayer.serverPlayer();
+        Object mcPlayer = serverPlayer.minecraftPlayer();
         Object craftingMenu = PlayerProxy.INSTANCE.getContainerMenu(mcPlayer);
 
         ClickType click = event.getClick();
@@ -1109,7 +1146,7 @@ public final class RecipeEventListener implements Listener {
 
             ClickType click = event.getClick();
 
-            Object mcPlayer = serverPlayer.serverPlayer();
+            Object mcPlayer = serverPlayer.minecraftPlayer();
             Object smithingMenu = PlayerProxy.INSTANCE.getContainerMenu(mcPlayer);
 
             if (click == ClickType.CONTROL_DROP) {
@@ -1273,7 +1310,7 @@ public final class RecipeEventListener implements Listener {
                 // 由插件自己处理多次合成
                 event.setResult(Event.Result.DENY);
 
-                Object mcPlayer = serverPlayer.serverPlayer();
+                Object mcPlayer = serverPlayer.minecraftPlayer();
                 Object smithingMenu = PlayerProxy.INSTANCE.getContainerMenu(mcPlayer);
 
                 for (;;) {

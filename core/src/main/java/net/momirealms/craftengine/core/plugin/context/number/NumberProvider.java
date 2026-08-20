@@ -1,28 +1,32 @@
 package net.momirealms.craftengine.core.plugin.context.number;
 
 import net.momirealms.craftengine.core.plugin.context.Context;
-import net.momirealms.craftengine.core.util.random.RandomSource;
-import net.momirealms.craftengine.core.util.random.ThreadLocalRandomSource;
+import net.momirealms.craftengine.core.plugin.context.SimpleContext;
+import net.momirealms.craftengine.core.util.MiscUtils;
 
 public interface NumberProvider {
 
-    default float getFloat(Context context) {
-        return getFloat(ThreadLocalRandomSource.INSTANCE);
-    }
+    float getFloat(Context context);
 
-    float getFloat(RandomSource random);
-
-    default double getDouble(Context context) {
-        return getDouble(ThreadLocalRandomSource.INSTANCE);
-    }
-
-    double getDouble(RandomSource random);
+    double getDouble(Context context);
 
     default int getInt(Context context) {
-        return Math.round(this.getFloat(context));
+        return MiscUtils.floor(this.getDouble(context));
     }
 
-    default int getInt(RandomSource random) {
-        return Math.round(this.getFloat(random));
+    default float getFloat() {
+        return getFloat(SimpleContext.EMPTY);
+    }
+
+    default double getDouble() {
+        return getDouble(SimpleContext.EMPTY);
+    }
+
+    default int getInt() {
+        return getInt(SimpleContext.EMPTY);
+    }
+
+    default boolean isConstant() {
+        return false;
     }
 }

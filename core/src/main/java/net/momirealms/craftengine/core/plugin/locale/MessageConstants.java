@@ -35,6 +35,9 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_RESOURCE_CREATE_FAILURE_EXISTS = Component.translatable().key("command.resource.create.failure.exists");
     TranslatableComponent.Builder COMMAND_RESOURCE_SAVE_DEFAULT_SUCCESS = Component.translatable().key("command.resource.save_default.success");
     TranslatableComponent.Builder COMMAND_RESOURCE_SAVE_DEFAULT_FAILURE = Component.translatable().key("command.resource.save_default.failure");
+    TranslatableComponent.Builder COMMAND_RESOURCE_SEARCH_PARSER_NOT_FOUND = Component.translatable().key("command.resource.search.parser.not_found");
+    TranslatableComponent.Builder COMMAND_RESOURCE_SEARCH_RESOURCE_NOT_FOUND = Component.translatable().key("command.resource.search.resource.not_found");
+    TranslatableComponent.Builder COMMAND_RESOURCE_SEARCH_SUCCESS = Component.translatable().key("command.resource.search.success");
     TranslatableComponent.Builder COMMAND_UPLOAD_FAILURE_NOT_SUPPORTED = Component.translatable().key("command.upload.failure.not_supported");
     TranslatableComponent.Builder COMMAND_UPLOAD_ON_PROGRESS = Component.translatable().key("command.upload.on_progress");
     TranslatableComponent.Builder COMMAND_SEND_RESOURCE_PACK_SUCCESS_SINGLE = Component.translatable().key("command.send_resource_pack.success.single");
@@ -64,6 +67,7 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_DISPLAY_ENTITY_VIEW_DISTANCE_SCALE_SET_SUCCESS = Component.translatable().key("command.display_entity_view_distance_scale.set.success");
     TranslatableComponent.Builder COMMAND_ENTITY_CULLING_DISTANCE_SCALE_SET_SUCCESS = Component.translatable().key("command.entity_culling_distance_scale.set.success");
     TranslatableComponent.Builder COMMAND_TOGGLE_ENTITY_CULLING_SUCCESS = Component.translatable().key("command.entity_culling.toggle.success");
+    TranslatableComponent.Builder COMMAND_SET_DAMAGE_VISIBILITY_SUCCESS = Component.translatable().key("command.damage_visibility.set.success");
     TranslatableComponent.Builder COMMAND_PLACE_FEATURE_FAILED = Component.translatable().key("command.place_feature.failed");
     TranslatableComponent.Builder COMMAND_PLACE_FEATURE_SUCCESS = Component.translatable().key("command.place_feature.success");
     TranslatableComponent.Builder COMMAND_PLACE_FEATURE_INVALID = Component.translatable().key("command.place_feature.invalid");

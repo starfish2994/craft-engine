@@ -1,7 +1,11 @@
 package net.momirealms.craftengine.core.loot;
 
+import net.momirealms.craftengine.core.loot.source.LootSource;
+import net.momirealms.craftengine.core.loot.source.LootSourceType;
+import net.momirealms.craftengine.core.loot.source.LootSources;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
@@ -10,35 +14,28 @@ import net.momirealms.craftengine.core.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractLootManager implements LootManager {
-    protected final LootParser lootParser;
-    protected final Map<Integer, VanillaLoot> blockLoots = new ConcurrentHashMap<>();
-    // TODO 实现一个基于entity data的生物战利品系统
-    protected final Map<Key, VanillaLoot> entityLoots = new ConcurrentHashMap<>();
+    protected final LootSourceParser lootSourceParser = new LootSourceParser();
     protected final Map<Key, Loot> lootTables = new ConcurrentHashMap<>();
-
-    public AbstractLootManager() {
-        this.lootParser = new LootParser();
-    }
+    protected final Map<LootSourceType<?>, List<LootSource>> loadingSources = new ConcurrentHashMap<>();
+    protected final Set<LootSourceType<?>> knownTypes = ConcurrentHashMap.newKeySet();
+    protected final LootParser lootParser = new LootParser();
 
     @Override
     public void unload() {
-        this.blockLoots.clear();
-        this.entityLoots.clear();
+        this.loadingSources.clear();
+        for (LootSourceType<?> type : this.knownTypes) {
+            type.clearSources();
+        }
     }
 
     @Override
-    public Optional<VanillaLoot> getBlockLoot(int vanillaBlockState) {
-        return Optional.ofNullable(this.blockLoots.get(vanillaBlockState));
-    }
-
-    @Override
-    public Optional<VanillaLoot> getEntityLoot(Key entity) {
-        return Optional.ofNullable(this.entityLoots.get(entity));
+    public void delayedLoad() {
+        this.loadingSources.forEach(LootSourceType::updateSources);
+        this.loadingSources.clear();
     }
 
     @Override
@@ -46,9 +43,21 @@ public abstract class AbstractLootManager implements LootManager {
         return Optional.ofNullable(this.lootTables.get(key));
     }
 
-    private final class LootParser extends IdSectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"loot", "loots"};
+    protected void addLootSource(LootSource source) {
+        this.knownTypes.add(source.type());
+        this.loadingSources
+                .computeIfAbsent(source.type(), k -> Collections.synchronizedList(new ArrayList<>()))
+                .add(source);
+    }
+
+    protected final class LootParser extends IdSectionConfigParser {
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("loot(s)");
         private int count;
+
+        @Override
+        public Key type() {
+            return Key.ce("loot");
+        }
 
         @Override
         public String[] sectionId() {
@@ -74,6 +83,52 @@ public abstract class AbstractLootManager implements LootManager {
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
             Loot loot = section.toValue().getAsLoot();
             lootTables.put(id, loot);
+            this.count++;
+        }
+    }
+
+    protected final class LootSourceParser extends IdSectionConfigParser {
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("loot_source(s)|vanilla_loot(s)");
+        private int count;
+
+        @Override
+        public Key type() {
+            return Key.ce("loot_source");
+        }
+
+        @Override
+        public String[] sectionId() {
+            return CONFIG_SECTION_NAME;
+        }
+
+        @Override
+        public LoadingStage loadingStage() {
+            return LoadingStages.LOOT_SOURCE;
+        }
+
+        @Override
+        public List<LoadingStage> dependencies() {
+            return List.of(LoadingStages.LOOT_TABLE);
+        }
+
+        @Override
+        public int count() {
+            return this.count;
+        }
+
+        @Override
+        public boolean async() {
+            return Config.multiThreadedConfigLoad();
+        }
+
+        @Override
+        public void preProcess() {
+            this.count = 0;
+        }
+
+        @Override
+        protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
+            addLootSource(LootSources.fromConfig(id, section));
             this.count++;
         }
     }

@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxPa
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
 import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.seat.Seat;
+import net.momirealms.craftengine.core.entity.seat.SeatOwner;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.behavior.FurnitureItem;
@@ -189,7 +190,7 @@ public final class InteractListener {
             Player platformPlayer = serverPlayer.platformPlayer();
             if (platformPlayer == null) return;
             // 检测能否交互碰撞箱
-            Location eyeLocation = platformPlayer.getEyeLocation();
+            Location eyeLocation = serverPlayer.getEyeLocation();
             Vector direction = eyeLocation.getDirection();
             Location endLocation = eyeLocation.clone();
             endLocation.add(direction.multiply(serverPlayer.getCachedInteractionRange()));
@@ -256,7 +257,7 @@ public final class InteractListener {
                 return;
             }
             // 必须从网络包层面处理，否则无法获取交互的具体实体
-            if (usingSecondaryAction && !itemInHand.isEmpty() && hitBox.config().canUseItemOn()) {
+            if (usingSecondaryAction && !itemInHand.isEmpty() && hitBox.canUseItemOn()) {
                 Optional<ItemDefinition> optionalItemDefinition = itemInHand.getDefinition();
                 if (optionalItemDefinition.isPresent()) {
                     ItemDefinition itemDefinition = optionalItemDefinition.get();
@@ -271,7 +272,7 @@ public final class InteractListener {
                 serverPlayer.setResendSound();
 
                 {
-                    Object nmsPlayer = serverPlayer.serverPlayer();
+                    Object nmsPlayer = serverPlayer.minecraftPlayer();
                     Object serverLevel = ServerPlayerProxy.INSTANCE.getLevel(nmsPlayer);
                     Object blockPos = LocationUtils.toBlockPos(hitResult.blockPos());
                     Object previousBlockState = ServerLevelProxy.INSTANCE.getBlockState(serverLevel, blockPos);
@@ -299,7 +300,7 @@ public final class InteractListener {
                 }
             } else {
                 if (!usingSecondaryAction) {
-                    for (Seat<FurnitureHitBox> seat : hitBox.seats()) {
+                    for (Seat<SeatOwner> seat : hitBox.seats()) {
                         if (!seat.isOccupied()) {
                             if (seat.spawnSeat(serverPlayer, furniture.position())) {
                                 if (!part.interactive()) {

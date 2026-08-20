@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.condition;
 
 import net.momirealms.craftengine.core.entity.Entity;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -24,7 +25,7 @@ public final class MatchEntityCondition<CTX extends Context> implements Conditio
     @Override
     public boolean test(CTX ctx) {
         Optional<Entity> entity = ctx.getOptionalParameter(DirectContextParameters.ENTITY);
-        return entity.filter(value -> MiscUtils.matchRegex(value.type().asString(), this.ids, this.regexMatch)).isPresent();
+        return entity.filter(value -> MiscUtils.matchRegex(value.id().asString(), this.ids, this.regexMatch)).isPresent();
     }
 
     public static <CTX extends Context> ConditionFactory<CTX, MatchEntityCondition<CTX>> factory() {
@@ -32,7 +33,7 @@ public final class MatchEntityCondition<CTX extends Context> implements Conditio
     }
 
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, MatchEntityCondition<CTX>> {
-        private static final String[] ID = new String[] {"id", "entity", "entities"};
+        private static final String[] ID = ConfigKeys.of("id|entit(y|ies)");
 
         @Override
         public MatchEntityCondition<CTX> create(ConfigSection section) {

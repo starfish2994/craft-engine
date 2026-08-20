@@ -11,6 +11,7 @@ repositories {
     maven("https://libraries.minecraft.net/")
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.gtemc.net/releases/")
+//    maven("https://hub.spigotmc.org/nexus/repository/snapshots/")
 }
 
 dependencies {
@@ -23,7 +24,9 @@ dependencies {
     netty(project)
     asm(project)
     paperServer(project)
+//    compileOnly("org.spigotmc:spigot-api:26.2-R0.1-SNAPSHOT")
     cloud(project)
+    adventure(project)
     // Anti Grief
     implementation("net.momirealms:antigrieflib:${rootProject.properties["anti_grief_version"]}")
     // Reflection
@@ -46,6 +49,11 @@ tasks {
         relocation.applyCommon(this)
         archiveClassifier = ""
         archiveFileName = "craft-engine-bukkit-${rootProject.properties["project_version"]}.jar"
+    }
+    compileJava {
+        options.compilerArgs.addAll(
+            listOf("-Xmaxerrs", "1000")
+        )
     }
 }
 

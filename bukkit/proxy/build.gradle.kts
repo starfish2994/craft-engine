@@ -23,6 +23,7 @@ tasks.shadowJar {
     archiveClassifier = ""
     archiveFileName = "proxy.jarinjar"
     relocate("net.momirealms.sparrow.reflection", "net.momirealms.craftengine.libraries.reflection")
+    relocate("net.kyori", "net.momirealms.craftengine.libraries")
 }
 
 artifacts {

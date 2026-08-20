@@ -3,10 +3,11 @@ package net.momirealms.craftengine.bukkit.compatibility.legacy.slimeworld;
 import com.infernalsuite.aswm.api.events.LoadSlimeWorldEvent;
 import com.infernalsuite.aswm.api.world.SlimeWorld;
 import net.momirealms.craftengine.bukkit.world.BukkitStorageAdaptor;
+import net.momirealms.craftengine.bukkit.world.BukkitWorld;
+import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.plugin.config.Config;
-import net.momirealms.craftengine.core.world.CEWorld;
+import net.momirealms.craftengine.core.plugin.logger.Debugger;
 import net.momirealms.craftengine.core.world.World;
-import net.momirealms.craftengine.core.world.WorldManager;
 import net.momirealms.craftengine.core.world.chunk.storage.CachedStorage;
 import net.momirealms.craftengine.core.world.chunk.storage.WorldDataStorage;
 import org.bukkit.Bukkit;
@@ -19,19 +20,21 @@ import java.lang.reflect.Method;
 import java.util.function.Function;
 
 public final class LegacySlimeFormatStorageAdaptor extends BukkitStorageAdaptor implements Listener {
-    private final WorldManager worldManager;
+    private final BukkitWorldManager worldManager;
     private final Function<String, SlimeWorld> SLIME_WORLD_GETTER;
 
     @EventHandler
     public void onWorldLoad(LoadSlimeWorldEvent event) {
         org.bukkit.World world = Bukkit.getWorld(event.getSlimeWorld().getName());
         if (world == null) return;
-        CEWorld ceWorld = this.worldManager.createWorld(this.worldManager.wrap(world),
-                Config.enableChunkCache() ? new CachedStorage<>(new LegacySlimeWorldDataStorage(event.getSlimeWorld())) : new LegacySlimeWorldDataStorage(event.getSlimeWorld()));
-        this.worldManager.loadWorld(ceWorld, true);
+        Debugger.CHUNK.debug(() -> "LoadSlimeWorldEvent -> " + world.getName());
+        BukkitWorld bukkitWorld = this.worldManager.injectCraftWorld(world);
+        WorldDataStorage storage = Config.enableChunkCache() ? new CachedStorage<>(new LegacySlimeWorldDataStorage(event.getSlimeWorld())) : new LegacySlimeWorldDataStorage(event.getSlimeWorld());
+        this.worldManager.installStorageWorld(bukkitWorld, this.worldManager.createStorageWorld(bukkitWorld, storage));
+        this.worldManager.handleWorldLoad(bukkitWorld);
     }
 
-    public LegacySlimeFormatStorageAdaptor(WorldManager worldManager, int version) {
+    public LegacySlimeFormatStorageAdaptor(BukkitWorldManager worldManager, int version) {
         this.worldManager = worldManager;
         try {
             if (version == 1) {

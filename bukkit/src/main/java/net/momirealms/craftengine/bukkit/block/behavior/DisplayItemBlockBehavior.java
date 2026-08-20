@@ -1,10 +1,10 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.antigrieflib.Flag;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.block.entity.DisplayItemBlockEntityController;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.LocationUtils;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
@@ -17,6 +17,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.sound.SoundData;
@@ -79,7 +80,8 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
         if (player == null) return InteractionResult.PASS;
         World world = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
+        CEWorld ceWorld = world.storageWorld();
+        BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) {
             return InteractionResult.PASS;
         }
@@ -121,7 +123,8 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
         Object blockPos = args[2];
         BlockPos pos = LocationUtils.fromBlockPos(blockPos);
         org.bukkit.World bukkitWorld = LevelProxy.INSTANCE.getWorld(world);
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(bukkitWorld.getUID());
+        CEWorld ceWorld = BukkitAdaptor.adapt(bukkitWorld).ceWorld();
+        if (ceWorld == null) return 0;
         BlockEntity blockEntity = ceWorld.getBlockEntityAtIfLoaded(pos);
         if (blockEntity == null) {
             return 0;
@@ -140,9 +143,9 @@ public final class DisplayItemBlockBehavior extends BukkitBlockBehavior implemen
     }
 
     private static class Factory implements BlockBehaviorFactory<DisplayItemBlockBehavior> {
-        private static final String[] HAS_SIGNAL = new String[]{"has_signal", "has-signal"};
-        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
-        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
+        private static final String[] HAS_SIGNAL = ConfigKeys.of("has_signal");
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
+        private static final String[] TINT_SOURCE = ConfigKeys.of("tint_source");
 
         @Override
         public DisplayItemBlockBehavior create(BlockDefinition block, ConfigSection section) {

@@ -1,18 +1,24 @@
 package net.momirealms.craftengine.core.pack.model.definition;
 
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.Pack;
+import net.momirealms.craftengine.core.pack.model.bbmodel.BBModelConverter;
 import net.momirealms.craftengine.core.pack.model.definition.special.SpecialModel;
 import net.momirealms.craftengine.core.pack.model.definition.special.SpecialModels;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGeneration;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
+import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
+import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.MinecraftVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.function.Consumer;
 
 public final class SpecialItemModel implements ItemModel {
@@ -90,15 +96,25 @@ public final class SpecialItemModel implements ItemModel {
     }
 
     private static class Factory implements ItemModelFactory<SpecialItemModel> {
-        private static final String[] BASE = new String[] {"base", "path"};
+        private static final String[] BASE = ConfigKeys.of("base|path");
 
         @Override
-        public SpecialItemModel create(ConfigSection section) {
-            Key base = section.getNonNullIdentifier(BASE);
-            ConfigSection generation = section.getSection("generation");
-            ModelGeneration modelGeneration = null;
-            if (generation != null) {
-                modelGeneration = ModelGeneration.of(generation);
+        public SpecialItemModel create(Pack pack, Path path, ConfigSection section) {
+            ConfigValue blueprintValue = section.getValue("blueprint");
+            Key base;
+            ModelGeneration modelGeneration;
+            if (blueprintValue != null) {
+                BBModelConverter.Converted converted = BBModelConverter.convert(pack, path, "item", section.getValue(BASE), blueprintValue);
+                base = converted.model();
+                modelGeneration = ModelGeneration.raw(converted.json(), converted.textures());
+            } else {
+                ConfigValue baseValue = section.getNonNullValue(BASE, ConfigConstants.ARGUMENT_IDENTIFIER);
+                base = baseValue.getAsIdentifier();
+                ConfigSection generation = section.getSection("generation");
+                modelGeneration = null;
+                if (generation != null) {
+                    modelGeneration = ModelGeneration.of(generation);
+                }
             }
             return new SpecialItemModel(
                     SpecialModels.fromConfig(section.getNonNullSection("model")),

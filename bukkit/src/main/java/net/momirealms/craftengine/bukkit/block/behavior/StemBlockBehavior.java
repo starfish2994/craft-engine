@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.block.behavior.PathFindingBlock;
 import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
 import net.momirealms.craftengine.core.block.property.IntegerProperty;
 import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
@@ -151,9 +152,9 @@ public final class StemBlockBehavior extends BukkitBlockBehavior implements Path
     }
 
     private static class Factory implements BlockBehaviorFactory<StemBlockBehavior> {
-        private static final String[] ATTACHED_STEM = new String[]{"attached_stem", "attached-stem"};
-        private static final String[] LIGHT_REQUIREMENT = new String[]{"light_requirement", "light-requirement"};
-        private static final String[] MAX_LIGHT_REQUIREMENT = new String[]{"max_light_requirement", "max-light-requirement"};
+        private static final String[] ATTACHED_STEM = ConfigKeys.of("attached_stem");
+        private static final String[] LIGHT_REQUIREMENT = ConfigKeys.of("light_requirement");
+        private static final String[] MAX_LIGHT_REQUIREMENT = ConfigKeys.of("max_light_requirement");
 
         @Override
         public StemBlockBehavior create(BlockDefinition block, ConfigSection section) {

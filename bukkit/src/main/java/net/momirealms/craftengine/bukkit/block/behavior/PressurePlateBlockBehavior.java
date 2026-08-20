@@ -1,13 +1,14 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.antigrieflib.Flag;
+import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.*;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.property.Property;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.util.Direction;
@@ -165,7 +166,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     private void handleDeactivation(Object entity, org.bukkit.World craftWorld, Object pos, Vector positionVector) {
-        World world = BukkitWorldManager.instance().getWorld(craftWorld).world();
+        World world = BukkitAdaptor.adapt(craftWorld);
         world.playBlockSound(LocationUtils.toVec3d(LocationUtils.fromBlockPos(pos)), this.offSound);
         LevelUtils.sendGameEvent(
                 craftWorld,
@@ -176,7 +177,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     private void handleActivation(Object entity, org.bukkit.World craftWorld, Object pos, Vector positionVector) {
-        World world = BukkitWorldManager.instance().getWorld(craftWorld).world();
+        World world = BukkitAdaptor.adapt(craftWorld);
         world.playBlockSound(LocationUtils.toVec3d(LocationUtils.fromBlockPos(pos)), this.onSound);
         LevelUtils.sendGameEvent(
                 craftWorld,
@@ -234,7 +235,7 @@ public final class PressurePlateBlockBehavior extends BukkitBlockBehavior {
     }
 
     private static class Factory implements BlockBehaviorFactory<PressurePlateBlockBehavior> {
-        private static final String[] PRESSED_TIME = new String[] {"pressed_time", "pressed-time"};
+        private static final String[] PRESSED_TIME = ConfigKeys.of("pressed_time");
 
         @Override
         public PressurePlateBlockBehavior create(BlockDefinition block, ConfigSection section) {

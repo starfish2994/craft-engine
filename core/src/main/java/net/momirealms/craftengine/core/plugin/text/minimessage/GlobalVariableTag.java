@@ -1,31 +1,32 @@
 package net.momirealms.craftengine.core.plugin.text.minimessage;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.ParsingException;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.context.text.StringTag;
+import net.momirealms.craftengine.core.plugin.context.text.StringTemplates;
+import net.momirealms.sparrow.message.ParsingException;
+import net.momirealms.sparrow.message.tag.Tag;
+import net.momirealms.sparrow.message.tag.resolver.ArgumentQueue;
+import net.momirealms.sparrow.message.tag.resolver.StaticTagResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class GlobalVariableTag implements TagResolver {
-    public static final TagResolver INSTANCE = new GlobalVariableTag();
+public final class GlobalVariableTag extends StaticTagResolver implements StringTag {
+    public static final GlobalVariableTag INSTANCE = new GlobalVariableTag();
 
-    private GlobalVariableTag() {}
+    private GlobalVariableTag() {
+        super("global");
+    }
 
     @Override
-    public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull net.kyori.adventure.text.minimessage.Context ctx) throws ParsingException {
-        if (!this.has(name)) {
-            return null;
-        }
+    public Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull net.momirealms.sparrow.message.Context ctx) throws ParsingException {
         String id = arguments.popOr("No argument variable id provided").toString();
         String value = CraftEngine.instance().globalVariableManager().get(id);
         if (value == null) {
-            throw ctx.newException("Unknown variable: ", arguments);
+            throw ctx.newException("Unknown variable: " + id, arguments);
         }
         if (!arguments.hasNext()) {
             return Tag.selfClosingInserting(ctx.deserialize(value));
@@ -39,7 +40,12 @@ public final class GlobalVariableTag implements TagResolver {
     }
 
     @Override
-    public boolean has(@NotNull String name) {
-        return "global".equals(name);
+    public @Nullable String resolve(String[] args, net.momirealms.craftengine.core.plugin.context.Context context) {
+        String id = StringTag.requireArg(args, 0, "No argument variable id provided");
+        String value = CraftEngine.instance().globalVariableManager().get(id);
+        if (value == null) {
+            throw new IllegalArgumentException("Unknown variable: " + id);
+        }
+        return StringTemplates.render(value, context);
     }
 }

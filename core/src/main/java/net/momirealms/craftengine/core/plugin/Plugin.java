@@ -1,7 +1,9 @@
 package net.momirealms.craftengine.core.plugin;
 
 import net.momirealms.craftengine.core.advancement.AdvancementManager;
+import net.momirealms.craftengine.core.attribute.AttributeManager;
 import net.momirealms.craftengine.core.block.BlockManager;
+import net.momirealms.craftengine.core.entity.EntityManager;
 import net.momirealms.craftengine.core.entity.culling.EntityCullingManager;
 import net.momirealms.craftengine.core.entity.furniture.FurnitureManager;
 import net.momirealms.craftengine.core.entity.projectile.ProjectileManager;
@@ -26,6 +28,7 @@ import net.momirealms.craftengine.core.plugin.logger.PluginLogger;
 import net.momirealms.craftengine.core.plugin.network.NetworkManager;
 import net.momirealms.craftengine.core.plugin.proxy.ProxyMessageManager;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerAdapter;
+import net.momirealms.craftengine.core.plugin.script.ScriptManager;
 import net.momirealms.craftengine.core.sound.SoundManager;
 import net.momirealms.craftengine.core.world.WorldManager;
 import net.momirealms.craftengine.core.world.score.TeamManager;
@@ -50,7 +53,9 @@ public interface Plugin {
 
     boolean isReloading();
 
-    boolean isInitializing();
+    boolean isEnabling();
+
+    boolean isFullyLoaded();
 
     boolean isStopping();
 
@@ -78,6 +83,10 @@ public interface Plugin {
 
     Config config();
 
+    AttributeManager attributeManager();
+
+    EntityManager entityManager();
+
     TranslationManager translationManager();
 
     TemplateManager templateManager();
@@ -99,7 +108,7 @@ public interface Plugin {
     SoundManager soundManager();
 
     LootManager lootManager();
-
+    
     CompatibilityManager compatibilityManager();
 
     GlobalVariableManager globalVariableManager();
@@ -115,6 +124,8 @@ public interface Plugin {
     SeatManager seatManager();
 
     ProxyMessageManager proxyMessageManager();
+
+    ScriptManager scriptManager();
 
     Platform platform();
 }

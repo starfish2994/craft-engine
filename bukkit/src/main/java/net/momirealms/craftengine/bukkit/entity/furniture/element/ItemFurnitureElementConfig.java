@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -23,7 +24,6 @@ import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.WorldPosition;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,13 +71,13 @@ public final class ItemFurnitureElementConfig implements FurnitureElementConfig<
     }
 
     @Override
-    public ItemFurnitureElement create(@NotNull Furniture furniture, @NonNull ItemFurnitureElement previous) {
+    public ItemFurnitureElement create(@NotNull Furniture furniture, @NotNull ItemFurnitureElement previous) {
         Vec3d pos = getPos(furniture);
         return new ItemFurnitureElement(furniture, this, pos, previous.entityId1, previous.entityId2, !pos.equals(previous.position));
     }
 
     @Override
-    public ItemFurnitureElement createExact(@NotNull Furniture furniture, @NonNull ItemFurnitureElement previous) {
+    public ItemFurnitureElement createExact(@NotNull Furniture furniture, @NotNull ItemFurnitureElement previous) {
         Vec3d pos = getPos(furniture);
         if (!pos.equals(previous.position)) {
             return null;
@@ -100,12 +100,12 @@ public final class ItemFurnitureElementConfig implements FurnitureElementConfig<
     }
 
     private static class Factory implements FurnitureElementConfigFactory<ItemFurnitureElement> {
-        private static final String[] APPLY_DYED_COLOR = new String[] {"apply_dyed_color", "apply-dyed-color"};
-        private static final String[] TINT_SOURCE = new String[] {"tint_source", "tint-source"};
+        private static final String[] APPLY_DYED_COLOR = ConfigKeys.of("apply_dyed_color");
+        private static final String[] TINT_SOURCE = ConfigKeys.of("tint_source");
 
         @Override
         public ItemFurnitureElementConfig create(ConfigSection section) {
-            List<Condition<PlayerContext>> conditions = section.getSectionList("conditions", CommonConditions::fromConfig);
+            List<Condition<PlayerContext>> conditions = section.getSectionList(ConfigKeys.of("condition(s)"), CommonConditions::fromConfig);
             boolean legacyTintSource = section.getBoolean(APPLY_DYED_COLOR, false);
             return new ItemFurnitureElementConfig(
                     section.getNonNullIdentifier("item"),

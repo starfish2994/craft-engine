@@ -19,6 +19,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.sound.SoundData;
@@ -27,6 +28,7 @@ import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
+import net.momirealms.craftengine.core.world.WorldPosition;
 import net.momirealms.craftengine.core.world.context.UseOnContext;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelProxy;
 import org.bukkit.Location;
@@ -112,6 +114,14 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     }
 
     @Override
+    public Item itemToPickup(World world, BlockPos pos, ImmutableBlockState state, Player player) {
+        BlockEntity blockEntity = world.storageWorld().getBlockEntityAtIfLoaded(pos);
+        if (blockEntity == null) return null;
+        Item item = blockEntity.controller.let(ItemFrameBlockEntityController.class, this.controllerId, ItemFrameBlockEntityController::item);
+        return ItemUtils.isEmpty(item) ? null : item.copy();
+    }
+
+    @Override
     public InteractionResult useOnBlock(UseOnContext context, ImmutableBlockState state) {
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
@@ -140,9 +150,14 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
                     return InteractionResult.SUCCESS_AND_CANCEL;
                 }
                 itemFrame.updateItem(null); // 先取出来
-                if (!player.canInstabuild()) {
-                    player.setItemInHand(InteractionHand.MAIN_HAND, item); // 然后给玩家
-                }
+                BukkitCraftEngine.instance().compatibilityManager().logItemFrameTransaction(
+                        player,
+                        new WorldPosition(world, pos),
+                        state.get(this.directionProperty),
+                        item,
+                        null
+                );
+                player.setItemInHand(InteractionHand.MAIN_HAND, item); // 然后给玩家
                 playSound(world, pos, this.takeSound);
                 player.swingHand(context.getHand());
                 return InteractionResult.SUCCESS_AND_CANCEL;
@@ -155,6 +170,13 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
                     item.shrink(1); // 先扣物品
                 }
                 itemFrame.updateItem(copied); // 然后放进去
+                BukkitCraftEngine.instance().compatibilityManager().logItemFrameTransaction(
+                        player,
+                        new WorldPosition(world, pos),
+                        state.get(this.directionProperty),
+                        null,
+                        copied
+                );
                 playSound(world, pos, this.putSound);
                 player.swingHand(context.getHand());
                 return InteractionResult.SUCCESS_AND_CANCEL;
@@ -171,8 +193,8 @@ public final class ItemFrameBlockBehavior extends BukkitBlockBehavior implements
     }
 
     private static class Factory implements BlockBehaviorFactory<ItemFrameBlockBehavior> {
-        private static final String[] RENDER_MAP_ITEM = new String[]{"render_map_item", "render-map-item"};
-        private static final String[] DATA_KEY = new String[] {"data_key", "data-key"};
+        private static final String[] RENDER_MAP_ITEM = ConfigKeys.of("render_map_item");
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
 
         @Override
         public ItemFrameBlockBehavior create(BlockDefinition block, ConfigSection section) {

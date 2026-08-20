@@ -23,7 +23,8 @@ public enum EquipmentLayerType {
     NAUTILUS_BODY("nautilus_body"),
     SKELETON_HORSE_SADDLE("skeleton_horse_saddle"),
     ZOMBIE_HORSE_SADDLE("zombie_horse_saddle"),
-    HAPPY_GHAST_BODY("happy_ghast_body");
+    HAPPY_GHAST_BODY("happy_ghast_body"),
+    HUMANOID_BABY("humanoid_baby");
 
     private static final Map<String, EquipmentLayerType> BY_ID = new HashMap<>();
 

@@ -6,14 +6,13 @@ import net.bytebuddy.matcher.ElementMatchers;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
-import java.lang.reflect.Field;
 
 public final class BlocksAgent {
     public static ClassFileTransformer transformer;
 
     private BlocksAgent() {}
 
-    public static void agentmain(String args, Instrumentation instrumentation) {
+    public static void install(Instrumentation instrumentation) {
         transformer = new AgentBuilder.Default()
                 .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                 .with(AgentBuilder.RedefinitionStrategy.REDEFINITION)
@@ -21,8 +20,7 @@ public final class BlocksAgent {
                         .or(ElementMatchers.named("net.minecraft.server.DispenserRegistry")))
                 .transform((builder, typeDescription, classLoader, module, protectionDomain) ->
                         builder.visit(Advice.to(BlocksAdvice.class)
-                                .on(ElementMatchers.named("validate")
-                                        .or(ElementMatchers.named("c")))))
+                                .on(ElementMatchers.named("validate").or(ElementMatchers.named("c")))))
                 .installOn(instrumentation);
     }
 
@@ -31,12 +29,12 @@ public final class BlocksAgent {
         @Advice.OnMethodExit
         public static void onExit() {
             try {
-                Class<?> holder = Class.forName("net.momirealms.craftengine.bukkit.plugin.agent.PluginHolder");
-                Field field = holder.getField("runnable");
-                Runnable runnable = (Runnable) field.get(null);
-                runnable.run();
-            } catch (Exception e) {
-                e.printStackTrace(System.err);
+                Runnable runnable = AgentBridge.REGISTRY_INJECTION;
+                if (runnable != null) {
+                    runnable.run();
+                }
+            } catch (Throwable t) {
+                t.printStackTrace(System.err);
             }
         }
     }

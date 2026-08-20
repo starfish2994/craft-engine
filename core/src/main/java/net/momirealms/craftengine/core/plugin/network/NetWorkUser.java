@@ -80,10 +80,6 @@ public interface NetWorkUser {
 
     World clientSideWorld();
 
-    Object serverPlayer();
-
-    Object platformPlayer();
-
     Map<Integer, EntityPacketHandler> entityPacketHandlers();
 
     boolean clientCustomBlockEnabled();

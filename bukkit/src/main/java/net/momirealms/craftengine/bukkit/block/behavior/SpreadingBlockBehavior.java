@@ -6,6 +6,7 @@ import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.UpdateFlags;
 import net.momirealms.craftengine.core.block.behavior.BlockBehaviorFactory;
 import net.momirealms.craftengine.core.block.behavior.RandomTickBlock;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.util.LazyReference;
 import net.momirealms.craftengine.core.util.random.RandomUtils;
@@ -23,7 +24,7 @@ public final class SpreadingBlockBehavior extends BukkitBlockBehavior implements
     private SpreadingBlockBehavior(BlockDefinition blockDefinition,
                                    String targetBlock) {
         super(blockDefinition);
-        this.targetBlock = LazyReference.lazyReference(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(targetBlock)).minecraftState());
+        this.targetBlock = LazyReference.untilNotNull(() -> Objects.requireNonNull(BukkitBlockManager.instance().createBlockState(targetBlock)).minecraftState());
     }
 
     @Override
@@ -42,7 +43,7 @@ public final class SpreadingBlockBehavior extends BukkitBlockBehavior implements
     }
 
     private static class Factory implements BlockBehaviorFactory<SpreadingBlockBehavior> {
-        private static final String[] TARGET_BLOCK = new String[] {"target_block", "target-block"};
+        private static final String[] TARGET_BLOCK = ConfigKeys.of("target_block");
 
         @Override
         public SpreadingBlockBehavior create(BlockDefinition block, ConfigSection section) {

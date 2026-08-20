@@ -1,7 +1,6 @@
 package net.momirealms.craftengine.bukkit.plugin.network.listener.game;
 
 import net.momirealms.craftengine.bukkit.plugin.user.BukkitServerPlayer;
-import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
@@ -20,7 +19,8 @@ public final class ForgetLevelChunkListener implements ByteBufferPacketListener 
     public void onPacketSend(NetWorkUser user, ByteBufPacketEvent event) {
         BukkitServerPlayer player = (BukkitServerPlayer) user;
         FriendlyByteBuf buf = event.getBuffer();
-        CEWorld ceWorld = BukkitWorldManager.instance().getWorld(player.world().uuid());
+        CEWorld ceWorld = player.clientSideWorld().ceWorld();
+        if (ceWorld == null) return;
         if (VersionHelper.isOrAbove1_20_2) {
             long chunkPos = buf.readLong();
             user.removeTrackedChunk(chunkPos);

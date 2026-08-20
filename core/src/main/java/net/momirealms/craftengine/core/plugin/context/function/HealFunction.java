@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.function;
 
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -36,7 +37,7 @@ public final class HealFunction<CTX extends Context> extends AbstractConditional
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, HealFunction<CTX>> {
-        private static final String[] AMOUNT = new String[] {"amount", "heal"};
+        private static final String[] AMOUNT = ConfigKeys.of("amount|heal");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

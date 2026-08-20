@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.plugin.context.condition;
 
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
@@ -32,7 +33,7 @@ public final class MatchItemCondition<CTX extends Context> implements Condition<
     }
 
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, MatchItemCondition<CTX>> {
-        private static final String[] ID = new String[] {"id", "item", "items"};
+        private static final String[] ID = ConfigKeys.of("id|item(s)");
 
         @Override
         public MatchItemCondition<CTX> create(ConfigSection section) {

@@ -1,12 +1,15 @@
 package net.momirealms.craftengine.bukkit.block.behavior;
 
 import net.momirealms.craftengine.bukkit.util.BlockStateUtils;
+import net.momirealms.craftengine.bukkit.util.LocationUtils;
 import net.momirealms.craftengine.core.block.BlockDefinition;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.property.Property;
 import net.momirealms.craftengine.core.util.VersionHelper;
+import net.momirealms.craftengine.core.world.context.BlockPlaceContext;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemsProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelAccessorProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.LevelWriterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.material.FluidStateProxy;
@@ -61,5 +64,26 @@ public class WaterloggedBlockBehavior extends BukkitBlockBehavior implements Buk
     @Override
     public boolean canPlaceLiquid(Object thisBlock, Object[] args) {
         return args[canPlaceLiquid$liquid] == FluidsProxy.WATER;
+    }
+
+    @Override
+    public Object updateShape(Object thisBlock, Object[] args) {
+        Object blockState = args[0];
+        Optional<ImmutableBlockState> optionalCustomState = BlockStateUtils.getOptionalCustomBlockState(blockState);
+        if (optionalCustomState.isEmpty()) return blockState;
+        if (optionalCustomState.get().get(this.waterloggedProperty)) {
+            LevelAccessorProxy.INSTANCE.scheduleTick$1(args[updateShape$level], args[updateShape$blockPos], FluidsProxy.WATER, 5);
+        }
+        return blockState;
+    }
+
+    @Override
+    public ImmutableBlockState updateStateForPlacement(BlockPlaceContext context, ImmutableBlockState state) {
+        Object level = context.getLevel().minecraftWorld();
+        Object clickedPos = LocationUtils.toBlockPos(context.getClickedPos());
+        if (FluidStateProxy.INSTANCE.getType(BlockGetterProxy.INSTANCE.getFluidState(level, clickedPos)) == FluidsProxy.WATER) {
+            return state.with(this.waterloggedProperty, true);
+        }
+        return state;
     }
 }

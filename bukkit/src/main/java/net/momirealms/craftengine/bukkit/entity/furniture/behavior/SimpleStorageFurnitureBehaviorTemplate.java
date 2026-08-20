@@ -22,6 +22,7 @@ import net.momirealms.craftengine.core.entity.player.InteractionResult;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.Config;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
 import net.momirealms.craftengine.core.sound.SoundData;
@@ -80,7 +81,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
     }
 
     private static class Factory implements FurnitureBehaviorFactory<SimpleStorageFurnitureBehaviorTemplate> {
-        private static final String[] DATA_KEY = new String[]{"data_key", "data-key"};
+        private static final String[] DATA_KEY = ConfigKeys.of("data_key");
 
         @SuppressWarnings("DuplicatedCode")
         @Override
@@ -214,7 +215,7 @@ public final class SimpleStorageFurnitureBehaviorTemplate extends FurnitureBehav
                     this.furniture.world().playSound(this.furniture.position(), sound.id(), sound.volume().get(), sound.pitch().get(), SoundSource.MASTER);
                 }
             }
-            new BukkitInventory(this.inventory).open(player, AdventureHelper.miniMessage().deserialize(this.template.containerTitle, PlayerOptionalContext.of(player).tagResolvers()));
+            new BukkitInventory(this.inventory).open(player, AdventureHelper.deserialize(this.template.containerTitle, PlayerOptionalContext.of(player)));
         }
 
         public void onPlayerClose(Player player) {

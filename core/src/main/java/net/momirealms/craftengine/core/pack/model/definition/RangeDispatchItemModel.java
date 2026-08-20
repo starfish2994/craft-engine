@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.pack.model.definition;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.pack.model.definition.rangedisptach.RangeDispatchProperties;
 import net.momirealms.craftengine.core.pack.model.definition.rangedisptach.RangeDispatchProperty;
 import net.momirealms.craftengine.core.pack.model.generation.ModelGenerationHolder;
@@ -15,6 +16,7 @@ import net.momirealms.craftengine.core.util.MinecraftVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Consumer;
@@ -124,16 +126,16 @@ public final class RangeDispatchItemModel implements ItemModel {
     private static class Factory implements ItemModelFactory<RangeDispatchItemModel> {
 
         @Override
-        public RangeDispatchItemModel create(ConfigSection section) {
+        public RangeDispatchItemModel create(Pack pack, Path path, ConfigSection section) {
             RangeDispatchProperty property = RangeDispatchProperties.fromConfig(section);
             float scale = section.getFloat("scale", 1.0f);
-            ItemModel fallbackModel = section.getValue("fallback", ItemModels::fromConfig);
+            ItemModel fallbackModel = section.getValue("fallback", v -> ItemModels.fromConfig(pack, path, v));
             Map<Float, ItemModel> entryMap = new TreeMap<>();
             ConfigValue entries = section.getNonNullValue("entries", ConfigConstants.ARGUMENT_LIST);
             entries.forEach(value -> {
                 ConfigSection entry = value.getAsSection();
                 float threshold = entry.getNonNullFloat("threshold");
-                ItemModel model = entry.getValue("model", ItemModels::fromConfig, fallbackModel);
+                ItemModel model = entry.getValue("model", v -> ItemModels.fromConfig(pack, path, v), fallbackModel);
                 entryMap.put(threshold, model);
             });
             return new RangeDispatchItemModel(

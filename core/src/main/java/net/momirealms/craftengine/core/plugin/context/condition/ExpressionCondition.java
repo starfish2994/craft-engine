@@ -1,44 +1,39 @@
 package net.momirealms.craftengine.core.plugin.context.condition;
 
-import com.ezylang.evalex.EvaluationException;
-import com.ezylang.evalex.Expression;
-import com.ezylang.evalex.parser.ParseException;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.Condition;
 import net.momirealms.craftengine.core.plugin.context.Context;
-import net.momirealms.craftengine.core.plugin.context.text.TextProvider;
-import net.momirealms.craftengine.core.plugin.context.text.TextProviders;
+import net.momirealms.craftengine.core.plugin.context.number.PrecompiledExpression;
 
 public final class ExpressionCondition<CTX extends Context> implements Condition<CTX> {
-    private final TextProvider expression;
+    private final PrecompiledExpression expression;
 
-    private ExpressionCondition(TextProvider expression) {
-        this.expression = expression;
-    }
-
-    @Override
-    public boolean test(CTX ctx) {
-        String exp = this.expression.get(ctx).replace("\\<", "<"); // fixme minimessage added a \ before <
-        Expression expr = new Expression(exp);
-        try {
-            return expr.evaluate().getBooleanValue();
-        } catch (ParseException | EvaluationException e) {
-            CraftEngine.instance().logger().warn("Invalid expression " + exp, e);
-            return false;
-        }
+    private ExpressionCondition(String expression) {
+        this.expression = new PrecompiledExpression(expression);
     }
 
     public static <CTX extends Context> ConditionFactory<CTX, ExpressionCondition<CTX>> factory() {
         return new Factory<>();
     }
 
+    @Override
+    public boolean test(CTX ctx) {
+        try {
+            return this.expression.evaluate(ctx).getBooleanValue();
+        } catch (Throwable t) {
+            CraftEngine.instance().logger().warn("Error evaluating expression: " + this.expression.raw(), t);
+            return false;
+        }
+    }
+
     private static class Factory<CTX extends Context> implements ConditionFactory<CTX, ExpressionCondition<CTX>> {
-        private static final String[] EXPR = new String[] {"expression", "expr"};
+        private static final String[] EXPR = ConfigKeys.of("expression|expr");
 
         @Override
         public ExpressionCondition<CTX> create(ConfigSection section) {
-            return new ExpressionCondition<>(TextProviders.fromString(section.getNonNullString(EXPR)));
+            return new ExpressionCondition<>(section.getNonNullString(EXPR));
         }
     }
 }

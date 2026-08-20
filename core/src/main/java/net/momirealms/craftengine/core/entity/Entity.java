@@ -1,17 +1,30 @@
 package net.momirealms.craftengine.core.entity;
 
+import net.momirealms.craftengine.core.customdata.CustomDataKey;
 import net.momirealms.craftengine.core.entity.data.EntityData;
+import net.momirealms.craftengine.core.entity.player.Player;
+import net.momirealms.craftengine.core.plugin.context.ChainParameterSource;
+import net.momirealms.craftengine.core.plugin.context.ContextKey;
+import net.momirealms.craftengine.core.plugin.context.parameter.EntityParameterProvider;
 import net.momirealms.craftengine.core.util.Direction;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.world.Vec3d;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
-public interface Entity {
+public interface Entity extends ChainParameterSource {
     Key type();
 
+    Key id();
+
     boolean isValid();
+
+    boolean isAlive();
 
     double x();
 
@@ -19,9 +32,9 @@ public interface Entity {
 
     double z();
 
-    WorldPosition position();
-
-    void tick();
+    default WorldPosition position() {
+        return new WorldPosition(world(), x(), y(), z(), xRot(), yRot());
+    }
 
     float xRot();
 
@@ -35,11 +48,18 @@ public interface Entity {
 
     Object platformEntity();
 
-    Object serverEntity();
+    Object minecraftEntity();
 
     String name();
 
     UUID uuid();
+
+    @Nullable
+    <T> T getCustomData(CustomDataKey<T> key);
+
+    <T> void setCustomData(CustomDataKey<T> key, T value);
+
+    boolean removeCustomData(CustomDataKey<?> key);
 
     Object entityData();
 
@@ -52,4 +72,19 @@ public interface Entity {
     <T> void setEntityData(EntityData<T> data, T value, boolean force);
 
     void remove();
+
+    Set<Player> getTrackedBy();
+
+    WorldPosition eyePosition();
+
+    void teleport(WorldPosition worldPosition);
+
+    @Override
+    default <T> Optional<T> getParameter(ContextKey<T> key) {
+        return EntityParameterProvider.INSTANCE.getOptionalParameter(key, this);
+    }
+
+    Vec3d getEyePos();
+
+    int fireTicks();
 }

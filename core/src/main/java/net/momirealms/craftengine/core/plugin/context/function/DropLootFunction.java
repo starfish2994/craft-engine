@@ -4,6 +4,7 @@ import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.context.Condition;
@@ -62,8 +63,8 @@ public final class DropLootFunction<CTX extends Context> extends AbstractConditi
     }
 
     private static class Factory<CTX extends Context> extends AbstractFactory<CTX, DropLootFunction<CTX>> {
-        private static final String[] LOOT = new String[] {"loot", "loots"};
-        private static final String[] TO_INVENTORY = new String[] {"to_inventory", "to-inventory"};
+        private static final String[] LOOT = ConfigKeys.of("loot(s)");
+        private static final String[] TO_INVENTORY = ConfigKeys.of("to_inventory");
 
         public Factory(java.util.function.Function<ConfigSection, Condition<CTX>> factory) {
             super(factory);

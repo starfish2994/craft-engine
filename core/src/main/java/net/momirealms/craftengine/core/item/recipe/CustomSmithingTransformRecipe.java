@@ -9,6 +9,7 @@ import net.momirealms.craftengine.core.item.recipe.result.CustomRecipeResult;
 import net.momirealms.craftengine.core.item.recipe.transform.ItemTransformDataProcessor;
 import net.momirealms.craftengine.core.item.recipe.transform.ItemTransformDataProcessors;
 import net.momirealms.craftengine.core.plugin.config.ConfigConstants;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.context.CommonConditions;
 import net.momirealms.craftengine.core.plugin.context.CommonFunctions;
@@ -189,9 +190,9 @@ public final class CustomSmithingTransformRecipe extends AbstractFixedResultReci
 
     @SuppressWarnings({"DuplicatedCode"})
     public static class Serializer extends AbstractRecipeSerializer<CustomSmithingTransformRecipe> {
-        private static final String[] TEMPLATE_TYPE = new String[]{"template_type", "template-type"};
-        private static final String[] MERGE_COMPONENTS = new String[]{"merge-components", "merge_components"};
-        private static final String[] MERGE_ENCHANTMENTS = new String[]{"merge-enchantments", "merge_enchantments"};
+        private static final String[] TEMPLATE_TYPE = ConfigKeys.of("template_type");
+        private static final String[] MERGE_COMPONENTS = ConfigKeys.of("merge_components");
+        private static final String[] MERGE_ENCHANTMENTS = ConfigKeys.of("merge_enchantments");
 
         @SuppressWarnings("unchecked")
         @Override

@@ -206,6 +206,11 @@ public final class PacketIds1_20_5 implements PacketIds {
     }
 
     @Override
+    public int clientboundPlayerCombatKillPacket() {
+        return PacketIdHelper.byName("minecraft:player_combat_kill", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
     public int clientIntentionPacket() {
         return PacketIdHelper.byName("minecraft:intention", ConnectionState.HANDSHAKING, PacketFlow.SERVERBOUND);
     }
@@ -397,5 +402,10 @@ public final class PacketIds1_20_5 implements PacketIds {
     @Override
     public int clientboundUpdateAttributesPacket() {
         return PacketIdHelper.byName("minecraft:update_attributes", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
+    public int clientboundSetHealthPacket() {
+        return PacketIdHelper.byName("minecraft:set_health", ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
     }
 }

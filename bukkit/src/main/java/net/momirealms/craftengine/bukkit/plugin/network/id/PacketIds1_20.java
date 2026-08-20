@@ -215,6 +215,11 @@ public final class PacketIds1_20 implements PacketIds {
     }
 
     @Override
+    public int clientboundPlayerCombatKillPacket() {
+        return PacketIdHelper.byClazz(ClientboundPlayerCombatKillPacketProxy.CLASS, ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
     public int clientIntentionPacket() {
         return PacketIdHelper.byClazz(ClientIntentionPacketProxy.CLASS, ConnectionState.HANDSHAKING, PacketFlow.SERVERBOUND);
     }
@@ -406,5 +411,10 @@ public final class PacketIds1_20 implements PacketIds {
     @Override
     public int clientboundUpdateAttributesPacket() {
         return PacketIdHelper.byClazz(ClientboundUpdateAttributesPacketProxy.CLASS, ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
+    }
+
+    @Override
+    public int clientboundSetHealthPacket() {
+        return PacketIdHelper.byClazz(ClientboundSetHealthPacketProxy.CLASS, ConnectionState.PLAY, PacketFlow.CLIENTBOUND);
     }
 }

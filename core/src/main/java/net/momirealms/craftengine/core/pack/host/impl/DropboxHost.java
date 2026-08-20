@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import net.momirealms.craftengine.core.pack.host.*;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.util.GsonHelper;
@@ -80,7 +81,7 @@ public final class DropboxHost implements ResourcePackHost {
                     return;
                 }
 
-                String localSha1 = HashUtils.calculateLocalFileSha1(resourcePackPath);
+                String localSha1 = HashUtils.sha1(resourcePackPath);
                 JsonObject apiArg = new JsonObject();
                 apiArg.addProperty("path", this.uploadPath);
                 apiArg.addProperty("mode", "overwrite");
@@ -246,12 +247,12 @@ public final class DropboxHost implements ResourcePackHost {
     }
 
     private static class Factory implements ResourcePackHostFactory<DropboxHost> {
-        private static final String[] USE_ENVIRONMENT_VARIABLES = new String[] {"use_environment_variables", "use-environment-variables"};
-        private static final String[] UPLOAD_PATH = new String[] {"upload_path", "upload-path"};
-        private static final String[] APP_KEY = new String[] {"app_key", "app-key"};
-        private static final String[] APP_SECRET = new String[] {"app_secret", "app-secret"};
-        private static final String[] REFRESH_TOKEN = new String[] {"refresh_token", "refresh-token"};
-        private static final String[] CACHE_FILE_NAME = new String[] {"cache_file_name", "cache-file-name"};
+        private static final String[] USE_ENVIRONMENT_VARIABLES = ConfigKeys.of("use_environment_variables");
+        private static final String[] UPLOAD_PATH = ConfigKeys.of("upload_path");
+        private static final String[] APP_KEY = ConfigKeys.of("app_key");
+        private static final String[] APP_SECRET = ConfigKeys.of("app_secret");
+        private static final String[] REFRESH_TOKEN = ConfigKeys.of("refresh_token");
+        private static final String[] CACHE_FILE_NAME = ConfigKeys.of("cache_file_name");
 
         @Override
         public DropboxHost create(ConfigSection section) {

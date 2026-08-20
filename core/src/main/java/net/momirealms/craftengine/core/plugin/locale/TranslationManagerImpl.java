@@ -20,6 +20,7 @@ import net.momirealms.craftengine.core.plugin.text.minimessage.ShiftTag;
 import net.momirealms.craftengine.core.util.AdventureHelper;
 import net.momirealms.craftengine.core.util.FileUtils;
 import net.momirealms.craftengine.core.util.GsonHelper;
+import net.momirealms.craftengine.core.util.Key;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -411,10 +412,15 @@ public final class TranslationManagerImpl implements TranslationManager {
     }
 
     private final class TranslationParser extends SectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"translations", "translation", "l10n", "localization", "i18n", "internationalization"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("translation(s)|l10n|localization|i18n|internationalization");
         private final Map<Locale, List<Map<String, String>>> withoutCountry = new HashMap<>();
         private final Map<Locale, List<Map<String, String>>> withCountry = new HashMap<>();
         private int count;
+
+        @Override
+        public Key type() {
+            return Key.ce("translation");
+        }
 
         @Override
         public String[] sectionId() {
@@ -477,12 +483,17 @@ public final class TranslationManagerImpl implements TranslationManager {
     }
 
     private final class LangParser extends SectionConfigParser {
-        public static final String[] CONFIG_SECTION_NAME = new String[] {"lang", "language", "languages"};
+        public static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("lang|language(s)");
         private static final Function<String, String> LANG_FORMATTER = s -> {
             Component deserialize = AdventureHelper.miniMessage().deserialize(AdventureHelper.legacyToMiniMessage(s), ShiftTag.INSTANCE, ImageTag.INSTANCE);
             return AdventureHelper.getLegacy().serialize(deserialize);
         };
         private int count;
+
+        @Override
+        public Key type() {
+            return Key.ce("language");
+        }
 
         @Override
         public String[] sectionId() {

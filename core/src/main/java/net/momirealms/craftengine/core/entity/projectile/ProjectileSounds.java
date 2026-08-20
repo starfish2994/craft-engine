@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.entity.projectile;
 
+import net.momirealms.craftengine.core.plugin.config.ConfigKeys;
 import net.momirealms.craftengine.core.plugin.config.ConfigSection;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.sound.SoundData;
@@ -10,8 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class ProjectileSounds {
-    private static final String[] HIT_ENTITY = new String[] {"hit_entity", "hit-entity"};
-    private static final String[] HIT_BLOCK = new String[] {"hit_block", "hit-block"};
+    private static final String[] HIT_ENTITY = ConfigKeys.of("hit_entity");
+    private static final String[] HIT_BLOCK = ConfigKeys.of("hit_block");
     private final SoundData throwSound;
     private final TargetBasedSound hitEntitySound;
     private final TargetBasedSound hitBlockSound;

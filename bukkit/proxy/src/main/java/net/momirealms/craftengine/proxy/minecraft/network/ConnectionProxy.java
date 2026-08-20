@@ -7,7 +7,7 @@ import net.momirealms.craftengine.proxy.minecraft.network.protocol.PacketProxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.*;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 @ReflectionProxy(name = "net.minecraft.network.Connection")
 public interface ConnectionProxy {

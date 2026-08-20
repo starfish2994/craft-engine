@@ -5,10 +5,7 @@ import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.pack.Pack;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
-import net.momirealms.craftengine.core.plugin.config.ConfigParser;
-import net.momirealms.craftengine.core.plugin.config.ConfigSection;
-import net.momirealms.craftengine.core.plugin.config.ConfigValue;
-import net.momirealms.craftengine.core.plugin.config.IdSectionConfigParser;
+import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStage;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.util.GsonHelper;
@@ -97,7 +94,12 @@ public abstract class AbstractPaintingManager implements PaintingManager {
     protected abstract void registerPaintings(Map<Key, Painting> paintings);
 
     private final class PaintingParser extends IdSectionConfigParser {
-        private static final String[] CONFIG_SECTION_NAME = new String[]{"paintings", "painting"};
+        private static final String[] CONFIG_SECTION_NAME = ConfigKeys.of("painting(s)");
+
+        @Override
+        public Key type() {
+            return Key.ce("painting");
+        }
 
         @Override
         public String[] sectionId() {
@@ -114,8 +116,8 @@ public abstract class AbstractPaintingManager implements PaintingManager {
             return AbstractPaintingManager.this.paintings.size();
         }
 
-        private static final String[] ASSET_ID = new String[]{"asset_id", "asset-id"};
-        private static final String[] SHOW_IN_OP_TAB = new String[]{"show_in_op_tab", "show-in-op-tab"};
+        private static final String[] ASSET_ID = ConfigKeys.of("asset_id");
+        private static final String[] SHOW_IN_OP_TAB = ConfigKeys.of("show_in_op_tab");
 
         @Override
         protected void parseSection(@NotNull Pack pack, @NotNull Path path, @NotNull Key id, @NotNull ConfigSection section) {
