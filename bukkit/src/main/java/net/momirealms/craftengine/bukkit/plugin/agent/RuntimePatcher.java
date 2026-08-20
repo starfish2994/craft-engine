@@ -12,11 +12,14 @@ import net.momirealms.craftengine.core.util.VersionHelper;
 import org.bukkit.Bukkit;
 
 import java.lang.instrument.Instrumentation;
+import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class RuntimePatcher {
     private static Instrumentation instrumentation;
     private static Class<?> injectedBridge;
+    private static volatile boolean equipmentChangeHookInstalled;
 
     private RuntimePatcher() {}
 
@@ -72,6 +75,33 @@ public final class RuntimePatcher {
             instrumentation = ReflectionUtils.JNI_IS_AVAILABLE ? ImplLookupGetter.INSTRUMENTATION : ByteBuddyAgent.install();
         }
         return instrumentation;
+    }
+
+    public static void installEquipmentChangeHook(BukkitCraftEngine plugin) {
+        if (!requiresEquipmentChangeHook()) return;
+        if (equipmentChangeHookInstalled) return;
+        synchronized (RuntimePatcher.class) {
+            if (equipmentChangeHookInstalled) return;
+            try {
+                Class<?> bridge = injectBridge();
+                bridge.getField("EQUIPMENT_CHANGE").set(null, (BiConsumer<Object, Object>) (entity, rawChanges) -> {
+                    if (rawChanges instanceof Map<?, ?> changes) {
+                        plugin.entityManager().handleEquipmentChanges(entity, changes);
+                    }
+                });
+                if (!EquipmentChangeAgent.install(instrumentation())) {
+                    plugin.logger().warn("Could not find vanilla's equipment change method; equipment changes cannot be tracked on this server");
+                    return;
+                }
+                equipmentChangeHookInstalled = true;
+            } catch (Throwable t) {
+                plugin.logger().warn("Failed to hook vanilla equipment changes; equipment changes cannot be tracked on this server", t);
+            }
+        }
+    }
+
+    private static boolean requiresEquipmentChangeHook() {
+        return !VersionHelper.hasPaperPatch || !VersionHelper.isOrAbove1_21_4;
     }
 
     public static boolean isDatapackDiscoveryAvailable() {

@@ -3,6 +3,7 @@ package net.momirealms.craftengine.bukkit.entity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.momirealms.craftengine.bukkit.attribute.BukkitVanillaAttributeInstance;
 import net.momirealms.craftengine.bukkit.item.BukkitItem;
+import net.momirealms.craftengine.bukkit.item.BukkitItemManager;
 import net.momirealms.craftengine.bukkit.util.*;
 import net.momirealms.craftengine.core.attribute.vanilla.VanillaAttributeInstance;
 import net.momirealms.craftengine.core.entity.EquipmentSlot;
@@ -171,7 +172,9 @@ public class BukkitLivingEntity extends BukkitEntity implements net.momirealms.c
     @NotNull
     @Override
     public BukkitItem getItemByEquipmentSlot(EquipmentSlot slot) {
-        return ItemStackUtils.wrap(LivingEntityProxy.INSTANCE.getItemBySlot(minecraftEntity(), EquipmentSlotUtils.toNMSEquipmentSlot(slot)));
+        Object nmsSlot = EquipmentSlotUtils.toNMSEquipmentSlot(slot);
+        if (nmsSlot == null) return (BukkitItem) BukkitItemManager.instance().emptyItem();
+        return ItemStackUtils.wrap(LivingEntityProxy.INSTANCE.getItemBySlot(minecraftEntity(), nmsSlot));
     }
 
     @Override

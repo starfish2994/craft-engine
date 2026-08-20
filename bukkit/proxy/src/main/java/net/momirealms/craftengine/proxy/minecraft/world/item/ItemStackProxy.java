@@ -65,9 +65,6 @@ public interface ItemStackProxy extends DataComponentHolderProxy, ItemInstancePr
     @MethodInvoker(name = "copy")
     Object copy(Object target);
 
-    @MethodInvoker(name = "matches", isStatic = true)
-    boolean matches(@Type(clazz = ItemStackProxy.class) Object first, @Type(clazz = ItemStackProxy.class) Object second);
-
     @MethodInvoker(name = "grow")
     void grow(Object target, int count);
 
