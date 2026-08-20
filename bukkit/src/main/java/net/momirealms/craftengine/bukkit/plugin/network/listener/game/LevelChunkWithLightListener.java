@@ -323,29 +323,33 @@ public final class LevelChunkWithLightListener implements ByteBufferPacketListen
             int tailLength = buf.readableBytes();
             // 高度图
             FriendlyByteBuf staging = new FriendlyByteBuf(Unpooled.buffer(heightmapsLength + chunkDataBufferSize + 16 + tailLength));
-            if (VersionHelper.isOrAbove1_21_5) {
-                staging.writeBytes(buf, heightmapsStart, heightmapsLength);
-            } else {
-                staging.writeNbt(heightmaps, named);
-            }
-            // 区块数据
-            int writtenHeightmapsLength = staging.writerIndex();
-            for (int i = 0; i < count; i++) {
-                sections[i].writePacket(staging);
-            }
-            // 其他数据
-            int newChunkDataLength = staging.writerIndex() - writtenHeightmapsLength;
-            staging.writeBytes(buf, tailLength);
+            try {
+                if (VersionHelper.isOrAbove1_21_5) {
+                    staging.writeBytes(buf, heightmapsStart, heightmapsLength);
+                } else {
+                    staging.writeNbt(heightmaps, named);
+                }
+                // 区块数据
+                int writtenHeightmapsLength = staging.writerIndex();
+                for (int i = 0; i < count; i++) {
+                    sections[i].writePacket(staging);
+                }
+                // 其他数据
+                int newChunkDataLength = staging.writerIndex() - writtenHeightmapsLength;
+                staging.writeBytes(buf, tailLength);
 
-            // 开始修改
-            event.setChanged(true);
-            buf.clear();
-            buf.writeVarInt(event.packetID());
-            buf.writeInt(chunkX);
-            buf.writeInt(chunkZ);
-            buf.writeBytes(staging, writtenHeightmapsLength);
-            buf.writeVarInt(newChunkDataLength);
-            buf.writeBytes(staging, staging.readableBytes());
+                // 开始修改
+                event.setChanged(true);
+                buf.clear();
+                buf.writeVarInt(event.packetID());
+                buf.writeInt(chunkX);
+                buf.writeInt(chunkZ);
+                buf.writeBytes(staging, writtenHeightmapsLength);
+                buf.writeVarInt(newChunkDataLength);
+                buf.writeBytes(staging, staging.readableBytes());
+            } finally {
+                staging.release();
+            }
         }
 
         // 记录加载的区块
