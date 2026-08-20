@@ -3,7 +3,6 @@ package net.momirealms.craftengine.core.entity.tick;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 public final class EntityTickScheduler {
     public static final long NEVER = Long.MAX_VALUE;

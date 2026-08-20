@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin.scheduler.impl;
 
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
+import net.momirealms.craftengine.core.plugin.scheduler.DummyTask;
 import net.momirealms.craftengine.core.plugin.scheduler.SchedulerTask;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -63,9 +64,9 @@ public final class FoliaExecutor extends AbstractBukkitExecutor {
     @Override
     public SchedulerTask runLater(Runnable r, Runnable retired, long delay, Entity entity) {
         if (delay <= 0) {
-            return new FoliaTask(entity.getScheduler().run(this.plugin.javaPlugin(), (t) -> r.run(), retired));
+            return wrap(entity.getScheduler().run(this.plugin.javaPlugin(), (t) -> r.run(), retired));
         } else {
-            return new FoliaTask(entity.getScheduler().runDelayed(this.plugin.javaPlugin(), (t) -> r.run(), retired, delay));
+            return wrap(entity.getScheduler().runDelayed(this.plugin.javaPlugin(), (t) -> r.run(), retired, delay));
         }
     }
 
@@ -80,7 +81,11 @@ public final class FoliaExecutor extends AbstractBukkitExecutor {
 
     @Override
     public SchedulerTask runRepeating(Runnable r, Runnable retired, long delay, long period, Entity entity) {
-        return new FoliaTask(entity.getScheduler().runAtFixedRate(this.plugin.javaPlugin(), (t) -> r.run(), retired, delay, period));
+        return wrap(entity.getScheduler().runAtFixedRate(this.plugin.javaPlugin(), (t) -> r.run(), retired, delay, period));
+    }
+
+    private static SchedulerTask wrap(io.papermc.paper.threadedregions.scheduler.ScheduledTask task) {
+        return task == null ? new DummyTask() : new FoliaTask(task);
     }
 
     @Override

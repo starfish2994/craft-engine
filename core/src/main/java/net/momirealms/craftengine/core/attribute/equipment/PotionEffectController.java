@@ -12,23 +12,23 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public final class EquipmentPotionEffectController {
+public final class PotionEffectController {
     public static final int LEASE_TICKS = 619;
-    private static final int REFRESH_THRESHOLD = 219;
+    private static final int REFRESH_THRESHOLD = 302;
 
     private final LivingEntityHolder holder;
     private final LivingEntity entity;
-    private final EquipmentPotionEffectStateStore store;
+    private final PotionEffectStateStore store;
     private final Map<Key, RuntimeState> states = new Object2ObjectArrayMap<>();
     private final CandidateTracker candidates = new CandidateTracker();
     private long nextReconcileTick = EntityTickScheduler.NEVER;
     private boolean reconcileRequested;
     private boolean mutating;
 
-    public EquipmentPotionEffectController(LivingEntityHolder holder) {
+    public PotionEffectController(LivingEntityHolder holder) {
         this.holder = holder;
         this.entity = holder.entity;
-        this.store = new EquipmentPotionEffectStateStore(this.entity);
+        this.store = new PotionEffectStateStore(this.entity);
         for (Map.Entry<Key, PotionEffectSnapshot> entry : this.store.load().entrySet()) {
             this.states.put(entry.getKey(), new RuntimeState(
                     null,

@@ -11,6 +11,7 @@ import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingStages;
 import net.momirealms.craftengine.core.util.ConcurrentChainedUUID2ReferenceHashTable;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.StringUtils;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,19 +85,44 @@ public abstract class AbstractEntityManager implements EntityManager {
 
     @Nullable
     public LivingEntityHolder trackLivingEntity(LivingEntity entity) {
-        LivingEntityHolder previous = this.livingEntities.remove(entity.uuid());
+        UUID uuid = entity.uuid();
+        LivingEntityHolder previous = this.livingEntities.remove(uuid);
         if (previous != null) {
             previous.close(false);
         }
-        LivingEntityHolder holder = new LivingEntityHolder(entity, this.entityTickScheduler);
-        this.livingEntities.put(entity.uuid(), holder);
+        LivingEntityHolder holder = createLivingEntityHolder(entity);
+        LivingEntityHolder displaced = this.livingEntities.put(uuid, holder);
+        if (displaced != null && displaced != holder) {
+            displaced.close(false);
+        }
+        try {
+            onLivingEntityTracked(holder);
+        } catch (Throwable t) {
+            if (this.livingEntities.remove(uuid, holder) == holder) {
+                holder.close(false);
+            }
+            throw t;
+        }
         return holder;
+    }
+
+    protected LivingEntityHolder createLivingEntityHolder(LivingEntity entity) {
+        return VersionHelper.hasFoliaPatch ? new LivingEntityHolder(entity) : new LivingEntityHolder(entity, this.entityTickScheduler);
+    }
+
+    protected void onLivingEntityTracked(LivingEntityHolder holder) {
     }
 
     public void untrackLivingEntity(UUID uuid, boolean death) {
         LivingEntityHolder removed = this.livingEntities.remove(uuid);
         if (removed != null) {
             removed.close(death);
+        }
+    }
+
+    protected void retireLivingEntity(UUID uuid, LivingEntityHolder expected) {
+        if (this.livingEntities.remove(uuid, expected) == expected) {
+            expected.retire();
         }
     }
 

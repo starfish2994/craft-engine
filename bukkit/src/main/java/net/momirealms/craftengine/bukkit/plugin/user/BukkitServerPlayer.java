@@ -28,12 +28,14 @@ import net.momirealms.craftengine.bukkit.world.BukkitContainer;
 import net.momirealms.craftengine.bukkit.world.WorldlyContainerHolder;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.attribute.damage.DamageVisibility;
+import net.momirealms.craftengine.core.attribute.equipment.EquipmentSetSlot;
 import net.momirealms.craftengine.core.block.BlockStateWrapper;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
 import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntity;
 import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayEntitySetting;
 import net.momirealms.craftengine.core.block.entity.render.display.DestroyStageDisplayRecorder;
+import net.momirealms.craftengine.core.entity.LivingEntityHolder;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
 import net.momirealms.craftengine.core.entity.culling.CullingData;
@@ -87,6 +89,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.InteractionHandProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectsProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityTypesProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EquipmentSlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributeInstanceProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.ai.attributes.AttributesProxy;
@@ -97,6 +100,7 @@ import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContai
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.InventoryMenuProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.SlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemCooldownsProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockAndLightGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.ClipContextProxy;
@@ -141,6 +145,23 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     public static final Key DAMAGE_VISIBILITY = Key.ce("damage_visibility");
     private static final int CUSTOM_PAYLOAD_PLAY = BukkitNetworkManager.PACKET_IDS.clientboundCustomPayloadPacket$play();
     private static final int CUSTOM_PAYLOAD_CONFIG = BukkitNetworkManager.PACKET_IDS.clientboundCustomPayloadPacket$configuration();
+    private static final boolean POLL_EQUIPMENT = !VersionHelper.hasPaperPatch || !VersionHelper.isOrAbove1_21_4;
+    private static final Object[] PLAYER_EQUIPMENT_SLOTS = {
+            EquipmentSlotProxy.MAINHAND,
+            EquipmentSlotProxy.OFFHAND,
+            EquipmentSlotProxy.FEET,
+            EquipmentSlotProxy.LEGS,
+            EquipmentSlotProxy.CHEST,
+            EquipmentSlotProxy.HEAD
+    };
+    private static final EquipmentSetSlot[] CE_PLAYER_EQUIPMENT_SLOTS = {
+            EquipmentSetSlot.MAINHAND,
+            EquipmentSetSlot.OFFHAND,
+            EquipmentSetSlot.FEET,
+            EquipmentSetSlot.LEGS,
+            EquipmentSetSlot.CHEST,
+            EquipmentSetSlot.HEAD
+    };
     private final BukkitCraftEngine plugin;
 
     // connection state
@@ -197,6 +218,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     private int lastSuccessfulBreak;
     // player's game tick
     private int gameTicks;
+    private Object equipmentSnapshotOwner;
+    private Object[] equipmentSnapshots;
     // Captured before NMS resets attackStrengthTicker. One primary attack may
     // synchronously produce several player_attack damage events through sweeping
     private int capturedAttackStrengthTick = Integer.MIN_VALUE;
@@ -309,6 +332,8 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
     private void initPlayStageFields() {
         this.capturedAttackStrengthTick = Integer.MIN_VALUE;
         this.capturedAttackStrength = 0.0F;
+        this.equipmentSnapshotOwner = null;
+        this.equipmentSnapshots = null;
         this.trackedBlockEntityRenderers = new ConcurrentHashMap<>(64);
         this.trackedEntities = new ConcurrentHashMap<>(64);
         this.trackedChunks = ConcurrentChainedLong2ReferenceHashTable.createWithCapacity(128, 0.5f);
@@ -694,10 +719,62 @@ public class BukkitServerPlayer extends BukkitLivingEntity implements Player {
         }
     }
 
+    private void pollEquipmentChanges(Object serverPlayer) {
+        LivingEntityHolder holder = this.plugin.entityManager().getEntityHolder(this.uuid);
+        if (holder == null) {
+            // Tracking can be disabled or reconfigured while the player remains
+            // online. Drop the snapshots so a later holder starts from its own
+            // constructor scan instead of replaying stale changes.
+            this.equipmentSnapshotOwner = null;
+            this.equipmentSnapshots = null;
+            return;
+        }
+
+        Object[] snapshots = this.equipmentSnapshots;
+        if (snapshots == null || this.equipmentSnapshotOwner != serverPlayer) {
+            snapshots = new Object[PLAYER_EQUIPMENT_SLOTS.length];
+            for (int i = 0; i < PLAYER_EQUIPMENT_SLOTS.length; i++) {
+                Object current = LivingEntityProxy.INSTANCE.getItemBySlot(serverPlayer, PLAYER_EQUIPMENT_SLOTS[i]);
+                snapshots[i] = ItemStackProxy.INSTANCE.copy(current);
+            }
+            this.equipmentSnapshotOwner = serverPlayer;
+            this.equipmentSnapshots = snapshots;
+            return;
+        }
+
+        Map<EquipmentSetSlot, BukkitItem> changes = null;
+        Object[] changedSnapshots = null;
+        for (int i = 0; i < PLAYER_EQUIPMENT_SLOTS.length; i++) {
+            Object current = LivingEntityProxy.INSTANCE.getItemBySlot(serverPlayer, PLAYER_EQUIPMENT_SLOTS[i]);
+            if (ItemStackProxy.INSTANCE.matches(snapshots[i], current)) continue;
+            if (changes == null) {
+                changes = new HashMap<>(8);
+                changedSnapshots = new Object[PLAYER_EQUIPMENT_SLOTS.length];
+            }
+            changes.put(CE_PLAYER_EQUIPMENT_SLOTS[i], ItemStackUtils.wrap(current));
+            changedSnapshots[i] = ItemStackProxy.INSTANCE.copy(current);
+        }
+        if (changes == null) return;
+
+        // Commit snapshots only after the equipment model accepted the batch. If
+        // a custom provider throws, the next tick observes and retries the change.
+        holder.applyEquipmentChanges(changes);
+        for (int i = 0; i < changedSnapshots.length; i++) {
+            Object changed = changedSnapshots[i];
+            if (changed != null) {
+                snapshots[i] = changed;
+            }
+        }
+    }
+
     public void tick() {
         // 还没上线或是已经离线
         Object serverPlayer = minecraftPlayer();
         if (serverPlayer == null) return;
+
+        if (POLL_EQUIPMENT) {
+            pollEquipmentChanges(serverPlayer);
+        }
 
         // 更新玩家游戏刻
         this.gameTicks = ServerPlayerGameModeProxy.INSTANCE.getGameTicks(ServerPlayerProxy.INSTANCE.getGameMode(serverPlayer));

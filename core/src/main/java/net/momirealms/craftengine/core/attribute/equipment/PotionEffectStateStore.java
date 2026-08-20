@@ -11,7 +11,7 @@ import net.momirealms.sparrow.nbt.Tag;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class EquipmentPotionEffectStateStore {
+public final class PotionEffectStateStore {
     private static final CustomDataKey<Map<Key, PotionEffectSnapshot>> DATA_KEY = new CustomDataKey<>(
             Key.ce("equipment_potion_effect_state"),
             new CustomDataSerializer<>() {
@@ -47,7 +47,7 @@ public final class EquipmentPotionEffectStateStore {
     private final Entity entity;
     private boolean hasStoredData;
 
-    public EquipmentPotionEffectStateStore(Entity entity) {
+    public PotionEffectStateStore(Entity entity) {
         this.entity = entity;
     }
 

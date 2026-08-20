@@ -16,7 +16,6 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.attribute.damage.DamageIndicator;
 import net.momirealms.craftengine.core.attribute.damage.DamageIndicators;
 import net.momirealms.craftengine.core.attribute.damage.DamageVisibility;
-import net.momirealms.craftengine.core.entity.Entity;
 import net.momirealms.craftengine.core.entity.furniture.ColliderType;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.network.encrypt.AESGCM;
