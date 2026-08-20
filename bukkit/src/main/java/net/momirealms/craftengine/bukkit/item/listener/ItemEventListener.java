@@ -1086,7 +1086,7 @@ public final class ItemEventListener implements Listener {
         if (arrowDefinition.isPresent()) {
             ItemDefinition definition = arrowDefinition.get();
             ProjectileMeta projectileMeta = definition.settings().projectileMeta();
-            if (projectileMeta != null && serverPlayer != null && !serverPlayer.isCreativeMode()) {
+            if (projectileMeta != null && serverPlayer != null && !serverPlayer.isCreativeMode() && VersionHelper.hasPaperPatch) {
                 if (projectileMeta.ignoreInfinityEnchantment() && bowItem.getEnchantment(EnchantmentKeys.INFINITY).isPresent()) {
                     serverPlayer.clearOrCountMatchingInventoryItems(arrowItem.id(), 1);
                     if (projectile instanceof AbstractArrow p1 && projectileMeta.pickupable()) {

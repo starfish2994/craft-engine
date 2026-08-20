@@ -117,6 +117,9 @@ public interface EntityProxy {
     @MethodInvoker(name = "isSpectator")
     boolean isSpectator(Object target);
 
+    @MethodInvoker(name = "isShiftKeyDown")
+    boolean isShiftKeyDown(Object target);
+
     @MethodInvoker(name = "setDeltaMovement")
     void setDeltaMovement(Object target, double x, double y, double z);
 

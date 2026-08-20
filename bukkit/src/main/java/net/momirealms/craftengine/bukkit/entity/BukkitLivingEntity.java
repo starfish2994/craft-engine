@@ -14,6 +14,7 @@ import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.core.registries.BuiltInRegistriesProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.effect.MobEffectInstanceProxy;
+import net.momirealms.craftengine.proxy.minecraft.world.entity.EntityProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.EquipmentSlotProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.LivingEntityProxy;
 import org.bukkit.Registry;
@@ -184,7 +185,7 @@ public class BukkitLivingEntity extends BukkitEntity implements net.momirealms.c
 
     @Override
     public boolean isSneaking() {
-        return platformEntity().isSneaking();
+        return EntityProxy.INSTANCE.isShiftKeyDown(minecraftEntity());
     }
 
     @Override

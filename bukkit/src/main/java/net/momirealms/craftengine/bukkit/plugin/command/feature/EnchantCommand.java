@@ -51,7 +51,7 @@ public final class EnchantCommand extends BukkitCommandFeature<CommandSender> {
                     @Override
                     public @NonNull CompletableFuture<? extends @NonNull Iterable<? extends @NonNull Suggestion>> suggestionsFuture(@NonNull CommandContext<Object> context, @NonNull CommandInput input) {
                         return CompletableFuture.completedFuture(Registry.ENCHANTMENT.stream()
-                                .map(enchantment -> Suggestion.suggestion(enchantment.getKey().asString()))
+                                .map(enchantment -> Suggestion.suggestion(enchantment.getKey().toString()))
                                 .toList());
                     }
                 }))

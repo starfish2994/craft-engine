@@ -90,6 +90,9 @@ public final class BukkitLootManager extends AbstractLootManager {
         this.registerSourceListener(LootSources.BLOCK_BREAK, BlockBreakLootListener::new);
         if (VersionHelper.hasPaperPatch) {
             this.registerSourceListener(LootSources.BLOCK_BREAK, PaperBlockBreakLootListener::new);
+            this.registerSourceListener(LootSources.SHEAR_BLOCK, ShearBlockLootListener::new);
+            this.registerSourceListener(LootSources.VAULT, VaultLootListener::new);
+            this.registerSourceListener(LootSources.ENTITY_SHEAR, () -> new EntityShearLootListener(this.plugin.entityManager()));
         }
         this.registerSourceListener(LootSources.ENTITY_DEATH, () -> new EntityDeathLootListener(this.plugin.entityManager()));
         this.registerSourceListener(LootSources.FISHING, FishingLootListener::new);
@@ -98,9 +101,6 @@ public final class BukkitLootManager extends AbstractLootManager {
         this.registerSourceListener(LootSources.ARCHAEOLOGY, ArchaeologyLootListener::new);
         this.registerSourceListener(LootSources.ENTITY_DROP, () -> new EntityDropLootListener(this.plugin.entityManager()));
         this.registerSourceListener(LootSources.HARVEST, HarvestBlockLootListener::new);
-        this.registerSourceListener(LootSources.SHEAR_BLOCK, ShearBlockLootListener::new);
-        this.registerSourceListener(LootSources.ENTITY_SHEAR, () -> new EntityShearLootListener(this.plugin.entityManager()));
-        this.registerSourceListener(LootSources.VAULT, VaultLootListener::new);
         this.registerSourceListener(LootSources.ADVANCEMENT, AdvancementLootListener::new);
     }
 

@@ -75,14 +75,14 @@ public final class SearchResourceCommand extends BukkitCommandFeature<CommandSen
                             .orElse(null);
                     // Parser 不存在
                     if (parser == null) {
-                        handleFeedback(context, MessageConstants.COMMAND_RESOURCE_SEARCH_PARSER_NOT_FOUND, Component.text(parserKey.asString()));
+                        handleFeedback(context, MessageConstants.COMMAND_RESOURCE_SEARCH_PARSER_NOT_FOUND, Component.text(parserKey.toString()));
                         return;
                     }
                     // Resource 不存在
                     NamespacedKey resourceKey = context.get("resource");
                     Path path = parser.pathById(KeyUtils.namespacedKeyToKey(resourceKey));
                     if (path == null) {
-                        handleFeedback(context, MessageConstants.COMMAND_RESOURCE_SEARCH_RESOURCE_NOT_FOUND, Component.text(resourceKey.asString()));
+                        handleFeedback(context, MessageConstants.COMMAND_RESOURCE_SEARCH_RESOURCE_NOT_FOUND, Component.text(resourceKey.toString()));
                         return;
                     }
 
@@ -92,7 +92,7 @@ public final class SearchResourceCommand extends BukkitCommandFeature<CommandSen
                             .color(NamedTextColor.GOLD)
                             .hoverEvent(HoverEvent.showText(Component.translatable("chat.copy.click", NamedTextColor.WHITE)))
                             .clickEvent(ClickEvent.copyToClipboard(absolutePath));
-                    handleFeedback(context, MessageConstants.COMMAND_RESOURCE_SEARCH_SUCCESS, Component.text(resourceKey.asString()), clickablePath);
+                    handleFeedback(context, MessageConstants.COMMAND_RESOURCE_SEARCH_SUCCESS, Component.text(resourceKey.toString()), clickablePath);
                 });
     }
 
