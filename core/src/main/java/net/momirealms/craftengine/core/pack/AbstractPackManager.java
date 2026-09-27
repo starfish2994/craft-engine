@@ -1921,6 +1921,13 @@ public abstract class AbstractPackManager implements PackManager {
             String modelStringPath = "assets/" + modelPath.namespace() + "/models/" + modelPath.value() + ".json";
             Path modelJsonPath = rpView.getExistingReversed(modelStringPath);
             if (modelJsonPath != null) {
+                // A shared block/item model has already been read and validated in this pass.
+                // Resolve the path first: validation may have generated a higher-priority overlay.
+                TexturedModel blockModel = blockModels.get(modelPath);
+                if (blockModel != null && checkedModels.contains(modelJsonPath)) {
+                    itemModels.put(modelPath, blockModel);
+                    continue;
+                }
                 JsonObject modelJson = readJsonObjectFromFileOrWarn(modelJsonPath);
                 if (modelJson == null) continue;
                 TexturedModel texturedModel = getTexturedModel(modelPath, TexturedModel.getParent(modelJson), TexturedModel.getTextures(modelJson), rootPaths, modelsCache);
