@@ -1411,27 +1411,24 @@ public abstract class AbstractPackManager implements PackManager {
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.texture_optimization_started"));
             AtomicLong previousBytes = new AtomicLong(0L);
             AtomicLong afterBytes = new AtomicLong(0L);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             int amount = imagesToOptimize.size();
             AtomicInteger finished = new AtomicInteger(0);
-            for (Path imagePath : imagesToOptimize) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        byte[] previousImageBytes = Files.readAllBytes(imagePath);
-                        byte[] optimized = optimizeImage(imagePath, previousImageBytes);
-                        previousBytes.addAndGet(previousImageBytes.length);
-                        if (optimized.length < previousImageBytes.length) {
-                            afterBytes.addAndGet(optimized.length);
-                            Files.write(imagePath, optimized);
-                        } else {
-                            afterBytes.addAndGet(previousImageBytes.length);
-                        }
-                        finished.incrementAndGet();
-                    } catch (IOException ignored) {
+            ForkJoinPool executor = (ForkJoinPool) this.plugin.scheduler().async();
+            CompletableFuture<Void> overallFuture = CompletableFutures.forEachAsync(imagesToOptimize, imagePath -> {
+                try {
+                    byte[] previousImageBytes = Files.readAllBytes(imagePath);
+                    byte[] optimized = optimizeImage(imagePath, previousImageBytes);
+                    previousBytes.addAndGet(previousImageBytes.length);
+                    if (optimized.length < previousImageBytes.length) {
+                        afterBytes.addAndGet(optimized.length);
+                        Files.write(imagePath, optimized);
+                    } else {
+                        afterBytes.addAndGet(previousImageBytes.length);
                     }
-                }, this.plugin.scheduler().async()));
-            }
-            CompletableFuture<Void> overallFuture = CompletableFutures.allOf(futures);
+                    finished.incrementAndGet();
+                } catch (IOException ignored) {
+                }
+            }, executor.getParallelism(), executor);
             long startTime = System.currentTimeMillis();
             for (;;) {
                 try {
