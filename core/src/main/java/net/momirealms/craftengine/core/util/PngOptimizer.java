@@ -76,20 +76,32 @@ public final class PngOptimizer {
 
         Map<Integer, Integer> ope = new HashMap<>();
         Map<Integer, Integer> tra = new HashMap<>();
+        boolean hasAlpha = false;
+        boolean hasPalette = true;
+        int[] row = new int[width];
 
         for (int y = 0; y < height; y++) {
+            src.getRGB(0, y, width, 1, row, 0, width);
             for (int x = 0; x < width; x++) {
-                int argb = src.getRGB(x, y);
+                int argb = row[x];
                 int alpha = (argb >> 24) & 0xFF;
+                hasAlpha |= alpha != 255;
+                if (!hasPalette) continue;
                 if (alpha == 255) {
                     ope.put(argb, ope.getOrDefault(argb, 0) + 1);
                 } else {
                     tra.put(argb, tra.getOrDefault(argb, 0) + 1);
                 }
+                if (ope.size() + tra.size() > 256) {
+                    // More than 256 colors cannot be represented by a PNG palette.
+                    hasPalette = false;
+                    ope.clear();
+                    tra.clear();
+                }
             }
         }
 
-        return new ImageColorInfo(ope, tra, sourceIsGrayscale);
+        return new ImageColorInfo(ope, tra, sourceIsGrayscale, hasAlpha, hasPalette);
     }
 
     private BufferedImage convertTo8BitRGB(BufferedImage src) {
@@ -115,7 +127,7 @@ public final class PngOptimizer {
     private ImageData findBestFileStructure(BufferedImage src, ImageColorInfo info) throws IOException {
         byte[] normalSize = tryNormal(src, info.hasAlpha(), info.isGrayscale());
         // 可以考虑使用调色盘
-        if (info.uniqueColorCount() <= 256) {
+        if (info.hasPalette()) {
             Pair<Palette, byte[]> palettePair = tryPalette(src, info);
             byte[] paletteSize = palettePair.right();
             if (normalSize.length > paletteSize.length) {
@@ -524,14 +536,6 @@ public final class PngOptimizer {
     record ImageHeader(int width, int height, byte bitDepth, PngColorType pngColorType, byte compressionMethod, byte filterMethod, InterlaceMethod interlaceMethod) {
     }
 
-    record ImageColorInfo(Map<Integer, Integer> opaque, Map<Integer, Integer> transparent, boolean isGrayscale) {
-
-        public int uniqueColorCount() {
-            return this.opaque.size() + this.transparent.size();
-        }
-
-        public boolean hasAlpha() {
-            return !this.transparent.isEmpty();
-        }
+    record ImageColorInfo(Map<Integer, Integer> opaque, Map<Integer, Integer> transparent, boolean isGrayscale, boolean hasAlpha, boolean hasPalette) {
     }
 }
