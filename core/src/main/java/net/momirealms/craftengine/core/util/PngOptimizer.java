@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
+import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -28,23 +29,6 @@ public final class PngOptimizer {
 
     public PngOptimizer(BufferedImage src) {
         this.src = src;
-    }
-
-    private boolean isGrayscale(final BufferedImage src) {
-        final int width = src.getWidth();
-        final int height = src.getHeight();
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                final int argb = src.getRGB(x, y);
-                final int red = 0xff & argb >> 16;
-                final int green = 0xff & argb >> 8;
-                final int blue = 0xff & argb >> 0;
-                if (red != green || red != blue) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     public void write(OutputStream os) throws IOException {
@@ -73,18 +57,24 @@ public final class PngOptimizer {
     private ImageColorInfo createColorInfo(final BufferedImage src) {
         final int width = src.getWidth();
         final int height = src.getHeight();
-        final boolean sourceIsGrayscale = src.getType() == BufferedImage.TYPE_BYTE_GRAY || src.getType() == BufferedImage.TYPE_USHORT_GRAY;
 
         Map<Integer, Integer> ope = new HashMap<>();
         Map<Integer, Integer> tra = new HashMap<>();
         boolean hasAlpha = false;
         boolean hasPalette = true;
+        boolean isGrayscale = true;
         int[] pixels = new int[Math.multiplyExact(width, height)];
         src.getRGB(0, 0, width, height, pixels, 0, width);
 
         for (int argb : pixels) {
             int alpha = (argb >> 24) & 0xFF;
             hasAlpha |= alpha != 255;
+            if (isGrayscale) {
+                int red = (argb >> 16) & 0xFF;
+                int green = (argb >> 8) & 0xFF;
+                int blue = argb & 0xFF;
+                isGrayscale = red == green && red == blue;
+            }
             if (!hasPalette) continue;
             if (alpha == 255) {
                 ope.put(argb, ope.getOrDefault(argb, 0) + 1);
@@ -99,7 +89,7 @@ public final class PngOptimizer {
             }
         }
 
-        return new ImageColorInfo(pixels, ope, tra, sourceIsGrayscale, hasAlpha, hasPalette);
+        return new ImageColorInfo(pixels, ope, tra, isGrayscale, hasAlpha, hasPalette);
     }
 
     private BufferedImage convertTo8BitRGB(BufferedImage src) {
@@ -291,10 +281,11 @@ public final class PngOptimizer {
 
     private byte[] compressImageStandard(byte[] uncompressed) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
 
         try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
              final DeflaterOutputStream dos = new DeflaterOutputStream(
-                     baos, new Deflater(Deflater.BEST_COMPRESSION))) {
+                     baos, deflater)) {
 
             dos.write(uncompressed);
             dos.finish();
@@ -306,6 +297,8 @@ public final class PngOptimizer {
                 final int length = Math.min(chunkSize, compressed.length - index);
                 writeChunkIDAT(output, compressed, index, length);
             }
+        } finally {
+            deflater.end();
         }
 
         return output.toByteArray();
@@ -398,12 +391,12 @@ public final class PngOptimizer {
     }
 
     private static int calculateCRC(byte[] chunkType, byte[] data, int offset, int length) {
-        CRC crc = new CRC();
+        CRC32 crc = new CRC32();
         crc.update(chunkType, 0, chunkType.length);
         if (length > 0) {
             crc.update(data, offset, length);
         }
-        return crc.getValue();
+        return (int) crc.getValue();
     }
 
     enum PngColorType {
