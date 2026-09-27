@@ -79,30 +79,27 @@ public final class PngOptimizer {
         Map<Integer, Integer> tra = new HashMap<>();
         boolean hasAlpha = false;
         boolean hasPalette = true;
-        int[] row = new int[width];
+        int[] pixels = new int[Math.multiplyExact(width, height)];
+        src.getRGB(0, 0, width, height, pixels, 0, width);
 
-        for (int y = 0; y < height; y++) {
-            src.getRGB(0, y, width, 1, row, 0, width);
-            for (int x = 0; x < width; x++) {
-                int argb = row[x];
-                int alpha = (argb >> 24) & 0xFF;
-                hasAlpha |= alpha != 255;
-                if (!hasPalette) continue;
-                if (alpha == 255) {
-                    ope.put(argb, ope.getOrDefault(argb, 0) + 1);
-                } else {
-                    tra.put(argb, tra.getOrDefault(argb, 0) + 1);
-                }
-                if (ope.size() + tra.size() > 256) {
-                    // More than 256 colors cannot be represented by a PNG palette.
-                    hasPalette = false;
-                    ope.clear();
-                    tra.clear();
-                }
+        for (int argb : pixels) {
+            int alpha = (argb >> 24) & 0xFF;
+            hasAlpha |= alpha != 255;
+            if (!hasPalette) continue;
+            if (alpha == 255) {
+                ope.put(argb, ope.getOrDefault(argb, 0) + 1);
+            } else {
+                tra.put(argb, tra.getOrDefault(argb, 0) + 1);
+            }
+            if (ope.size() + tra.size() > 256) {
+                // More than 256 colors cannot be represented by a PNG palette.
+                hasPalette = false;
+                ope.clear();
+                tra.clear();
             }
         }
 
-        return new ImageColorInfo(ope, tra, sourceIsGrayscale, hasAlpha, hasPalette);
+        return new ImageColorInfo(pixels, ope, tra, sourceIsGrayscale, hasAlpha, hasPalette);
     }
 
     private BufferedImage convertTo8BitRGB(BufferedImage src) {
@@ -126,10 +123,10 @@ public final class PngOptimizer {
     }
 
     private ImageData findBestFileStructure(BufferedImage src, ImageColorInfo info) throws IOException {
-        byte[] normalSize = tryNormal(src, info.hasAlpha(), info.isGrayscale());
+        byte[] normalSize = tryNormal(info.pixels(), src.getWidth(), src.getHeight(), info.hasAlpha(), info.isGrayscale());
         // 可以考虑使用调色盘
         if (info.hasPalette()) {
-            Pair<Palette, byte[]> palettePair = tryPalette(src, info);
+            Pair<Palette, byte[]> palettePair = tryPalette(src.getWidth(), src.getHeight(), info);
             byte[] paletteSize = palettePair.right();
             if (normalSize.length > paletteSize.length) {
                 return new ImageData(PngColorType.INDEXED_COLOR, (byte) palettePair.left().calculateBitDepth(), paletteSize);
@@ -142,24 +139,21 @@ public final class PngOptimizer {
         }
     }
 
-    private byte[] tryNormal(BufferedImage src, boolean hasAlpha, boolean isGrayscale) throws IOException {
-        byte[] bytes = generatePngData(src, hasAlpha, isGrayscale);
+    private byte[] tryNormal(int[] pixels, int width, int height, boolean hasAlpha, boolean isGrayscale) throws IOException {
+        byte[] bytes = generatePngData(pixels, width, height, hasAlpha, isGrayscale);
         int zopfli = Config.optimizeTexture() ? Config.zopfliIterations() : 0;
         return zopfli > 0 ? compressImageZopfli(bytes, zopfli) : compressImageStandard(bytes);
     }
 
-    private byte[] generatePngData(BufferedImage src, boolean hasAlpha, boolean isGrayscale) {
-        int width = src.getWidth();
-        int height = src.getHeight();
+    private byte[] generatePngData(int[] pixels, int width, int height, boolean hasAlpha, boolean isGrayscale) {
         int channels = (isGrayscale ? 1 : 3) + (hasAlpha ? 1 : 0);
         byte[] data = new byte[Math.multiplyExact(height, Math.addExact(1, Math.multiplyExact(width, channels)))];
         int offset = 0;
-        int[] row = new int[width];
+        int sourceIndex = 0;
         for (int y = 0; y < height; y++) {
-            src.getRGB(0, y, width, 1, row, 0, width);
             data[offset++] = (byte) FilterType.NONE.ordinal();
             for (int x = 0; x < width; x++) {
-                final int argb = row[x];
+                final int argb = pixels[sourceIndex++];
                 final int alpha = 0xff & argb >> 24;
                 final int red = 0xff & argb >> 16;
                 final int green = 0xff & argb >> 8;
@@ -180,7 +174,7 @@ public final class PngOptimizer {
         return data;
     }
 
-    private Pair<Palette, byte[]> tryPalette(BufferedImage src, ImageColorInfo info) throws IOException {
+    private Pair<Palette, byte[]> tryPalette(int width, int height, ImageColorInfo info) throws IOException {
         ByteArrayOutputStream paletteOs = new ByteArrayOutputStream();
         Palette palette;
         if (info.hasAlpha()) {
@@ -191,31 +185,28 @@ public final class PngOptimizer {
             palette = new ExactOpaquePalette(info.opaque);
             writeChunkPLTE(paletteOs, palette);
         }
-        byte[] bytes = generatePaletteData(src, palette);
+        byte[] bytes = generatePaletteData(info.pixels(), width, height, palette);
         int zopfli = Config.optimizeTexture() ? Config.zopfliIterations() : 0;
         paletteOs.write(zopfli > 0 ? compressImageZopfli(bytes, zopfli) : compressImageStandard(bytes));
         return Pair.of(palette, paletteOs.toByteArray());
     }
 
-    private byte[] generatePaletteData(BufferedImage src, Palette palette) {
-        int width = src.getWidth();
-        int height = src.getHeight();
+    private byte[] generatePaletteData(int[] pixels, int width, int height, Palette palette) {
         int bitsPerIndex = palette.calculateBitDepth();
         int rowBytes = Math.toIntExact(((long) width * bitsPerIndex + 7) / 8);
         byte[] data = new byte[Math.multiplyExact(height, Math.addExact(rowBytes, 1))];
         int offset = 0;
-        final int[] row = new int[width];
 
         for (int y = 0; y < height; y++) {
-            src.getRGB(0, y, width, 1, row, 0, width);
+            int rowOffset = y * width;
             data[offset++] = (byte) FilterType.NONE.ordinal();
 
             // 根据位深度选择相应的处理方法
             switch (bitsPerIndex) {
-                case 4 -> process4Bit(row, width, data, offset, palette);
-                case 2 -> process2Bit(row, width, data, offset, palette);
-                case 1 -> process1Bit(row, width, data, offset, palette);
-                default -> process8Bit(row, width, data, offset, palette);
+                case 4 -> process4Bit(pixels, rowOffset, width, data, offset, palette);
+                case 2 -> process2Bit(pixels, rowOffset, width, data, offset, palette);
+                case 1 -> process1Bit(pixels, rowOffset, width, data, offset, palette);
+                default -> process8Bit(pixels, rowOffset, width, data, offset, palette);
             }
             offset += rowBytes;
         }
@@ -223,22 +214,22 @@ public final class PngOptimizer {
     }
 
     // 处理8位深度：每个索引占1字节
-    private void process8Bit(int[] row, int width, byte[] data, int offset, Palette palette) {
+    private void process8Bit(int[] pixels, int rowOffset, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x++) {
-            final int argb = row[x];
+            final int argb = pixels[rowOffset + x];
             final int index = palette.getPaletteIndex(argb);
             data[offset++] = (byte) index;
         }
     }
 
     // 处理4位深度：每2个索引打包到1字节中
-    private void process4Bit(int[] row, int width, byte[] data, int offset, Palette palette) {
+    private void process4Bit(int[] pixels, int rowOffset, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x += 2) {
-            final int argb1 = row[x];
+            final int argb1 = pixels[rowOffset + x];
             final int index1 = palette.getPaletteIndex(argb1);
 
             if (x + 1 < width) {
-                final int argb2 = row[x + 1];
+                final int argb2 = pixels[rowOffset + x + 1];
                 final int index2 = palette.getPaletteIndex(argb2);
                 // 将两个4位索引打包到一个字节中
                 byte packed = (byte) ((index1 << 4) | index2);
@@ -252,12 +243,12 @@ public final class PngOptimizer {
     }
 
     // 处理2位深度：每4个索引打包到1字节中
-    private void process2Bit(int[] row, int width, byte[] data, int offset, Palette palette) {
+    private void process2Bit(int[] pixels, int rowOffset, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x += 4) {
             int packed = 0;
             for (int i = 0; i < 4; i++) {
                 if (x + i < width) {
-                    final int argb = row[x + i];
+                    final int argb = pixels[rowOffset + x + i];
                     final int index = palette.getPaletteIndex(argb);
                     packed |= (index << (6 - i * 2)) & 0xFF;
                 }
@@ -267,12 +258,12 @@ public final class PngOptimizer {
     }
 
     // 处理1位深度：每8个索引打包到1字节中
-    private void process1Bit(int[] row, int width, byte[] data, int offset, Palette palette) {
+    private void process1Bit(int[] pixels, int rowOffset, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x += 8) {
             int packed = 0;
             for (int i = 0; i < 8; i++) {
                 if (x + i < width) {
-                    final int argb = row[x + i];
+                    final int argb = pixels[rowOffset + x + i];
                     final int index = palette.getPaletteIndex(argb);
                     packed |= (index << (7 - i));
                 }
@@ -554,6 +545,6 @@ public final class PngOptimizer {
     record ImageHeader(int width, int height, byte bitDepth, PngColorType pngColorType, byte compressionMethod, byte filterMethod, InterlaceMethod interlaceMethod) {
     }
 
-    record ImageColorInfo(Map<Integer, Integer> opaque, Map<Integer, Integer> transparent, boolean isGrayscale, boolean hasAlpha, boolean hasPalette) {
+    record ImageColorInfo(int[] pixels, Map<Integer, Integer> opaque, Map<Integer, Integer> transparent, boolean isGrayscale, boolean hasAlpha, boolean hasPalette) {
     }
 }
