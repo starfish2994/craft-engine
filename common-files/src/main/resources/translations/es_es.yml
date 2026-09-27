@@ -204,7 +204,7 @@ resource_pack.generation_finished: Paquete de recursos generado en <arg:0>ms
 resource_pack.validation_started: 'Validando paquete de recursos... (Progreso: <arg:0>/<arg:1> | Formato de Pack: <arg:2>~<arg:3> | Superposiciones: <arg:4>)'
 resource_pack.json_optimization_started: '> Optimizando archivos json...'
 resource_pack.texture_optimization_started: '> Optimizando archivos de textura...'
-resource_pack.optimization_result: '> □ Antes/Después/Proporción: <arg:0>/<arg:1>/<arg:2>'
+resource_pack.optimization_result: '> □ Antes/Después/Proporción: <arg:0>/<arg:1>/<arg:2>%'
 resource_pack.duplicated_files: Se encontraron archivos duplicados. Por favor, resuélvelos mediante la sección 'resource-pack.duplicated-files-handler' de config.yml
 resource_pack.malformatted_json: El archivo Json '<arg:0>' tiene un formato incorrecto
 resource_pack.not_a_json_object: El archivo Json '<arg:0>' no es un objeto json

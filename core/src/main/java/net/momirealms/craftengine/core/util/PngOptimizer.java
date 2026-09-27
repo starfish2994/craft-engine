@@ -7,11 +7,21 @@ import it.unimi.dsi.fastutil.ints.IntArrays;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.zopfli.Options;
 import net.momirealms.craftengine.core.util.zopfli.ZopfliOutputStream;
+import org.w3c.dom.Node;
 
-import java.awt.*;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.ComponentColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.Raster;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
@@ -27,13 +37,72 @@ public final class PngOptimizer {
     private static final byte[] IHDR = "IHDR".getBytes(StandardCharsets.UTF_8);
 
     private final BufferedImage src;
+    private final int zopfliIterations;
 
     public PngOptimizer(BufferedImage src) {
+        this(src, Config.optimizeTexture() ? Config.zopfliIterations() : 0);
+    }
+
+    PngOptimizer(BufferedImage src, int zopfliIterations) {
         this.src = src;
+        this.zopfliIterations = zopfliIterations;
+    }
+
+    public static BufferedImage readPng(InputStream input) throws IOException {
+        try (ImageInputStream stream = ImageIO.createImageInputStream(input)) {
+            var readers = ImageIO.getImageReaders(stream);
+            if (!readers.hasNext()) return null;
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(stream, true, false);
+                BufferedImage image = reader.read(0);
+                if (isRawGrayscale(image) && image.getColorModel().hasAlpha()) {
+                    restorePackedGrayTransparency(image, reader.getImageMetadata(0));
+                }
+                return image;
+            } finally {
+                reader.dispose();
+            }
+        }
+    }
+
+    private static void restorePackedGrayTransparency(BufferedImage image, IIOMetadata metadata) {
+        String format = "javax_imageio_png_1.0";
+        if (!format.equals(metadata.getNativeMetadataFormatName())) return;
+        Node root = metadata.getAsTree(format);
+        Node header = child(root, "IHDR");
+        Node transparency = child(root, "tRNS");
+        if (header == null || transparency == null) return;
+        Node gray = child(transparency, "tRNS_Grayscale");
+        if (gray == null) return;
+        int bits = Integer.parseInt(header.getAttributes().getNamedItem("bitDepth").getNodeValue());
+        if (bits >= 8) return;
+
+        // ImageIO expands packed gray samples to 8 bits, but compares tRNS against
+        // the unscaled key. Rebuild alpha using the key in the expanded range.
+        int key = Integer.parseInt(gray.getAttributes().getNamedItem("gray").getNodeValue());
+        int expandedKey = key * 255 / ((1 << bits) - 1);
+        var raster = image.getRaster();
+        int[] grayRow = new int[image.getWidth()];
+        int[] alphaRow = new int[image.getWidth()];
+        for (int y = 0; y < image.getHeight(); y++) {
+            raster.getSamples(0, y, image.getWidth(), 1, 0, grayRow);
+            for (int x = 0; x < image.getWidth(); x++) {
+                alphaRow[x] = grayRow[x] == expandedKey ? 0 : 255;
+            }
+            raster.setSamples(0, y, image.getWidth(), 1, 1, alphaRow);
+        }
+    }
+
+    private static Node child(Node parent, String name) {
+        for (Node node = parent.getFirstChild(); node != null; node = node.getNextSibling()) {
+            if (name.equals(node.getNodeName())) return node;
+        }
+        return null;
     }
 
     public void write(OutputStream os) throws IOException {
-        BufferedImage src = convertTo8BitRGB(this.src);
+        BufferedImage src = this.src;
         final int width = src.getWidth();
         final int height = src.getHeight();
 
@@ -56,26 +125,15 @@ public final class PngOptimizer {
     }
 
     private ImageColorInfo createColorInfo(final BufferedImage src) {
-        final int width = src.getWidth();
-        final int height = src.getHeight();
-
         Int2IntOpenHashMap ope = new Int2IntOpenHashMap();
         Int2IntOpenHashMap tra = new Int2IntOpenHashMap();
         boolean hasAlpha = false;
         boolean hasPalette = true;
-        boolean isGrayscale = true;
-        int[] pixels = new int[Math.multiplyExact(width, height)];
-        src.getRGB(0, 0, width, height, pixels, 0, width);
+        int[] pixels = readPixels(src);
 
         for (int argb : pixels) {
             int alpha = (argb >> 24) & 0xFF;
             hasAlpha |= alpha != 255;
-            if (isGrayscale) {
-                int red = (argb >> 16) & 0xFF;
-                int green = (argb >> 8) & 0xFF;
-                int blue = argb & 0xFF;
-                isGrayscale = red == green && red == blue;
-            }
             if (!hasPalette) continue;
             if (alpha == 255) {
                 ope.addTo(argb, 1);
@@ -90,31 +148,58 @@ public final class PngOptimizer {
             }
         }
 
-        return new ImageColorInfo(pixels, ope, tra, isGrayscale, hasAlpha, hasPalette);
+        return new ImageColorInfo(pixels, ope, tra, hasAlpha, hasPalette);
     }
 
-    private BufferedImage convertTo8BitRGB(BufferedImage src) {
-        int type = src.getType();
-        if (type == BufferedImage.TYPE_BYTE_GRAY || type == BufferedImage.TYPE_USHORT_GRAY) {
-            BufferedImage eightBitImage = new BufferedImage(
-                    src.getWidth(),
-                    src.getHeight(),
-                    BufferedImage.TYPE_4BYTE_ABGR
-            );
-            Graphics2D g2d = eightBitImage.createGraphics();
-            g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
-            g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-            g2d.drawImage(src, 0, 0, null);
-            g2d.dispose();
-            return eightBitImage;
+    /** Supports standard ImageIO image types and non-premultiplied 8/16-bit grayscale PNGs. */
+    public static boolean canOptimize(BufferedImage image) {
+        return image.getType() != BufferedImage.TYPE_CUSTOM || isRawGrayscale(image);
+    }
+
+    private static boolean isRawGrayscale(BufferedImage image) {
+        ColorModel model = image.getColorModel();
+        if (!(model instanceof ComponentColorModel) || model.getColorSpace().getType() != ColorSpace.TYPE_GRAY
+                || model.isAlphaPremultiplied()) {
+            return false;
         }
-        return src;
+        int bits = model.getComponentSize(0);
+        return ((model.getTransferType() == DataBuffer.TYPE_BYTE && bits == 8)
+                || (model.getTransferType() == DataBuffer.TYPE_USHORT && bits == 16))
+                && (!model.hasAlpha() || model.getComponentSize(1) == bits);
+    }
+
+    private static int[] readPixels(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int[] pixels = new int[Math.multiplyExact(width, height)];
+        if (!isRawGrayscale(image)) {
+            image.getRGB(0, 0, width, height, pixels, 0, width);
+            return pixels;
+        }
+
+        // ImageIO labels PNG gray samples as linear CS_GRAY. getRGB()/Graphics2D can
+        // therefore change their brightness; texture decoding must preserve the samples.
+        Raster raster = image.getRaster();
+        boolean hasAlpha = image.getColorModel().hasAlpha();
+        int shift = image.getColorModel().getComponentSize(0) - 8;
+        int[] grayRow = new int[width];
+        int[] alphaRow = hasAlpha ? new int[width] : null;
+        int offset = 0;
+        for (int y = 0; y < height; y++) {
+            raster.getSamples(0, y, width, 1, 0, grayRow);
+            if (hasAlpha) raster.getSamples(0, y, width, 1, 1, alphaRow);
+            for (int x = 0; x < width; x++) {
+                // Match STB's 16-to-8 conversion by retaining the high byte.
+                int gray = grayRow[x] >>> shift;
+                int alpha = hasAlpha ? alphaRow[x] >>> shift : 255;
+                pixels[offset++] = (alpha << 24) | (gray << 16) | (gray << 8) | gray;
+            }
+        }
+        return pixels;
     }
 
     private ImageData findBestFileStructure(BufferedImage src, ImageColorInfo info) throws IOException {
-        byte[] normalSize = tryNormal(info.pixels(), src.getWidth(), src.getHeight(), info.hasAlpha(), info.isGrayscale());
+        byte[] normalSize = tryNormal(info.pixels(), src.getWidth(), src.getHeight(), info.hasAlpha());
         // 可以考虑使用调色盘
         if (info.hasPalette()) {
             Pair<Palette, byte[]> palettePair = tryPalette(src.getWidth(), src.getHeight(), info);
@@ -123,21 +208,19 @@ public final class PngOptimizer {
                 return new ImageData(PngColorType.INDEXED_COLOR, (byte) palettePair.left().calculateBitDepth(), paletteSize);
             }
         }
-        if (info.isGrayscale()) {
-            return new ImageData(info.hasAlpha() ? PngColorType.GREYSCALE_WITH_ALPHA : PngColorType.GREYSCALE, (byte) 8, normalSize);
-        } else {
-            return new ImageData(info.hasAlpha() ? PngColorType.TRUE_COLOR_WITH_ALPHA : PngColorType.TRUE_COLOR, (byte) 8, normalSize);
-        }
+        // RGB(A) and palette PNGs keep the same interpretation in ImageIO and STB.
+        // Single-channel PNGs would reintroduce ImageIO's linear-gray conversion.
+        return new ImageData(info.hasAlpha() ? PngColorType.TRUE_COLOR_WITH_ALPHA : PngColorType.TRUE_COLOR, (byte) 8, normalSize);
     }
 
-    private byte[] tryNormal(int[] pixels, int width, int height, boolean hasAlpha, boolean isGrayscale) throws IOException {
-        byte[] bytes = generatePngData(pixels, width, height, hasAlpha, isGrayscale);
-        int zopfli = Config.optimizeTexture() ? Config.zopfliIterations() : 0;
+    private byte[] tryNormal(int[] pixels, int width, int height, boolean hasAlpha) throws IOException {
+        byte[] bytes = generatePngData(pixels, width, height, hasAlpha);
+        int zopfli = this.zopfliIterations;
         return zopfli > 0 ? compressImageZopfli(bytes, zopfli) : compressImageStandard(bytes);
     }
 
-    private byte[] generatePngData(int[] pixels, int width, int height, boolean hasAlpha, boolean isGrayscale) {
-        int channels = (isGrayscale ? 1 : 3) + (hasAlpha ? 1 : 0);
+    private byte[] generatePngData(int[] pixels, int width, int height, boolean hasAlpha) {
+        int channels = hasAlpha ? 4 : 3;
         byte[] data = new byte[Math.multiplyExact(height, Math.addExact(1, Math.multiplyExact(width, channels)))];
         int offset = 0;
         int sourceIndex = 0;
@@ -149,14 +232,9 @@ public final class PngOptimizer {
                 final int red = 0xff & argb >> 16;
                 final int green = 0xff & argb >> 8;
                 final int blue = 0xff & argb >> 0;
-                if (isGrayscale) {
-                    final int gray = (red + green + blue) / 3;
-                    data[offset++] = (byte) gray;
-                } else {
-                    data[offset++] = (byte) red;
-                    data[offset++] = (byte) green;
-                    data[offset++] = (byte) blue;
-                }
+                data[offset++] = (byte) red;
+                data[offset++] = (byte) green;
+                data[offset++] = (byte) blue;
                 if (hasAlpha) {
                     data[offset++] = (byte) alpha;
                 }
@@ -177,7 +255,7 @@ public final class PngOptimizer {
             writeChunkPLTE(paletteOs, palette);
         }
         byte[] bytes = generatePaletteData(info.pixels(), width, height, palette);
-        int zopfli = Config.optimizeTexture() ? Config.zopfliIterations() : 0;
+        int zopfli = this.zopfliIterations;
         paletteOs.write(zopfli > 0 ? compressImageZopfli(bytes, zopfli) : compressImageStandard(bytes));
         return Pair.of(palette, paletteOs.toByteArray());
     }
@@ -391,8 +469,7 @@ public final class PngOptimizer {
     }
 
     enum PngColorType {
-        GREYSCALE(0), TRUE_COLOR(2),
-        INDEXED_COLOR(3), GREYSCALE_WITH_ALPHA(4),
+        TRUE_COLOR(2), INDEXED_COLOR(3),
         TRUE_COLOR_WITH_ALPHA(6);
 
         private final int value;
@@ -526,6 +603,6 @@ public final class PngOptimizer {
     record ImageHeader(int width, int height, byte bitDepth, PngColorType pngColorType, byte compressionMethod, byte filterMethod, InterlaceMethod interlaceMethod) {
     }
 
-    record ImageColorInfo(int[] pixels, Int2IntMap opaque, Int2IntMap transparent, boolean isGrayscale, boolean hasAlpha, boolean hasPalette) {
+    record ImageColorInfo(int[] pixels, Int2IntMap opaque, Int2IntMap transparent, boolean hasAlpha, boolean hasPalette) {
     }
 }

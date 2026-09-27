@@ -181,7 +181,7 @@ resource_pack.generation_finished: Resource Pack in <arg:0>ms generiert
 resource_pack.validation_started: 'Validiere Resource Pack... (Fortschritt: <arg:0>/<arg:1> | Pack Format: <arg:2>~<arg:3> | Overlays: <arg:4>)'
 resource_pack.json_optimization_started: '> Optimiere JSON-Dateien...'
 resource_pack.texture_optimization_started: '> Optimiere Textur-Dateien...'
-resource_pack.optimization_result: '> □ Vor/Nach/Verhältnis: <arg:0>/<arg:1>/<arg:2>'
+resource_pack.optimization_result: '> □ Vor/Nach/Verhältnis: <arg:0>/<arg:1>/<arg:2>%'
 resource_pack.duplicated_files: Doppelte Dateien gefunden. Bitte löse diese über die 'resource-pack.duplicated-files-handler' Sektion in der config.yml
 resource_pack.malformatted_json: JSON-Datei '<arg:0>' ist fehlerhaft formatiert
 resource_pack.not_a_json_object: JSON-Datei '<arg:0>' ist kein JSON-Objekt

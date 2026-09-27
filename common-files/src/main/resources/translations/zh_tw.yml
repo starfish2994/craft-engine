@@ -175,7 +175,7 @@ resource_pack.generation_finished: 資源包生成完成，耗時 <arg:0> 毫秒
 resource_pack.validation_started: 正在驗證資源包...（進度：<arg:0>/<arg:1> | 資源包格式：<arg:2>~<arg:3> | 疊加資源包：<arg:4>）
 resource_pack.json_optimization_started: '> 正在最佳化 json 檔案...'
 resource_pack.texture_optimization_started: '> 正在最佳化紋理檔案...'
-resource_pack.optimization_result: '> □ 最佳化前/最佳化後/比率：<arg:0>/<arg:1>/<arg:2>'
+resource_pack.optimization_result: '> □ 最佳化前/最佳化後/比率：<arg:0>/<arg:1>/<arg:2>%'
 resource_pack.duplicated_files: 發現重複檔案。請通過 config.yml 檔案中的 'resource-pack.duplicated-files-handler' 部分進行處理
 resource_pack.malformatted_json: Json 檔案 '<arg:0>' 的格式不正確
 resource_pack.not_a_json_object: Json 檔案 '<arg:0>' 不是一個 json 物件

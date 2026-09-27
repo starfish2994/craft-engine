@@ -1489,12 +1489,12 @@ public abstract class AbstractPackManager implements PackManager {
 
     private byte[] optimizeImage(Path imagePath, byte[] previousImageBytes) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(previousImageBytes)) {
-            BufferedImage src = ImageIO.read(is);
+            BufferedImage src = PngOptimizer.readPng(is);
             if (src == null) {
                 Debugger.RESOURCE_PACK.debug(() -> "Cannot read image " + imagePath.toString());
                 return previousImageBytes;
             }
-            if (src.getType() == BufferedImage.TYPE_CUSTOM) {
+            if (!PngOptimizer.canOptimize(src)) {
                 return previousImageBytes;
             }
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
