@@ -148,13 +148,15 @@ public final class PngOptimizer {
     }
 
     private byte[] generatePngData(BufferedImage src, boolean hasAlpha, boolean isGrayscale) {
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int width = src.getWidth();
         int height = src.getHeight();
+        int channels = (isGrayscale ? 1 : 3) + (hasAlpha ? 1 : 0);
+        byte[] data = new byte[Math.multiplyExact(height, Math.addExact(1, Math.multiplyExact(width, channels)))];
+        int offset = 0;
         int[] row = new int[width];
         for (int y = 0; y < height; y++) {
             src.getRGB(0, y, width, 1, row, 0, width);
-            baos.write(FilterType.NONE.ordinal());
+            data[offset++] = (byte) FilterType.NONE.ordinal();
             for (int x = 0; x < width; x++) {
                 final int argb = row[x];
                 final int alpha = 0xff & argb >> 24;
@@ -163,18 +165,18 @@ public final class PngOptimizer {
                 final int blue = 0xff & argb >> 0;
                 if (isGrayscale) {
                     final int gray = (red + green + blue) / 3;
-                    baos.write(gray);
+                    data[offset++] = (byte) gray;
                 } else {
-                    baos.write(red);
-                    baos.write(green);
-                    baos.write(blue);
+                    data[offset++] = (byte) red;
+                    data[offset++] = (byte) green;
+                    data[offset++] = (byte) blue;
                 }
                 if (hasAlpha) {
-                    baos.write(alpha);
+                    data[offset++] = (byte) alpha;
                 }
             }
         }
-        return baos.toByteArray();
+        return data;
     }
 
     private Pair<Palette, byte[]> tryPalette(BufferedImage src, ImageColorInfo info) throws IOException {
@@ -198,35 +200,38 @@ public final class PngOptimizer {
         int width = src.getWidth();
         int height = src.getHeight();
         int bitsPerIndex = palette.calculateBitDepth();
-        final ByteArrayOutputStream dataOs = new ByteArrayOutputStream();
+        int rowBytes = Math.toIntExact(((long) width * bitsPerIndex + 7) / 8);
+        byte[] data = new byte[Math.multiplyExact(height, Math.addExact(rowBytes, 1))];
+        int offset = 0;
         final int[] row = new int[width];
 
         for (int y = 0; y < height; y++) {
             src.getRGB(0, y, width, 1, row, 0, width);
-            dataOs.write(FilterType.NONE.ordinal());
+            data[offset++] = (byte) FilterType.NONE.ordinal();
 
             // 根据位深度选择相应的处理方法
             switch (bitsPerIndex) {
-                case 4 -> process4Bit(row, width, dataOs, palette);
-                case 2 -> process2Bit(row, width, dataOs, palette);
-                case 1 -> process1Bit(row, width, dataOs, palette);
-                default -> process8Bit(row, width, dataOs, palette);
+                case 4 -> process4Bit(row, width, data, offset, palette);
+                case 2 -> process2Bit(row, width, data, offset, palette);
+                case 1 -> process1Bit(row, width, data, offset, palette);
+                default -> process8Bit(row, width, data, offset, palette);
             }
+            offset += rowBytes;
         }
-        return dataOs.toByteArray();
+        return data;
     }
 
     // 处理8位深度：每个索引占1字节
-    private void process8Bit(int[] row, int width, ByteArrayOutputStream dataOs, Palette palette) {
+    private void process8Bit(int[] row, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x++) {
             final int argb = row[x];
             final int index = palette.getPaletteIndex(argb);
-            dataOs.write(0xff & index);
+            data[offset++] = (byte) index;
         }
     }
 
     // 处理4位深度：每2个索引打包到1字节中
-    private void process4Bit(int[] row, int width, ByteArrayOutputStream dataOs, Palette palette) {
+    private void process4Bit(int[] row, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x += 2) {
             final int argb1 = row[x];
             final int index1 = palette.getPaletteIndex(argb1);
@@ -236,17 +241,17 @@ public final class PngOptimizer {
                 final int index2 = palette.getPaletteIndex(argb2);
                 // 将两个4位索引打包到一个字节中
                 byte packed = (byte) ((index1 << 4) | index2);
-                dataOs.write(packed);
+                data[offset++] = packed;
             } else {
                 // 如果是奇数宽度，最后一个像素单独处理
                 byte packed = (byte) (index1 << 4);
-                dataOs.write(packed);
+                data[offset++] = packed;
             }
         }
     }
 
     // 处理2位深度：每4个索引打包到1字节中
-    private void process2Bit(int[] row, int width, ByteArrayOutputStream dataOs, Palette palette) {
+    private void process2Bit(int[] row, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x += 4) {
             int packed = 0;
             for (int i = 0; i < 4; i++) {
@@ -256,12 +261,12 @@ public final class PngOptimizer {
                     packed |= (index << (6 - i * 2)) & 0xFF;
                 }
             }
-            dataOs.write(packed);
+            data[offset++] = (byte) packed;
         }
     }
 
     // 处理1位深度：每8个索引打包到1字节中
-    private void process1Bit(int[] row, int width, ByteArrayOutputStream dataOs, Palette palette) {
+    private void process1Bit(int[] row, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x += 8) {
             int packed = 0;
             for (int i = 0; i < 8; i++) {
@@ -271,7 +276,7 @@ public final class PngOptimizer {
                     packed |= (index << (7 - i));
                 }
             }
-            dataOs.write(packed);
+            data[offset++] = (byte) packed;
         }
     }
 
