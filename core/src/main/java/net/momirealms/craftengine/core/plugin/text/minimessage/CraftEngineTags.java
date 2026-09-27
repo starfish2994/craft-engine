@@ -7,6 +7,7 @@ public final class CraftEngineTags {
     public static final TagResolver[] INTERNAL = new TagResolver[] {
             ShiftTag.INSTANCE,
             ImageTag.INSTANCE,
+            HeadTextureTag.INSTANCE,
             I18NTag.INSTANCE,
             L10NTag.INSTANCE,
             ExpressionTag.INSTANCE,
