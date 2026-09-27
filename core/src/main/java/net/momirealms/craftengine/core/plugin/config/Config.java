@@ -135,6 +135,7 @@ public final class Config {
     private List<String> resource_pack$protection$obfuscation$bypass_equipments;
     private List<String> resource_pack$protection$obfuscation$bypass_item_models;
 
+    private int resource_pack$optimization$cache_size;
     private boolean resource_pack$optimization$texture$enable;
     private Set<String> resource_pack$optimization$texture$exlude;
     private int resource_pack$optimization$texture$zopfli_iterations;
@@ -498,6 +499,7 @@ public final class Config {
         this.resource_pack$protection$obfuscation$bypass_sounds = config.getStringList("resource-pack.protection.obfuscation.bypass-sounds");
         this.resource_pack$protection$obfuscation$bypass_equipments = config.getStringList("resource-pack.protection.obfuscation.bypass-equipments");
         this.resource_pack$protection$obfuscation$bypass_item_models = config.getStringList("resource-pack.protection.obfuscation.bypass-item-models");
+        this.resource_pack$optimization$cache_size = Math.max(0, config.getInt("resource-pack.optimization.cache-size", 64));
         this.resource_pack$optimization$texture$enable = config.getBoolean("resource-pack.optimization.texture.enable", true);
         this.resource_pack$optimization$texture$zopfli_iterations = config.getInt("resource-pack.optimization.texture.zopfli-iterations", 0);
         this.resource_pack$optimization$texture$exlude = config.getStringList("resource-pack.optimization.texture.exclude").stream().map(p -> {
@@ -1629,6 +1631,10 @@ public final class Config {
 
     public static boolean optimizeTexture() {
         return instance.resource_pack$optimization$texture$enable;
+    }
+
+    public static long optimizationCacheSize() {
+        return instance.resource_pack$optimization$cache_size * 1024L * 1024L;
     }
 
     public static Set<String> optimizeTextureExclude() {

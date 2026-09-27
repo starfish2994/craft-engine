@@ -44,7 +44,7 @@ public final class PngOptimizer {
         this(src, Config.optimizeTexture() ? Config.zopfliIterations() : 0);
     }
 
-    PngOptimizer(BufferedImage src, int zopfliIterations) {
+    public PngOptimizer(BufferedImage src, int zopfliIterations) {
         this.src = src;
         this.zopfliIterations = zopfliIterations;
     }

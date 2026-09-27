@@ -148,6 +148,7 @@ public abstract class AbstractPackManager implements PackManager {
     public final JsonObject vanillaItemAtlas;
     private Map<Path, CachedConfigFile> cachedConfigFiles = Collections.emptyMap();
     private Map<Path, CachedAssetFile> cachedAssetFiles = Collections.emptyMap();
+    private final PackOptimizationCache optimizationCache = new PackOptimizationCache(0);
     protected ZipGenerator zipGenerator;
     protected volatile ResourcePackHost resourcePackHost = NoneHost.INSTANCE;
     private volatile Map<String, ResourcePackHost> resourcePackHosts = Map.of();
@@ -411,6 +412,7 @@ public abstract class AbstractPackManager implements PackManager {
 
     @Override
     public void disable() {
+        this.optimizationCache.clear();
         this.selectedPacks.clear();
         this.packPreferences.clear();
         SelfHostHttpServer.instance().disable();
@@ -1198,6 +1200,13 @@ public abstract class AbstractPackManager implements PackManager {
     @SuppressWarnings("DuplicatedCode")
     private void optimizeResourcePack(Path path) {
         Timestamp timestamp = new Timestamp();
+        this.optimizationCache.setMaximumBytes(Config.optimizationCacheSize());
+        Path optimizationCachePath = this.plugin.dataFolderPath().resolve("cache").resolve("pack-optimization.bin");
+        try {
+            this.optimizationCache.load(optimizationCachePath);
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to load pack optimization cache; resources will be optimized again", e);
+        }
         // 收集全部overlay
         Path[] rootPaths;
         try {
@@ -1347,7 +1356,8 @@ public abstract class AbstractPackManager implements PackManager {
                 try {
                     byte[] before = Files.readAllBytes(jsonPath);
                     previousBytes.getAndAdd(before.length);
-                    byte[] after = PackJsonWriter.toJson(GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8))).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+                    byte[] after = this.optimizationCache.optimize(PackOptimizationCache.Type.JSON, 0, before,
+                            () -> optimizeJson(before, false));
                     if (after.length < before.length) {
                         afterBytes.addAndGet(after.length);
                         Files.write(jsonPath, after);
@@ -1362,14 +1372,8 @@ public abstract class AbstractPackManager implements PackManager {
                 try {
                     byte[] before = Files.readAllBytes(jsonPath);
                     previousBytes.getAndAdd(before.length);
-                    JsonObject json = GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8)).getAsJsonObject();
-                    List<String> invalidKey = json.keySet().stream().filter(k -> !ALLOWED_MODEL_TAGS.contains(k)).toList();
-                    if (!invalidKey.isEmpty()) {
-                        for (String key : invalidKey) {
-                            json.remove(key);
-                        }
-                    }
-                    byte[] after = PackJsonWriter.toJson(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+                    byte[] after = this.optimizationCache.optimize(PackOptimizationCache.Type.MODEL_JSON, 0, before,
+                            () -> optimizeJson(before, true));
                     if (after.length < before.length) {
                         afterBytes.addAndGet(after.length);
                         Files.write(jsonPath, after);
@@ -1405,6 +1409,7 @@ public abstract class AbstractPackManager implements PackManager {
 
         if (Config.optimizeTexture()) {
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.texture_optimization_started"));
+            int zopfliIterations = Config.zopfliIterations();
             AtomicLong previousBytes = new AtomicLong(0L);
             AtomicLong afterBytes = new AtomicLong(0L);
             int amount = imagesToOptimize.size();
@@ -1413,7 +1418,8 @@ public abstract class AbstractPackManager implements PackManager {
             CompletableFuture<Void> overallFuture = CompletableFutures.forEachAsync(imagesToOptimize, imagePath -> {
                 try {
                     byte[] previousImageBytes = Files.readAllBytes(imagePath);
-                    byte[] optimized = optimizeImage(imagePath, previousImageBytes);
+                    byte[] optimized = this.optimizationCache.optimize(PackOptimizationCache.Type.PNG, zopfliIterations, previousImageBytes,
+                            () -> optimizeImage(imagePath, previousImageBytes, zopfliIterations));
                     previousBytes.addAndGet(previousImageBytes.length);
                     if (optimized.length < previousImageBytes.length) {
                         afterBytes.addAndGet(optimized.length);
@@ -1444,6 +1450,11 @@ public abstract class AbstractPackManager implements PackManager {
             long optimizedSize = afterBytes.get();
             double compressionRatio = ((double) optimizedSize / originalSize) * 100;
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_result", formatSize(originalSize), formatSize(optimizedSize), String.format("%.2f", compressionRatio)));
+        }
+        try {
+            this.optimizationCache.save(optimizationCachePath);
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to save pack optimization cache", e);
         }
         this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_finished", String.valueOf(timestamp.deltaMillis())));
     }
@@ -1480,7 +1491,17 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    private byte[] optimizeImage(Path imagePath, byte[] previousImageBytes) throws IOException {
+    private static byte[] optimizeJson(byte[] input, boolean model) {
+        JsonElement json = GsonHelper.parseJson(new String(input, StandardCharsets.UTF_8));
+        if (model) {
+            JsonObject object = json.getAsJsonObject();
+            List<String> invalidKey = object.keySet().stream().filter(k -> !ALLOWED_MODEL_TAGS.contains(k)).toList();
+            for (String key : invalidKey) object.remove(key);
+        }
+        return PackJsonWriter.toJson(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+    }
+
+    private byte[] optimizeImage(Path imagePath, byte[] previousImageBytes, int zopfliIterations) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(previousImageBytes)) {
             BufferedImage src = PngOptimizer.readPng(is);
             if (src == null) {
@@ -1491,7 +1512,7 @@ public abstract class AbstractPackManager implements PackManager {
                 return previousImageBytes;
             }
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            new PngOptimizer(src).write(baos);
+            new PngOptimizer(src, zopfliIterations).write(baos);
             return baos.toByteArray();
         }
     }
