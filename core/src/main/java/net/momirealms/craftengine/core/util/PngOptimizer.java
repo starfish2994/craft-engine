@@ -58,8 +58,8 @@ public final class PngOptimizer {
         final int width = src.getWidth();
         final int height = src.getHeight();
 
-        Map<Integer, Integer> ope = new HashMap<>();
-        Map<Integer, Integer> tra = new HashMap<>();
+        Int2IntOpenHashMap ope = new Int2IntOpenHashMap();
+        Int2IntOpenHashMap tra = new Int2IntOpenHashMap();
         boolean hasAlpha = false;
         boolean hasPalette = true;
         boolean isGrayscale = true;
@@ -77,9 +77,9 @@ public final class PngOptimizer {
             }
             if (!hasPalette) continue;
             if (alpha == 255) {
-                ope.put(argb, ope.getOrDefault(argb, 0) + 1);
+                ope.addTo(argb, 1);
             } else {
-                tra.put(argb, tra.getOrDefault(argb, 0) + 1);
+                tra.addTo(argb, 1);
             }
             if (ope.size() + tra.size() > 256) {
                 // More than 256 colors cannot be represented by a PNG palette.
