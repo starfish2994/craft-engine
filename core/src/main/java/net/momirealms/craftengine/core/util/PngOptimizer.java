@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.core.util;
 
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.zopfli.Options;
 import net.momirealms.craftengine.core.util.zopfli.ZopfliOutputStream;
@@ -457,14 +458,15 @@ public final class PngOptimizer {
 
     static class ExactOpaquePalette implements Palette {
         private final int[] palette;                      // 频次排序的颜色数组
-        private final Map<Integer, Integer> colorToIndex; // 颜色到索引的映射
+        private final Int2IntOpenHashMap colorToIndex;     // 颜色到索引的映射
 
         public ExactOpaquePalette(final Map<Integer, Integer> colorFrequency) {
             this.palette = colorFrequency.entrySet().stream()
                     .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
                     .mapToInt(Map.Entry::getKey)
                     .toArray();
-            this.colorToIndex = new HashMap<>();
+            this.colorToIndex = new Int2IntOpenHashMap(palette.length);
+            this.colorToIndex.defaultReturnValue(-1);
             for (int i = 0; i < palette.length; i++) {
                 this.colorToIndex.put(palette[i], i);
             }
@@ -480,7 +482,11 @@ public final class PngOptimizer {
 
         @Override
         public int getPaletteIndex(int rgb) {
-            return colorToIndex.get(rgb);
+            int index = colorToIndex.get(rgb);
+            if (index < 0) {
+                throw new IllegalArgumentException("Color not found in palette: 0x" + Integer.toHexString(rgb));
+            }
+            return index;
         }
 
         @Override
@@ -491,7 +497,7 @@ public final class PngOptimizer {
 
     static class ExactTransparentPalette implements Palette {
         private final int[] palette;                      // 透明色在前，不透明色在后
-        private final Map<Integer, Integer> colorToIndex; // 颜色到索引的映射
+        private final Int2IntOpenHashMap colorToIndex;     // 颜色到索引的映射
 
         public ExactTransparentPalette(final Map<Integer, Integer> opaque, final Map<Integer, Integer> transparent) {
             // 分别处理透明色和不透明色
@@ -512,7 +518,8 @@ public final class PngOptimizer {
 
             this.palette = combinedList.stream().mapToInt(Integer::intValue).toArray();
 
-            this.colorToIndex = new HashMap<>();
+            this.colorToIndex = new Int2IntOpenHashMap(palette.length);
+            this.colorToIndex.defaultReturnValue(-1);
             for (int i = 0; i < palette.length; i++) {
                 this.colorToIndex.put(palette[i], i);
             }
@@ -528,8 +535,8 @@ public final class PngOptimizer {
 
         @Override
         public int getPaletteIndex(int rgb) {
-            Integer index = colorToIndex.get(rgb);
-            if (index == null) {
+            int index = colorToIndex.get(rgb);
+            if (index < 0) {
                 throw new IllegalArgumentException("Color not found in palette: 0x" + Integer.toHexString(rgb));
             }
             return index;
