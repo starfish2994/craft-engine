@@ -1,6 +1,9 @@
 package net.momirealms.craftengine.core.util;
 
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrays;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.zopfli.Options;
 import net.momirealms.craftengine.core.util.zopfli.ZopfliOutputStream;
@@ -11,8 +14,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.List;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -313,28 +314,18 @@ public final class PngOptimizer {
     }
 
     private void writeChunkTRNS(final OutputStream os, final Palette palette) throws IOException {
-        List<Byte> alphaValues = new ArrayList<>();
-        boolean hasTransparency = false;
-
-        for (int i = 0; i < palette.length(); i++) {
-            int argb = palette.getEntry(i);
-            int alpha = (argb >> 24) & 0xFF;
-
-            if (alpha < 255) {
-                hasTransparency = true;
-                alphaValues.add((byte) alpha);
-            } else {
-                break;
-            }
+        int transparentColors = 0;
+        while (transparentColors < palette.length() && (palette.getEntry(transparentColors) >>> 24) < 255) {
+            transparentColors++;
         }
 
-        if (!hasTransparency) {
+        if (transparentColors == 0) {
             return;
         }
 
-        final byte[] bytes = new byte[alphaValues.size()];
-        for (int i = 0; i < alphaValues.size(); i++) {
-            bytes[i] = alphaValues.get(i);
+        final byte[] bytes = new byte[transparentColors];
+        for (int i = 0; i < transparentColors; i++) {
+            bytes[i] = (byte) (palette.getEntry(i) >>> 24);
         }
 
         writeChunk(os, tRNS, bytes);
@@ -440,15 +431,21 @@ public final class PngOptimizer {
         }
     }
 
+    private static int[] sortColors(Int2IntMap colorFrequency) {
+        IntArrayList colors = new IntArrayList(colorFrequency.size());
+        // Match the previous stream traversal order before sorting equal-frequency colors.
+        colorFrequency.keySet().spliterator().forEachRemaining((int color) -> colors.add(color));
+        int[] palette = colors.elements();
+        IntArrays.stableSort(palette, (a, b) -> Integer.compare(colorFrequency.get(b), colorFrequency.get(a)));
+        return palette;
+    }
+
     static class ExactOpaquePalette implements Palette {
         private final int[] palette;                      // 频次排序的颜色数组
         private final Int2IntOpenHashMap colorToIndex;     // 颜色到索引的映射
 
-        public ExactOpaquePalette(final Map<Integer, Integer> colorFrequency) {
-            this.palette = colorFrequency.entrySet().stream()
-                    .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-                    .mapToInt(Map.Entry::getKey)
-                    .toArray();
+        public ExactOpaquePalette(final Int2IntMap colorFrequency) {
+            this.palette = sortColors(colorFrequency);
             this.colorToIndex = new Int2IntOpenHashMap(palette.length);
             this.colorToIndex.defaultReturnValue(-1);
             for (int i = 0; i < palette.length; i++) {
@@ -483,24 +480,15 @@ public final class PngOptimizer {
         private final int[] palette;                      // 透明色在前，不透明色在后
         private final Int2IntOpenHashMap colorToIndex;     // 颜色到索引的映射
 
-        public ExactTransparentPalette(final Map<Integer, Integer> opaque, final Map<Integer, Integer> transparent) {
+        public ExactTransparentPalette(final Int2IntMap opaque, final Int2IntMap transparent) {
             // 分别处理透明色和不透明色
-            List<Integer> transparentList = transparent.entrySet().stream()
-                    .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())) // 按频次降序
-                    .map(Map.Entry::getKey)
-                    .toList();
-
-            List<Integer> opaqueList = opaque.entrySet().stream()
-                    .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())) // 按频次降序
-                    .map(Map.Entry::getKey)
-                    .toList();
+            int[] transparentColors = sortColors(transparent);
+            int[] opaqueColors = sortColors(opaque);
 
             // 合并：透明色在前，不透明色在后
-            List<Integer> combinedList = new ArrayList<>();
-            combinedList.addAll(transparentList);
-            combinedList.addAll(opaqueList);
-
-            this.palette = combinedList.stream().mapToInt(Integer::intValue).toArray();
+            this.palette = new int[transparentColors.length + opaqueColors.length];
+            System.arraycopy(transparentColors, 0, this.palette, 0, transparentColors.length);
+            System.arraycopy(opaqueColors, 0, this.palette, transparentColors.length, opaqueColors.length);
 
             this.colorToIndex = new Int2IntOpenHashMap(palette.length);
             this.colorToIndex.defaultReturnValue(-1);
@@ -538,6 +526,6 @@ public final class PngOptimizer {
     record ImageHeader(int width, int height, byte bitDepth, PngColorType pngColorType, byte compressionMethod, byte filterMethod, InterlaceMethod interlaceMethod) {
     }
 
-    record ImageColorInfo(int[] pixels, Map<Integer, Integer> opaque, Map<Integer, Integer> transparent, boolean isGrayscale, boolean hasAlpha, boolean hasPalette) {
+    record ImageColorInfo(int[] pixels, Int2IntMap opaque, Int2IntMap transparent, boolean isGrayscale, boolean hasAlpha, boolean hasPalette) {
     }
 }
