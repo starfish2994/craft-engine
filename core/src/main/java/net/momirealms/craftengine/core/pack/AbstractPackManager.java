@@ -1340,52 +1340,48 @@ public abstract class AbstractPackManager implements PackManager {
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.json_optimization_started"));
             AtomicLong previousBytes = new AtomicLong(0L);
             AtomicLong afterBytes = new AtomicLong(0L);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             int amount = commonJsonToOptimize.size() + modelJsonToOptimize.size();
             AtomicInteger finished = new AtomicInteger(0);
-            for (Path jsonPath : commonJsonToOptimize) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        byte[] before = Files.readAllBytes(jsonPath);
-                        previousBytes.getAndAdd(before.length);
-                        byte[] after = GsonHelper.toString(GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8))).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
-                        if (after.length < before.length) {
-                            afterBytes.addAndGet(after.length);
-                            Files.write(jsonPath, after);
-                        } else {
-                            afterBytes.addAndGet(before.length);
-                        }
-                        finished.incrementAndGet();
-                    } catch (IOException | JsonParseException | NullPointerException ignored) {
+            ForkJoinPool executor = (ForkJoinPool) this.plugin.scheduler().async();
+            CompletableFuture<Void> commonFuture = CompletableFutures.forEachAsync(commonJsonToOptimize, jsonPath -> {
+                try {
+                    byte[] before = Files.readAllBytes(jsonPath);
+                    previousBytes.getAndAdd(before.length);
+                    byte[] after = GsonHelper.toString(GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8))).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+                    if (after.length < before.length) {
+                        afterBytes.addAndGet(after.length);
+                        Files.write(jsonPath, after);
+                    } else {
+                        afterBytes.addAndGet(before.length);
                     }
-                }, this.plugin.scheduler().async()));
-            }
-            for (Path jsonPath : modelJsonToOptimize) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        byte[] before = Files.readAllBytes(jsonPath);
-                        previousBytes.getAndAdd(before.length);
-                        JsonObject json = GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8)).getAsJsonObject();
-                        List<String> invalidKey = json.keySet().stream().filter(k -> !ALLOWED_MODEL_TAGS.contains(k)).toList();
-                        if (!invalidKey.isEmpty()) {
-                            for (String key : invalidKey) {
-                                json.remove(key);
-                            }
+                    finished.incrementAndGet();
+                } catch (IOException | JsonParseException | NullPointerException ignored) {
+                }
+            }, executor.getParallelism(), executor);
+            CompletableFuture<Void> modelFuture = CompletableFutures.forEachAsync(modelJsonToOptimize, jsonPath -> {
+                try {
+                    byte[] before = Files.readAllBytes(jsonPath);
+                    previousBytes.getAndAdd(before.length);
+                    JsonObject json = GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8)).getAsJsonObject();
+                    List<String> invalidKey = json.keySet().stream().filter(k -> !ALLOWED_MODEL_TAGS.contains(k)).toList();
+                    if (!invalidKey.isEmpty()) {
+                        for (String key : invalidKey) {
+                            json.remove(key);
                         }
-                        byte[] after = GsonHelper.toString(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
-                        if (after.length < before.length) {
-                            afterBytes.addAndGet(after.length);
-                            Files.write(jsonPath, after);
-                        } else {
-                            afterBytes.addAndGet(before.length);
-                        }
-                        finished.incrementAndGet();
-                    } catch (IOException | JsonParseException | IllegalStateException | NullPointerException ignored) {
                     }
-                }, this.plugin.scheduler().async()));
-            }
+                    byte[] after = GsonHelper.toString(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+                    if (after.length < before.length) {
+                        afterBytes.addAndGet(after.length);
+                        Files.write(jsonPath, after);
+                    } else {
+                        afterBytes.addAndGet(before.length);
+                    }
+                    finished.incrementAndGet();
+                } catch (IOException | JsonParseException | IllegalStateException | NullPointerException ignored) {
+                }
+            }, executor.getParallelism(), executor);
 
-            CompletableFuture<Void> overallFuture = CompletableFutures.allOf(futures);
+            CompletableFuture<Void> overallFuture = CompletableFuture.allOf(commonFuture, modelFuture);
             long startTime = System.currentTimeMillis();
             for (;;) {
                 try {
