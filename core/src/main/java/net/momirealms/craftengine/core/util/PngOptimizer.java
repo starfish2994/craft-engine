@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.MemoryCacheImageInputStream;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -49,7 +50,8 @@ public final class PngOptimizer {
     }
 
     public static BufferedImage readPng(InputStream input) throws IOException {
-        try (ImageInputStream stream = ImageIO.createImageInputStream(input)) {
+        // Pack images are already in memory; avoid ImageIO's temporary-file cache.
+        try (ImageInputStream stream = new MemoryCacheImageInputStream(input)) {
             var readers = ImageIO.getImageReaders(stream);
             if (!readers.hasNext()) return null;
             ImageReader reader = readers.next();
