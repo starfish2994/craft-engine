@@ -1347,7 +1347,7 @@ public abstract class AbstractPackManager implements PackManager {
                 try {
                     byte[] before = Files.readAllBytes(jsonPath);
                     previousBytes.getAndAdd(before.length);
-                    byte[] after = GsonHelper.toString(GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8))).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+                    byte[] after = PackJsonWriter.toJson(GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8))).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
                     if (after.length < before.length) {
                         afterBytes.addAndGet(after.length);
                         Files.write(jsonPath, after);
@@ -1369,7 +1369,7 @@ public abstract class AbstractPackManager implements PackManager {
                             json.remove(key);
                         }
                     }
-                    byte[] after = GsonHelper.toString(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+                    byte[] after = PackJsonWriter.toJson(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
                     if (after.length < before.length) {
                         afterBytes.addAndGet(after.length);
                         Files.write(jsonPath, after);
