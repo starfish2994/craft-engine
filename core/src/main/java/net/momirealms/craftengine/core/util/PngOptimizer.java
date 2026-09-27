@@ -291,9 +291,8 @@ public final class PngOptimizer {
         byte[] compressedData = baos.toByteArray();
         int chunkSize = 32 * 1024;
         for (int index = 0; index < compressedData.length; index += chunkSize) {
-            int end = Math.min(compressedData.length, index + chunkSize);
-            byte[] chunk = Arrays.copyOfRange(compressedData, index, end);
-            writeChunkIDAT(output, chunk);
+            int length = Math.min(chunkSize, compressedData.length - index);
+            writeChunkIDAT(output, compressedData, index, length);
         }
         return output.toByteArray();
     }
@@ -312,17 +311,16 @@ public final class PngOptimizer {
 
             final int chunkSize = 32 * 1024;
             for (int index = 0; index < compressed.length; index += chunkSize) {
-                final int end = Math.min(compressed.length, index + chunkSize);
-                final byte[] chunk = Arrays.copyOfRange(compressed, index, end);
-                writeChunkIDAT(output, chunk);
+                final int length = Math.min(chunkSize, compressed.length - index);
+                writeChunkIDAT(output, compressed, index, length);
             }
         }
 
         return output.toByteArray();
     }
 
-    private void writeChunkIDAT(final OutputStream os, final byte[] bytes) throws IOException {
-        writeChunk(os, IDAT, bytes);
+    private void writeChunkIDAT(final OutputStream os, final byte[] bytes, int offset, int length) throws IOException {
+        writeChunk(os, IDAT, bytes, offset, length);
     }
 
     private void writeChunkIEND(final OutputStream os) throws IOException {
@@ -391,19 +389,27 @@ public final class PngOptimizer {
 
     private void writeChunk(final OutputStream os, final byte[] chunkType, final byte[] data) throws IOException {
         final int dataLength = data == null ? 0 : data.length;
-        writeInt(os, dataLength);
+        writeChunk(os, chunkType, data, 0, dataLength);
+    }
+
+    private void writeChunk(final OutputStream os, final byte[] chunkType, final byte[] data, int offset, int length) throws IOException {
+        writeInt(os, length);
         os.write(chunkType);
-        if (data != null) {
-            os.write(data);
+        if (length > 0) {
+            os.write(data, offset, length);
         }
-        writeInt(os, calculateCRC(chunkType, data)); // crc
+        writeInt(os, calculateCRC(chunkType, data, offset, length)); // crc
     }
 
     public static int calculateCRC(byte[] chunkType, byte[] data) {
+        return calculateCRC(chunkType, data, 0, data == null ? 0 : data.length);
+    }
+
+    private static int calculateCRC(byte[] chunkType, byte[] data, int offset, int length) {
         CRC crc = new CRC();
         crc.update(chunkType, 0, chunkType.length);
-        if (data != null && data.length > 0) {
-            crc.update(data, 0, data.length);
+        if (length > 0) {
+            crc.update(data, offset, length);
         }
         return crc.getValue();
     }
