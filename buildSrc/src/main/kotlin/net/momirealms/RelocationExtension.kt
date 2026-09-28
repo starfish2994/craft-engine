@@ -1,6 +1,7 @@
 package net.momirealms
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.file.DuplicatesStrategy
 
 open class RelocationExtension {
     open fun applyCommon(task: ShadowJar) {
@@ -43,6 +44,9 @@ open class RelocationExtension {
             relocate("com.mongodb", "$libs.mongodb")
             relocate("org.bson", "$libs.bson")
             mergeServiceFiles()
+            filesMatching("META-INF/services/**") {
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
+            }
         }
     }
 }
