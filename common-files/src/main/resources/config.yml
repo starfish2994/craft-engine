@@ -29,6 +29,8 @@ resource-pack:
       # - type: optimize
         - type: zip
           path: "./generated/resource_pack.zip"
+          # Skip outer ZIP compression for PNGs. Image quality is unchanged; ZIP size may increase.
+          store-png: false
       #   protection: true  # requires premium version
         - type: upload
           pack: default

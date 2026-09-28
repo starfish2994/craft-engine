@@ -4,12 +4,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -20,6 +22,12 @@ public final class ZipUtils {
     private ZipUtils() {}
 
     public static void compress(Path in, Path out) throws IOException {
+        compress(in, out, false);
+    }
+
+    public static void compress(Path in, Path out, boolean storePng) throws IOException {
+        byte[] crcBuffer = storePng ? new byte[8192] : null;
+        CRC32 crc = storePng ? new CRC32() : null;
         try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(out), ZIP_OUTPUT_BUFFER_SIZE);
              ZipOutputStream zos = new ZipOutputStream(os)) {
 
@@ -41,6 +49,20 @@ public final class ZipUtils {
                     String relativePath = in.relativize(file).toString().replace("\\", "/");
                     ZipEntry entry = new ZipEntry(relativePath);
                     entry.setTime(0L);
+                    if (storePng && FileUtils.isPngFile(file)) {
+                        // STORED entries need their size and CRC before the local header is written.
+                        crc.reset();
+                        try (InputStream input = Files.newInputStream(file)) {
+                            int length;
+                            while ((length = input.read(crcBuffer)) != -1) {
+                                crc.update(crcBuffer, 0, length);
+                            }
+                        }
+                        entry.setMethod(ZipEntry.STORED);
+                        entry.setSize(attrs.size());
+                        entry.setCompressedSize(attrs.size());
+                        entry.setCrc(crc.getValue());
+                    }
                     zos.putNextEntry(entry);
                     Files.copy(file, zos);
                     zos.closeEntry();

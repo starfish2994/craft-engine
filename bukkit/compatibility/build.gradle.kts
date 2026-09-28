@@ -47,6 +47,7 @@ dependencies {
     compileOnly(libs.compat.luckperms)
     // viaversion
     compileOnly(libs.compat.viaversion.api)
+    compileOnly(libs.compat.viaversion.common)
     compileOnly(libs.compat.viaversion.bukkit)
     // Skript
     compileOnly(libs.compat.skript)

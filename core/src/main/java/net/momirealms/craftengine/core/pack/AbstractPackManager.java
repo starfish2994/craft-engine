@@ -163,7 +163,7 @@ public abstract class AbstractPackManager implements PackManager {
 
     public AbstractPackManager(CraftEngine plugin) {
         this.plugin = plugin;
-        this.zipGenerator = request -> ZipUtils.compress(request.source(), request.output());
+        this.zipGenerator = request -> ZipUtils.compress(request.source(), request.output(), request.storePng());
         Path resourcesFolder = this.plugin.dataFolderPath().resolve("resources");
         try {
             if (Files.notExists(resourcesFolder)) {
@@ -863,7 +863,7 @@ public abstract class AbstractPackManager implements PackManager {
         return this.plugin.dataFolderPath().resolve(path).toAbsolutePath().normalize();
     }
 
-    private void writePack(GeneratedPack pack, Path output, ZipGenerator writer, boolean protection) throws IOException {
+    private void writePack(GeneratedPack pack, Path output, ZipGenerator writer, boolean protection, boolean storePng) throws IOException {
         this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_started"));
         // 包含混淆、ZIP 写入和最终文件替换的耗时，仅在成功后输出完成提示。
         Timestamp timestamp = new Timestamp();
@@ -871,7 +871,7 @@ public abstract class AbstractPackManager implements PackManager {
         // Upload only a complete result, keeping a previous successful file intact if writing fails.
         Path temporary = Files.createTempFile(output.toAbsolutePath().getParent(), ".pack-", ".zip");
         try {
-            writer.generate(new PackZipRequest(pack.path(), temporary, protection));
+            writer.generate(new PackZipRequest(pack.path(), temporary, protection, storePng));
             if (Files.size(temporary) == 0) throw new IOException("No resource pack was written: " + output);
             Files.move(temporary, output, StandardCopyOption.REPLACE_EXISTING);
         } finally {
@@ -1044,9 +1044,9 @@ public abstract class AbstractPackManager implements PackManager {
         }
 
         @Override
-        public void zip(String path, boolean protection) throws IOException {
+        public void zip(String path, boolean protection, boolean storePng) throws IOException {
             Path output = resolveWorkflowPath(path);
-            writePack(this.pack, output, this.generator, protection && VersionHelper.PREMIUM);
+            writePack(this.pack, output, this.generator, protection && VersionHelper.PREMIUM, storePng);
             dispatchGenerationEvent(this.pack.path(), output);
         }
 

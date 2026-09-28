@@ -23,7 +23,11 @@ public interface PackWorkflowContext {
 
     void optimize() throws Exception;
 
-    void zip(String path, boolean protection) throws Exception;
+    default void zip(String path, boolean protection) throws Exception {
+        zip(path, protection, false);
+    }
+
+    void zip(String path, boolean protection, boolean storePng) throws Exception;
 
     void upload(String pack, String path) throws Exception;
 
