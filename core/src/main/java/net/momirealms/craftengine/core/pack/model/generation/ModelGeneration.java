@@ -28,6 +28,7 @@ public final class ModelGeneration implements Supplier<JsonObject> {
     private final JsonObject rawModel;
     @Nullable
     private final Map<Key, byte[]> rawTextures;
+    private final Map<Key, JsonObject> rawTextureMetadata;
     @Nullable
     private JsonObject cachedModel;
 
@@ -43,9 +44,10 @@ public final class ModelGeneration implements Supplier<JsonObject> {
         this.ambientOcclusion = ambientOcclusion;
         this.rawModel = null;
         this.rawTextures = null;
+        this.rawTextureMetadata = Map.of();
     }
 
-    private ModelGeneration(@NotNull JsonObject rawModel, @Nullable Map<Key, byte[]> rawTextures) {
+    private ModelGeneration(@NotNull JsonObject rawModel, @Nullable Map<Key, byte[]> rawTextures, Map<Key, JsonObject> rawTextureMetadata) {
         this.parentModelPath = null;
         this.texturesOverride = null;
         this.displays = null;
@@ -53,10 +55,19 @@ public final class ModelGeneration implements Supplier<JsonObject> {
         this.ambientOcclusion = null;
         this.rawModel = rawModel;
         this.rawTextures = rawTextures;
+        this.rawTextureMetadata = rawTextureMetadata;
     }
 
     public static ModelGeneration raw(JsonObject model, Map<Key, byte[]> textures) {
-        return new ModelGeneration(model, textures);
+        return raw(model, textures, Map.of());
+    }
+
+    public static ModelGeneration raw(JsonObject model, Map<Key, byte[]> textures, Map<Key, JsonObject> textureMetadata) {
+        return new ModelGeneration(model, textures, textureMetadata);
+    }
+
+    public Map<Key, JsonObject> rawTextureMetadata() {
+        return this.rawTextureMetadata;
     }
 
     @NotNull

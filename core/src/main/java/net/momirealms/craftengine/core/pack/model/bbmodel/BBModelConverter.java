@@ -123,19 +123,23 @@ public final class BBModelConverter {
         }
         List<String> textureLinks = new ArrayList<>(textures.size());
         Map<Key, byte[]> embeddedTextures = new LinkedHashMap<>();
+        Map<Key, JsonObject> textureMetadata = new LinkedHashMap<>();
         int embeddedIndex = 0;
         for (int i = 0; i < textures.size(); i++) {
             JsonObject texture = textures.get(i);
             if (isEmbedded(texture) && (exportedTextures.contains(i) || texturesOnlyModel)) {
                 embeddedIndex++;
                 byte[] png;
+                JsonObject metadata;
                 try {
                     png = Base64.getDecoder().decode(texture.get("source").getAsString().substring(BASE64_PNG_PREFIX.length()));
-                } catch (IllegalArgumentException e) {
+                    metadata = TextureAnimationMetadata.create(texture, png, resolutionWidth, resolutionHeight);
+                } catch (IOException | IllegalArgumentException e) {
                     throw new KnownResourceException("resource.model.bbmodel.invalid_file", node, bbmodelFile.toAbsolutePath().toString());
                 }
                 Key textureKey = Key.of(modelKey.namespace(), embeddedTotal == 1 ? modelKey.value() : modelKey.value() + "_" + embeddedIndex);
                 embeddedTextures.put(textureKey, png);
+                if (metadata != null) textureMetadata.put(textureKey, metadata);
                 textureLinks.add(textureKey.asMinimalString());
             } else {
                 textureLinks.add(javaTextureLink(texture));
@@ -204,7 +208,7 @@ public final class BBModelConverter {
                 }
             }
         }
-        return new Converted(modelKey, modelJson, embeddedTextures);
+        return new Converted(modelKey, modelJson, embeddedTextures, textureMetadata);
     }
 
     @Nullable
@@ -410,6 +414,9 @@ public final class BBModelConverter {
         return link.startsWith("#") ? link.substring(1) : link;
     }
 
-    public record Converted(Key model, JsonObject json, Map<Key, byte[]> textures) {
+    public record Converted(Key model, JsonObject json, Map<Key, byte[]> textures, Map<Key, JsonObject> textureMetadata) {
+        public Converted(Key model, JsonObject json, Map<Key, byte[]> textures) {
+            this(model, json, textures, Map.of());
+        }
     }
 }

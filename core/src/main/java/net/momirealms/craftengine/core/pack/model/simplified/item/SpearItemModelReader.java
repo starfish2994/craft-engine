@@ -69,8 +69,8 @@ public final class SpearItemModelReader implements SimplifiedItemModelReader {
         BBModelConverter.Converted gui = blueprints.get(0);
         BBModelConverter.Converted inHand = blueprints.get(1);
         return build(
-                gui.model(), ModelGeneration.raw(gui.json(), gui.textures()),
-                inHand.model(), ModelGeneration.raw(inHand.json(), inHand.textures())
+                gui.model(), ModelGeneration.raw(gui.json(), gui.textures(), gui.textureMetadata()),
+                inHand.model(), ModelGeneration.raw(inHand.json(), inHand.textures(), inHand.textureMetadata())
         );
     }
 

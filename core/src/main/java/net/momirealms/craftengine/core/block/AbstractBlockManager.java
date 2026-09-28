@@ -703,7 +703,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
                                 JsonObject json = new JsonObject();
                                 json.addProperty("model", converted.model().asMinimalString());
                                 applyOtherBlockStateProperties(json, appearanceSection);
-                                prepareModelGeneration(new ModelGenerationHolder(converted.model(), ModelGeneration.raw(converted.json(), converted.textures())));
+                                prepareModelGeneration(new ModelGenerationHolder(converted.model(), ModelGeneration.raw(converted.json(), converted.textures(), converted.textureMetadata())));
                                 arrangeModelForStateAndVerify(visualBlockState, json, blueprintValue.path());
                             } else if (textureValue != null) {
                                 Pair<List<Key>, Key> pair = parseTextures(textureValue);
@@ -970,7 +970,7 @@ public abstract class AbstractBlockManager extends AbstractModelGenerator implem
             if (blueprintValue != null) {
                 BBModelConverter.Converted converted = BBModelConverter.convert(pack, path, "block", pathValue, blueprintValue);
                 modelPath = converted.model();
-                prepareModelGeneration(new ModelGenerationHolder(modelPath, ModelGeneration.raw(converted.json(), converted.textures())));
+                prepareModelGeneration(new ModelGenerationHolder(modelPath, ModelGeneration.raw(converted.json(), converted.textures(), converted.textureMetadata())));
             }
             // 直接设定了 path
             else if (pathValue != null) {

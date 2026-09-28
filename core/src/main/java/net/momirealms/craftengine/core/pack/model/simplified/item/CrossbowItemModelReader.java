@@ -83,7 +83,7 @@ public final class CrossbowItemModelReader implements SimplifiedItemModelReader 
         for (int i = 0; i < 6; i++) {
             BBModelConverter.Converted converted = blueprints.get(i);
             paths[i] = converted.model();
-            generations[i] = ModelGeneration.raw(converted.json(), converted.textures());
+            generations[i] = ModelGeneration.raw(converted.json(), converted.textures(), converted.textureMetadata());
         }
         return build(paths, generations);
     }

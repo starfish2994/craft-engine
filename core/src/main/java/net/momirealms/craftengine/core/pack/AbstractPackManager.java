@@ -3391,6 +3391,11 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(texturePath.getParent());
                 Files.write(texturePath, entry.getValue());
+                JsonObject metadata = generator.textureMetadataToGenerate().get(entry.getKey());
+                if (metadata != null) {
+                    Path metadataPath = texturePath.resolveSibling(texturePath.getFileName() + ".mcmeta");
+                    if (!Files.exists(metadataPath)) writeJsonSafely(metadata, metadataPath);
+                }
             } catch (IOException e) {
                 this.plugin.logger().warn("Failed to generate texture " + texturePath.toAbsolutePath(), e);
             }

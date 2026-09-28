@@ -76,7 +76,7 @@ public final class BowItemModelReader implements SimplifiedItemModelReader {
         for (int i = 0; i < 4; i++) {
             BBModelConverter.Converted converted = blueprints.get(i);
             paths[i] = converted.model();
-            generations[i] = ModelGeneration.raw(converted.json(), converted.textures());
+            generations[i] = ModelGeneration.raw(converted.json(), converted.textures(), converted.textureMetadata());
         }
         return build(paths, generations);
     }
