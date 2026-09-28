@@ -1,17 +1,31 @@
 package net.momirealms.craftengine.core.util;
 
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrays;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.zopfli.Options;
 import net.momirealms.craftengine.core.util.zopfli.ZopfliOutputStream;
+import org.w3c.dom.Node;
 
-import java.awt.*;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.MemoryCacheImageInputStream;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.ComponentColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.Raster;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.List;
+import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -24,30 +38,73 @@ public final class PngOptimizer {
     private static final byte[] IHDR = "IHDR".getBytes(StandardCharsets.UTF_8);
 
     private final BufferedImage src;
+    private final int zopfliIterations;
 
     public PngOptimizer(BufferedImage src) {
-        this.src = src;
+        this(src, Config.optimizeTexture() ? Config.zopfliIterations() : 0);
     }
 
-    private boolean isGrayscale(final BufferedImage src) {
-        final int width = src.getWidth();
-        final int height = src.getHeight();
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                final int argb = src.getRGB(x, y);
-                final int red = 0xff & argb >> 16;
-                final int green = 0xff & argb >> 8;
-                final int blue = 0xff & argb >> 0;
-                if (red != green || red != blue) {
-                    return false;
+    public PngOptimizer(BufferedImage src, int zopfliIterations) {
+        this.src = src;
+        this.zopfliIterations = zopfliIterations;
+    }
+
+    public static BufferedImage readPng(InputStream input) throws IOException {
+        // Pack images are already in memory; avoid ImageIO's temporary-file cache.
+        try (ImageInputStream stream = new MemoryCacheImageInputStream(input)) {
+            var readers = ImageIO.getImageReaders(stream);
+            if (!readers.hasNext()) return null;
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(stream, true, false);
+                BufferedImage image = reader.read(0);
+                if (isRawGrayscale(image) && image.getColorModel().hasAlpha()) {
+                    restorePackedGrayTransparency(image, reader.getImageMetadata(0));
                 }
+                return image;
+            } finally {
+                reader.dispose();
             }
         }
-        return true;
+    }
+
+    private static void restorePackedGrayTransparency(BufferedImage image, IIOMetadata metadata) {
+        String format = "javax_imageio_png_1.0";
+        if (!format.equals(metadata.getNativeMetadataFormatName())) return;
+        Node root = metadata.getAsTree(format);
+        Node header = child(root, "IHDR");
+        Node transparency = child(root, "tRNS");
+        if (header == null || transparency == null) return;
+        Node gray = child(transparency, "tRNS_Grayscale");
+        if (gray == null) return;
+        int bits = Integer.parseInt(header.getAttributes().getNamedItem("bitDepth").getNodeValue());
+        if (bits >= 8) return;
+
+        // ImageIO expands packed gray samples to 8 bits, but compares tRNS against
+        // the unscaled key. Rebuild alpha using the key in the expanded range.
+        int key = Integer.parseInt(gray.getAttributes().getNamedItem("gray").getNodeValue());
+        int expandedKey = key * 255 / ((1 << bits) - 1);
+        var raster = image.getRaster();
+        int[] grayRow = new int[image.getWidth()];
+        int[] alphaRow = new int[image.getWidth()];
+        for (int y = 0; y < image.getHeight(); y++) {
+            raster.getSamples(0, y, image.getWidth(), 1, 0, grayRow);
+            for (int x = 0; x < image.getWidth(); x++) {
+                alphaRow[x] = grayRow[x] == expandedKey ? 0 : 255;
+            }
+            raster.setSamples(0, y, image.getWidth(), 1, 1, alphaRow);
+        }
+    }
+
+    private static Node child(Node parent, String name) {
+        for (Node node = parent.getFirstChild(); node != null; node = node.getNextSibling()) {
+            if (name.equals(node.getNodeName())) return node;
+        }
+        return null;
     }
 
     public void write(OutputStream os) throws IOException {
-        BufferedImage src = convertTo8BitRGB(this.src);
+        BufferedImage src = this.src;
         final int width = src.getWidth();
         final int height = src.getHeight();
 
@@ -70,102 +127,125 @@ public final class PngOptimizer {
     }
 
     private ImageColorInfo createColorInfo(final BufferedImage src) {
-        final int width = src.getWidth();
-        final int height = src.getHeight();
-        final boolean sourceIsGrayscale = src.getType() == BufferedImage.TYPE_BYTE_GRAY || src.getType() == BufferedImage.TYPE_USHORT_GRAY;
+        Int2IntOpenHashMap ope = new Int2IntOpenHashMap();
+        Int2IntOpenHashMap tra = new Int2IntOpenHashMap();
+        boolean hasAlpha = false;
+        boolean hasPalette = true;
+        int[] pixels = readPixels(src);
 
-        Map<Integer, Integer> ope = new HashMap<>();
-        Map<Integer, Integer> tra = new HashMap<>();
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int argb = src.getRGB(x, y);
-                int alpha = (argb >> 24) & 0xFF;
-                if (alpha == 255) {
-                    ope.put(argb, ope.getOrDefault(argb, 0) + 1);
-                } else {
-                    tra.put(argb, tra.getOrDefault(argb, 0) + 1);
-                }
+        for (int argb : pixels) {
+            int alpha = (argb >> 24) & 0xFF;
+            hasAlpha |= alpha != 255;
+            if (!hasPalette) continue;
+            if (alpha == 255) {
+                ope.addTo(argb, 1);
+            } else {
+                tra.addTo(argb, 1);
+            }
+            if (ope.size() + tra.size() > 256) {
+                // More than 256 colors cannot be represented by a PNG palette.
+                hasPalette = false;
+                ope.clear();
+                tra.clear();
             }
         }
 
-        return new ImageColorInfo(ope, tra, sourceIsGrayscale);
+        return new ImageColorInfo(pixels, ope, tra, hasAlpha, hasPalette);
     }
 
-    private BufferedImage convertTo8BitRGB(BufferedImage src) {
-        int type = src.getType();
-        if (type == BufferedImage.TYPE_BYTE_GRAY || type == BufferedImage.TYPE_USHORT_GRAY) {
-            BufferedImage eightBitImage = new BufferedImage(
-                    src.getWidth(),
-                    src.getHeight(),
-                    BufferedImage.TYPE_4BYTE_ABGR
-            );
-            Graphics2D g2d = eightBitImage.createGraphics();
-            g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
-            g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-            g2d.drawImage(src, 0, 0, null);
-            g2d.dispose();
-            return eightBitImage;
+    /** Supports standard ImageIO image types and non-premultiplied 8/16-bit grayscale PNGs. */
+    public static boolean canOptimize(BufferedImage image) {
+        return image.getType() != BufferedImage.TYPE_CUSTOM || isRawGrayscale(image);
+    }
+
+    private static boolean isRawGrayscale(BufferedImage image) {
+        ColorModel model = image.getColorModel();
+        if (!(model instanceof ComponentColorModel) || model.getColorSpace().getType() != ColorSpace.TYPE_GRAY
+                || model.isAlphaPremultiplied()) {
+            return false;
         }
-        return src;
+        int bits = model.getComponentSize(0);
+        return ((model.getTransferType() == DataBuffer.TYPE_BYTE && bits == 8)
+                || (model.getTransferType() == DataBuffer.TYPE_USHORT && bits == 16))
+                && (!model.hasAlpha() || model.getComponentSize(1) == bits);
+    }
+
+    private static int[] readPixels(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int[] pixels = new int[Math.multiplyExact(width, height)];
+        if (!isRawGrayscale(image)) {
+            image.getRGB(0, 0, width, height, pixels, 0, width);
+            return pixels;
+        }
+
+        // ImageIO labels PNG gray samples as linear CS_GRAY. getRGB()/Graphics2D can
+        // therefore change their brightness; texture decoding must preserve the samples.
+        Raster raster = image.getRaster();
+        boolean hasAlpha = image.getColorModel().hasAlpha();
+        int shift = image.getColorModel().getComponentSize(0) - 8;
+        int[] grayRow = new int[width];
+        int[] alphaRow = hasAlpha ? new int[width] : null;
+        int offset = 0;
+        for (int y = 0; y < height; y++) {
+            raster.getSamples(0, y, width, 1, 0, grayRow);
+            if (hasAlpha) raster.getSamples(0, y, width, 1, 1, alphaRow);
+            for (int x = 0; x < width; x++) {
+                // Match STB's 16-to-8 conversion by retaining the high byte.
+                int gray = grayRow[x] >>> shift;
+                int alpha = hasAlpha ? alphaRow[x] >>> shift : 255;
+                pixels[offset++] = (alpha << 24) | (gray << 16) | (gray << 8) | gray;
+            }
+        }
+        return pixels;
     }
 
     private ImageData findBestFileStructure(BufferedImage src, ImageColorInfo info) throws IOException {
-        byte[] normalSize = tryNormal(src, info.hasAlpha(), info.isGrayscale());
+        byte[] normalSize = tryNormal(info.pixels(), src.getWidth(), src.getHeight(), info.hasAlpha());
         // 可以考虑使用调色盘
-        if (info.uniqueColorCount() <= 256) {
-            Pair<Palette, byte[]> palettePair = tryPalette(src, info);
+        if (info.hasPalette()) {
+            Pair<Palette, byte[]> palettePair = tryPalette(src.getWidth(), src.getHeight(), info);
             byte[] paletteSize = palettePair.right();
             if (normalSize.length > paletteSize.length) {
                 return new ImageData(PngColorType.INDEXED_COLOR, (byte) palettePair.left().calculateBitDepth(), paletteSize);
             }
         }
-        if (info.isGrayscale()) {
-            return new ImageData(info.hasAlpha() ? PngColorType.GREYSCALE_WITH_ALPHA : PngColorType.GREYSCALE, (byte) 8, normalSize);
-        } else {
-            return new ImageData(info.hasAlpha() ? PngColorType.TRUE_COLOR_WITH_ALPHA : PngColorType.TRUE_COLOR, (byte) 8, normalSize);
-        }
+        // RGB(A) and palette PNGs keep the same interpretation in ImageIO and STB.
+        // Single-channel PNGs would reintroduce ImageIO's linear-gray conversion.
+        return new ImageData(info.hasAlpha() ? PngColorType.TRUE_COLOR_WITH_ALPHA : PngColorType.TRUE_COLOR, (byte) 8, normalSize);
     }
 
-    private byte[] tryNormal(BufferedImage src, boolean hasAlpha, boolean isGrayscale) throws IOException {
-        byte[] bytes = generatePngData(src, hasAlpha, isGrayscale);
-        int zopfli = Config.optimizeTexture() ? Config.zopfliIterations() : 0;
+    private byte[] tryNormal(int[] pixels, int width, int height, boolean hasAlpha) throws IOException {
+        byte[] bytes = generatePngData(pixels, width, height, hasAlpha);
+        int zopfli = this.zopfliIterations;
         return zopfli > 0 ? compressImageZopfli(bytes, zopfli) : compressImageStandard(bytes);
     }
 
-    private byte[] generatePngData(BufferedImage src, boolean hasAlpha, boolean isGrayscale) {
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        int width = src.getWidth();
-        int height = src.getHeight();
-        int[] row = new int[width];
+    private byte[] generatePngData(int[] pixels, int width, int height, boolean hasAlpha) {
+        int channels = hasAlpha ? 4 : 3;
+        byte[] data = new byte[Math.multiplyExact(height, Math.addExact(1, Math.multiplyExact(width, channels)))];
+        int offset = 0;
+        int sourceIndex = 0;
         for (int y = 0; y < height; y++) {
-            src.getRGB(0, y, width, 1, row, 0, width);
-            baos.write(FilterType.NONE.ordinal());
+            data[offset++] = (byte) FilterType.NONE.ordinal();
             for (int x = 0; x < width; x++) {
-                final int argb = row[x];
+                final int argb = pixels[sourceIndex++];
                 final int alpha = 0xff & argb >> 24;
                 final int red = 0xff & argb >> 16;
                 final int green = 0xff & argb >> 8;
                 final int blue = 0xff & argb >> 0;
-                if (isGrayscale) {
-                    final int gray = (red + green + blue) / 3;
-                    baos.write(gray);
-                } else {
-                    baos.write(red);
-                    baos.write(green);
-                    baos.write(blue);
-                }
+                data[offset++] = (byte) red;
+                data[offset++] = (byte) green;
+                data[offset++] = (byte) blue;
                 if (hasAlpha) {
-                    baos.write(alpha);
+                    data[offset++] = (byte) alpha;
                 }
             }
         }
-        return baos.toByteArray();
+        return data;
     }
 
-    private Pair<Palette, byte[]> tryPalette(BufferedImage src, ImageColorInfo info) throws IOException {
+    private Pair<Palette, byte[]> tryPalette(int width, int height, ImageColorInfo info) throws IOException {
         ByteArrayOutputStream paletteOs = new ByteArrayOutputStream();
         Palette palette;
         if (info.hasAlpha()) {
@@ -176,90 +256,90 @@ public final class PngOptimizer {
             palette = new ExactOpaquePalette(info.opaque);
             writeChunkPLTE(paletteOs, palette);
         }
-        byte[] bytes = generatePaletteData(src, palette);
-        int zopfli = Config.optimizeTexture() ? Config.zopfliIterations() : 0;
+        byte[] bytes = generatePaletteData(info.pixels(), width, height, palette);
+        int zopfli = this.zopfliIterations;
         paletteOs.write(zopfli > 0 ? compressImageZopfli(bytes, zopfli) : compressImageStandard(bytes));
         return Pair.of(palette, paletteOs.toByteArray());
     }
 
-    private byte[] generatePaletteData(BufferedImage src, Palette palette) {
-        int width = src.getWidth();
-        int height = src.getHeight();
+    private byte[] generatePaletteData(int[] pixels, int width, int height, Palette palette) {
         int bitsPerIndex = palette.calculateBitDepth();
-        final ByteArrayOutputStream dataOs = new ByteArrayOutputStream();
-        final int[] row = new int[width];
+        int rowBytes = Math.toIntExact(((long) width * bitsPerIndex + 7) / 8);
+        byte[] data = new byte[Math.multiplyExact(height, Math.addExact(rowBytes, 1))];
+        int offset = 0;
 
         for (int y = 0; y < height; y++) {
-            src.getRGB(0, y, width, 1, row, 0, width);
-            dataOs.write(FilterType.NONE.ordinal());
+            int rowOffset = y * width;
+            data[offset++] = (byte) FilterType.NONE.ordinal();
 
             // 根据位深度选择相应的处理方法
             switch (bitsPerIndex) {
-                case 4 -> process4Bit(row, width, dataOs, palette);
-                case 2 -> process2Bit(row, width, dataOs, palette);
-                case 1 -> process1Bit(row, width, dataOs, palette);
-                default -> process8Bit(row, width, dataOs, palette);
+                case 4 -> process4Bit(pixels, rowOffset, width, data, offset, palette);
+                case 2 -> process2Bit(pixels, rowOffset, width, data, offset, palette);
+                case 1 -> process1Bit(pixels, rowOffset, width, data, offset, palette);
+                default -> process8Bit(pixels, rowOffset, width, data, offset, palette);
             }
+            offset += rowBytes;
         }
-        return dataOs.toByteArray();
+        return data;
     }
 
     // 处理8位深度：每个索引占1字节
-    private void process8Bit(int[] row, int width, ByteArrayOutputStream dataOs, Palette palette) {
+    private void process8Bit(int[] pixels, int rowOffset, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x++) {
-            final int argb = row[x];
+            final int argb = pixels[rowOffset + x];
             final int index = palette.getPaletteIndex(argb);
-            dataOs.write(0xff & index);
+            data[offset++] = (byte) index;
         }
     }
 
     // 处理4位深度：每2个索引打包到1字节中
-    private void process4Bit(int[] row, int width, ByteArrayOutputStream dataOs, Palette palette) {
+    private void process4Bit(int[] pixels, int rowOffset, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x += 2) {
-            final int argb1 = row[x];
+            final int argb1 = pixels[rowOffset + x];
             final int index1 = palette.getPaletteIndex(argb1);
 
             if (x + 1 < width) {
-                final int argb2 = row[x + 1];
+                final int argb2 = pixels[rowOffset + x + 1];
                 final int index2 = palette.getPaletteIndex(argb2);
                 // 将两个4位索引打包到一个字节中
                 byte packed = (byte) ((index1 << 4) | index2);
-                dataOs.write(packed);
+                data[offset++] = packed;
             } else {
                 // 如果是奇数宽度，最后一个像素单独处理
                 byte packed = (byte) (index1 << 4);
-                dataOs.write(packed);
+                data[offset++] = packed;
             }
         }
     }
 
     // 处理2位深度：每4个索引打包到1字节中
-    private void process2Bit(int[] row, int width, ByteArrayOutputStream dataOs, Palette palette) {
+    private void process2Bit(int[] pixels, int rowOffset, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x += 4) {
             int packed = 0;
             for (int i = 0; i < 4; i++) {
                 if (x + i < width) {
-                    final int argb = row[x + i];
+                    final int argb = pixels[rowOffset + x + i];
                     final int index = palette.getPaletteIndex(argb);
                     packed |= (index << (6 - i * 2)) & 0xFF;
                 }
             }
-            dataOs.write(packed);
+            data[offset++] = (byte) packed;
         }
     }
 
     // 处理1位深度：每8个索引打包到1字节中
-    private void process1Bit(int[] row, int width, ByteArrayOutputStream dataOs, Palette palette) {
+    private void process1Bit(int[] pixels, int rowOffset, int width, byte[] data, int offset, Palette palette) {
         for (int x = 0; x < width; x += 8) {
             int packed = 0;
             for (int i = 0; i < 8; i++) {
                 if (x + i < width) {
-                    final int argb = row[x + i];
+                    final int argb = pixels[rowOffset + x + i];
                     final int index = palette.getPaletteIndex(argb);
                     packed |= (index << (7 - i));
                 }
             }
-            dataOs.write(packed);
+            data[offset++] = (byte) packed;
         }
     }
 
@@ -274,19 +354,19 @@ public final class PngOptimizer {
         byte[] compressedData = baos.toByteArray();
         int chunkSize = 32 * 1024;
         for (int index = 0; index < compressedData.length; index += chunkSize) {
-            int end = Math.min(compressedData.length, index + chunkSize);
-            byte[] chunk = Arrays.copyOfRange(compressedData, index, end);
-            writeChunkIDAT(output, chunk);
+            int length = Math.min(chunkSize, compressedData.length - index);
+            writeChunkIDAT(output, compressedData, index, length);
         }
         return output.toByteArray();
     }
 
     private byte[] compressImageStandard(byte[] uncompressed) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
 
         try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
              final DeflaterOutputStream dos = new DeflaterOutputStream(
-                     baos, new Deflater(Deflater.BEST_COMPRESSION))) {
+                     baos, deflater)) {
 
             dos.write(uncompressed);
             dos.finish();
@@ -295,17 +375,18 @@ public final class PngOptimizer {
 
             final int chunkSize = 32 * 1024;
             for (int index = 0; index < compressed.length; index += chunkSize) {
-                final int end = Math.min(compressed.length, index + chunkSize);
-                final byte[] chunk = Arrays.copyOfRange(compressed, index, end);
-                writeChunkIDAT(output, chunk);
+                final int length = Math.min(chunkSize, compressed.length - index);
+                writeChunkIDAT(output, compressed, index, length);
             }
+        } finally {
+            deflater.end();
         }
 
         return output.toByteArray();
     }
 
-    private void writeChunkIDAT(final OutputStream os, final byte[] bytes) throws IOException {
-        writeChunk(os, IDAT, bytes);
+    private void writeChunkIDAT(final OutputStream os, final byte[] bytes, int offset, int length) throws IOException {
+        writeChunk(os, IDAT, bytes, offset, length);
     }
 
     private void writeChunkIEND(final OutputStream os) throws IOException {
@@ -313,28 +394,18 @@ public final class PngOptimizer {
     }
 
     private void writeChunkTRNS(final OutputStream os, final Palette palette) throws IOException {
-        List<Byte> alphaValues = new ArrayList<>();
-        boolean hasTransparency = false;
-
-        for (int i = 0; i < palette.length(); i++) {
-            int argb = palette.getEntry(i);
-            int alpha = (argb >> 24) & 0xFF;
-
-            if (alpha < 255) {
-                hasTransparency = true;
-                alphaValues.add((byte) alpha);
-            } else {
-                break;
-            }
+        int transparentColors = 0;
+        while (transparentColors < palette.length() && (palette.getEntry(transparentColors) >>> 24) < 255) {
+            transparentColors++;
         }
 
-        if (!hasTransparency) {
+        if (transparentColors == 0) {
             return;
         }
 
-        final byte[] bytes = new byte[alphaValues.size()];
-        for (int i = 0; i < alphaValues.size(); i++) {
-            bytes[i] = alphaValues.get(i);
+        final byte[] bytes = new byte[transparentColors];
+        for (int i = 0; i < transparentColors; i++) {
+            bytes[i] = (byte) (palette.getEntry(i) >>> 24);
         }
 
         writeChunk(os, tRNS, bytes);
@@ -374,26 +445,33 @@ public final class PngOptimizer {
 
     private void writeChunk(final OutputStream os, final byte[] chunkType, final byte[] data) throws IOException {
         final int dataLength = data == null ? 0 : data.length;
-        writeInt(os, dataLength);
+        writeChunk(os, chunkType, data, 0, dataLength);
+    }
+
+    private void writeChunk(final OutputStream os, final byte[] chunkType, final byte[] data, int offset, int length) throws IOException {
+        writeInt(os, length);
         os.write(chunkType);
-        if (data != null) {
-            os.write(data);
+        if (length > 0) {
+            os.write(data, offset, length);
         }
-        writeInt(os, calculateCRC(chunkType, data)); // crc
+        writeInt(os, calculateCRC(chunkType, data, offset, length)); // crc
     }
 
     public static int calculateCRC(byte[] chunkType, byte[] data) {
-        CRC crc = new CRC();
+        return calculateCRC(chunkType, data, 0, data == null ? 0 : data.length);
+    }
+
+    private static int calculateCRC(byte[] chunkType, byte[] data, int offset, int length) {
+        CRC32 crc = new CRC32();
         crc.update(chunkType, 0, chunkType.length);
-        if (data != null && data.length > 0) {
-            crc.update(data, 0, data.length);
+        if (length > 0) {
+            crc.update(data, offset, length);
         }
-        return crc.getValue();
+        return (int) crc.getValue();
     }
 
     enum PngColorType {
-        GREYSCALE(0), TRUE_COLOR(2),
-        INDEXED_COLOR(3), GREYSCALE_WITH_ALPHA(4),
+        TRUE_COLOR(2), INDEXED_COLOR(3),
         TRUE_COLOR_WITH_ALPHA(6);
 
         private final int value;
@@ -432,16 +510,23 @@ public final class PngOptimizer {
         }
     }
 
+    private static int[] sortColors(Int2IntMap colorFrequency) {
+        IntArrayList colors = new IntArrayList(colorFrequency.size());
+        // Match the previous stream traversal order before sorting equal-frequency colors.
+        colorFrequency.keySet().spliterator().forEachRemaining((int color) -> colors.add(color));
+        int[] palette = colors.elements();
+        IntArrays.stableSort(palette, (a, b) -> Integer.compare(colorFrequency.get(b), colorFrequency.get(a)));
+        return palette;
+    }
+
     static class ExactOpaquePalette implements Palette {
         private final int[] palette;                      // 频次排序的颜色数组
-        private final Map<Integer, Integer> colorToIndex; // 颜色到索引的映射
+        private final Int2IntOpenHashMap colorToIndex;     // 颜色到索引的映射
 
-        public ExactOpaquePalette(final Map<Integer, Integer> colorFrequency) {
-            this.palette = colorFrequency.entrySet().stream()
-                    .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
-                    .mapToInt(Map.Entry::getKey)
-                    .toArray();
-            this.colorToIndex = new HashMap<>();
+        public ExactOpaquePalette(final Int2IntMap colorFrequency) {
+            this.palette = sortColors(colorFrequency);
+            this.colorToIndex = new Int2IntOpenHashMap(palette.length);
+            this.colorToIndex.defaultReturnValue(-1);
             for (int i = 0; i < palette.length; i++) {
                 this.colorToIndex.put(palette[i], i);
             }
@@ -457,7 +542,11 @@ public final class PngOptimizer {
 
         @Override
         public int getPaletteIndex(int rgb) {
-            return colorToIndex.get(rgb);
+            int index = colorToIndex.get(rgb);
+            if (index < 0) {
+                throw new IllegalArgumentException("Color not found in palette: 0x" + Integer.toHexString(rgb));
+            }
+            return index;
         }
 
         @Override
@@ -468,28 +557,20 @@ public final class PngOptimizer {
 
     static class ExactTransparentPalette implements Palette {
         private final int[] palette;                      // 透明色在前，不透明色在后
-        private final Map<Integer, Integer> colorToIndex; // 颜色到索引的映射
+        private final Int2IntOpenHashMap colorToIndex;     // 颜色到索引的映射
 
-        public ExactTransparentPalette(final Map<Integer, Integer> opaque, final Map<Integer, Integer> transparent) {
+        public ExactTransparentPalette(final Int2IntMap opaque, final Int2IntMap transparent) {
             // 分别处理透明色和不透明色
-            List<Integer> transparentList = transparent.entrySet().stream()
-                    .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())) // 按频次降序
-                    .map(Map.Entry::getKey)
-                    .toList();
-
-            List<Integer> opaqueList = opaque.entrySet().stream()
-                    .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())) // 按频次降序
-                    .map(Map.Entry::getKey)
-                    .toList();
+            int[] transparentColors = sortColors(transparent);
+            int[] opaqueColors = sortColors(opaque);
 
             // 合并：透明色在前，不透明色在后
-            List<Integer> combinedList = new ArrayList<>();
-            combinedList.addAll(transparentList);
-            combinedList.addAll(opaqueList);
+            this.palette = new int[transparentColors.length + opaqueColors.length];
+            System.arraycopy(transparentColors, 0, this.palette, 0, transparentColors.length);
+            System.arraycopy(opaqueColors, 0, this.palette, transparentColors.length, opaqueColors.length);
 
-            this.palette = combinedList.stream().mapToInt(Integer::intValue).toArray();
-
-            this.colorToIndex = new HashMap<>();
+            this.colorToIndex = new Int2IntOpenHashMap(palette.length);
+            this.colorToIndex.defaultReturnValue(-1);
             for (int i = 0; i < palette.length; i++) {
                 this.colorToIndex.put(palette[i], i);
             }
@@ -505,8 +586,8 @@ public final class PngOptimizer {
 
         @Override
         public int getPaletteIndex(int rgb) {
-            Integer index = colorToIndex.get(rgb);
-            if (index == null) {
+            int index = colorToIndex.get(rgb);
+            if (index < 0) {
                 throw new IllegalArgumentException("Color not found in palette: 0x" + Integer.toHexString(rgb));
             }
             return index;
@@ -524,14 +605,6 @@ public final class PngOptimizer {
     record ImageHeader(int width, int height, byte bitDepth, PngColorType pngColorType, byte compressionMethod, byte filterMethod, InterlaceMethod interlaceMethod) {
     }
 
-    record ImageColorInfo(Map<Integer, Integer> opaque, Map<Integer, Integer> transparent, boolean isGrayscale) {
-
-        public int uniqueColorCount() {
-            return this.opaque.size() + this.transparent.size();
-        }
-
-        public boolean hasAlpha() {
-            return !this.transparent.isEmpty();
-        }
+    record ImageColorInfo(int[] pixels, Int2IntMap opaque, Int2IntMap transparent, boolean hasAlpha, boolean hasPalette) {
     }
 }

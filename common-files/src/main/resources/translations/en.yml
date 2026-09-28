@@ -217,7 +217,7 @@ resource_pack.generation_finished: Generated resource pack in <arg:0>ms
 resource_pack.validation_started: 'Validating resource pack... (Progress: <arg:0>/<arg:1> | Pack Format: <arg:2>~<arg:3> | Overlays: <arg:4>)'
 resource_pack.json_optimization_started: '> Optimizing json files...'
 resource_pack.texture_optimization_started: '> Optimizing texture files...'
-resource_pack.optimization_result: '> □ Before/After/Ratio: <arg:0>/<arg:1>/<arg:2>'
+resource_pack.optimization_result: '> □ Before/After/Ratio: <arg:0>/<arg:1>/<arg:2>%'
 resource_pack.duplicated_files: Duplicated files Found. Please resolve them through config.yml 'resource-pack.duplicated-files-handler' section
 resource_pack.malformatted_json: Json file '<arg:0>' is malformatted
 resource_pack.not_a_json_object: Json file '<arg:0>' is not a json object

@@ -29,6 +29,8 @@ resource-pack:
       # - type: optimize
         - type: zip
           path: "./generated/resource_pack.zip"
+          # Skip outer ZIP compression for PNGs. Image quality is unchanged; ZIP size may increase.
+          store-png: false
       #   protection: true  # requires premium version
         - type: upload
           pack: default
@@ -121,6 +123,12 @@ resource-pack:
   # Optimize your resource pack by reducing its size without any quality loss.
   # Add an optimize step to the workflow to run optimization.
   optimization:
+    # Cache optimization results in memory and cache/pack-optimization.bin.
+    # Load the snapshot on the first optimization after restart; save when results change.
+    # Approximate memory budget in MiB; the disk snapshot contains only retained entries.
+    # 0 disables and clears both caches on the next optimization.
+    # Content changes and PNG compression options automatically select new results.
+    cache-size: 64
     # .png
     texture:
       enable: true
@@ -736,14 +744,23 @@ chunk-system:
   # Worlds whose name matches any of these regex patterns will always use 'none' storage mode (in-memory only)
   # Useful for temporary or frequently reset worlds where persistence is unnecessary
   blacklisted-worlds: []
-  # Caches serialized chunk data to reduce I/O overhead for frequently loaded/unloaded chunks
+  # Caches decoded chunk data to reduce I/O overhead for frequently loaded/unloaded chunks
   cache-system: true
+  # timed: expire cached data after 30 seconds without access
+  # lifecycle: retain data until Moonrise releases its chunk holder, without a timer
+  #
+  # Lifecycle mode requires the Paper loader, compatible Moonrise hooks, cache-system and async-read.
+  # Requires Paper/Folia 1.21.4+. Availability is checked at startup.
+  # If unavailable, falls back to timed caching with one warning per startup.
+  # Requires server restart to take effect.
+  cache-mode: lifecycle
   # Writes chunk data asynchronously on dedicated IO threads instead of blocking the server thread
   # Requires server restart to take effect
   async-write: true
   # Hooks into the server's chunk loading pipeline to read and cache chunk data
   # before the chunk load event, avoiding synchronous disk I/O on the main thread
-  # Only works on Paper 1.21.4+. Falls back to synchronous reads if the injection fails
+  # Only works on Paper 1.21.4+. Timed mode falls back to synchronous reads if injection fails.
+  # Startup chunks and failed preloads may still require synchronous reads in either mode.
   # Requires server restart to take effect
   async-read: true
   # Compression algorithm for chunk data

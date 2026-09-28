@@ -1,9 +1,7 @@
 package net.momirealms.craftengine.bukkit.plugin.agent;
 
 import cn.gtemc.reflection.ImplLookupGetter;
-import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.ByteBuddyAgent;
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.momirealms.craftengine.bukkit.api.BukkitAdaptor;
 import net.momirealms.craftengine.bukkit.api.CraftEngineFurniture;
 import net.momirealms.craftengine.bukkit.entity.furniture.BukkitFurnitureManager;
@@ -11,6 +9,7 @@ import net.momirealms.craftengine.bukkit.entity.projectile.BukkitProjectileManag
 import net.momirealms.craftengine.bukkit.plugin.BukkitCraftEngine;
 import net.momirealms.craftengine.bukkit.util.EntityUtils;
 import net.momirealms.craftengine.bukkit.util.ItemStackUtils;
+import net.momirealms.craftengine.bukkit.world.BukkitChunkLifecycle;
 import net.momirealms.craftengine.bukkit.world.BukkitWorldManager;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.util.ReflectionUtils;
@@ -32,10 +31,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.function.*;
 
 public final class RuntimePatcher {
     private static Instrumentation instrumentation;
@@ -43,12 +39,18 @@ public final class RuntimePatcher {
     private static volatile boolean equipmentChangeHookInstalled;
     private static volatile boolean entityWorldHookInstalled;
     private static volatile boolean merchantItemMatchHookInstalled;
+    private static boolean chunkCacheAvailabilityChecked;
+    private static String lifecycleCacheUnavailableReason = "requires the Paper loader and compatible Moonrise hooks";
 
     private RuntimePatcher() {}
 
     public static void patch(BukkitCraftEngine plugin) throws Exception {
         boolean registryInjection = !isDatapackDiscoveryAvailable();
         boolean chunkDataWarmup = VersionHelper.hasPaperPatch && VersionHelper.isOrAbove1_21_4 && Config.enableChunkCache() && Config.enableAsyncChunkRead();
+        boolean lifecycle = Config.lifecycleChunkCache();
+        if (lifecycle && !chunkDataWarmup) {
+            lifecycleCacheUnavailableReason = "requires Paper 1.21.4+, cache-system=true and async-read=true";
+        }
         if (!registryInjection && !chunkDataWarmup) return;
 
         if (registryInjection) {
@@ -65,30 +67,50 @@ public final class RuntimePatcher {
             BlocksAgent.install(inst);
         }
 
-        if (chunkDataWarmup) {
+        if (lifecycle && chunkDataWarmup) {
+            try {
+                Class<?> bridge = injectBridge();
+                BukkitChunkLifecycle.initialize();
+                bridge.getField("CHUNK_LIFECYCLE_START").set(null, (Consumer<Object[]>) BukkitChunkLifecycle::start);
+                bridge.getField("CHUNK_LIFECYCLE_CONTEXT").set(null, (Function<Object, Object>) BukkitChunkLifecycle::context);
+                bridge.getField("CHUNK_LIFECYCLE_READ").set(null, (BiConsumer<Object, Object>) BukkitChunkLifecycle::read);
+                bridge.getField("CHUNK_LIFECYCLE_EMPTY").set(null, (BiConsumer<Object, Object>) BukkitChunkLifecycle::empty);
+                bridge.getField("CHUNK_LIFECYCLE_COMPLETE").set(null, (Consumer<Object>) BukkitChunkLifecycle::complete);
+                bridge.getField("CHUNK_LIFECYCLE_RELEASE").set(null, (Consumer<Object[]>) BukkitChunkLifecycle::release);
+                ChunkLifecycleAgent.install(instrumentation(), Bukkit.class.getClassLoader());
+                plugin.logger().info("Moonrise lifecycle chunk cache hooks installed");
+            } catch (Throwable t) {
+                lifecycleCacheUnavailableReason = "could not install Moonrise hooks: " + t;
+            }
+        }
+        if (chunkDataWarmup && !ChunkLifecycleAgent.installed()) {
             try {
                 Class<?> bridge = injectBridge();
                 bridge.getField("CHUNK_DATA_WARMUP").set(null, (Consumer<Object[]>) BukkitWorldManager::onChunkDataRead);
                 plugin.logger().info("Patching the server...");
                 ChunkLoadWarmupAgent.install(instrumentation());
             } catch (Throwable t) {
-                plugin.logger().warn("Failed to hook chunk data read, chunk data will be read synchronously on chunk load", t);
+                if (lifecycle) {
+                    lifecycleCacheUnavailableReason += "; asynchronous warmup is also unavailable, using synchronous chunk reads";
+                } else {
+                    plugin.logger().warn("Failed to hook chunk data read, chunk data will be read synchronously on chunk load", t);
+                }
             }
+        }
+    }
+
+    public static void checkChunkCacheAvailability(BukkitCraftEngine plugin) {
+        if (chunkCacheAvailabilityChecked) return;
+        chunkCacheAvailabilityChecked = true;
+        if (Config.lifecycleChunkCache() && !ChunkLifecycleAgent.installed()) {
+            plugin.logger().warn("Lifecycle chunk cache unavailable: " + lifecycleCacheUnavailableReason + (Config.enableChunkCache() ? "; using timed caching for this startup" : "; chunk caching is disabled"));
         }
     }
 
     private static Class<?> injectBridge() {
         if (injectedBridge == null) {
             ClassLoader serverClassLoader = Bukkit.class.getClassLoader();
-            new ByteBuddy()
-                    .redefine(AgentBridge.class)
-                    .make()
-                    .load(serverClassLoader, ClassLoadingStrategy.Default.INJECTION);
-            try {
-                injectedBridge = Class.forName(AgentBridge.class.getName(), false, serverClassLoader);
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException("Failed to inject agent bridge", e);
-            }
+            injectedBridge = AgentBridge.inject(serverClassLoader, ReflectionUtils.LOOKUP);
         }
         return injectedBridge;
     }

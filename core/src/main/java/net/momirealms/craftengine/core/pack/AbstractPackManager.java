@@ -148,6 +148,7 @@ public abstract class AbstractPackManager implements PackManager {
     public final JsonObject vanillaItemAtlas;
     private Map<Path, CachedConfigFile> cachedConfigFiles = Collections.emptyMap();
     private Map<Path, CachedAssetFile> cachedAssetFiles = Collections.emptyMap();
+    private final PackOptimizationCache optimizationCache = new PackOptimizationCache(0);
     protected ZipGenerator zipGenerator;
     protected volatile ResourcePackHost resourcePackHost = NoneHost.INSTANCE;
     private volatile Map<String, ResourcePackHost> resourcePackHosts = Map.of();
@@ -162,7 +163,7 @@ public abstract class AbstractPackManager implements PackManager {
 
     public AbstractPackManager(CraftEngine plugin) {
         this.plugin = plugin;
-        this.zipGenerator = request -> ZipUtils.compress(request.source(), request.output());
+        this.zipGenerator = request -> ZipUtils.compress(request.source(), request.output(), request.storePng());
         Path resourcesFolder = this.plugin.dataFolderPath().resolve("resources");
         try {
             if (Files.notExists(resourcesFolder)) {
@@ -411,6 +412,7 @@ public abstract class AbstractPackManager implements PackManager {
 
     @Override
     public void disable() {
+        this.optimizationCache.clear();
         this.selectedPacks.clear();
         this.packPreferences.clear();
         SelfHostHttpServer.instance().disable();
@@ -861,7 +863,7 @@ public abstract class AbstractPackManager implements PackManager {
         return this.plugin.dataFolderPath().resolve(path).toAbsolutePath().normalize();
     }
 
-    private void writePack(GeneratedPack pack, Path output, ZipGenerator writer, boolean protection) throws IOException {
+    private void writePack(GeneratedPack pack, Path output, ZipGenerator writer, boolean protection, boolean storePng) throws IOException {
         this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_started"));
         // 包含混淆、ZIP 写入和最终文件替换的耗时，仅在成功后输出完成提示。
         Timestamp timestamp = new Timestamp();
@@ -869,7 +871,7 @@ public abstract class AbstractPackManager implements PackManager {
         // Upload only a complete result, keeping a previous successful file intact if writing fails.
         Path temporary = Files.createTempFile(output.toAbsolutePath().getParent(), ".pack-", ".zip");
         try {
-            writer.generate(new PackZipRequest(pack.path(), temporary, protection));
+            writer.generate(new PackZipRequest(pack.path(), temporary, protection, storePng));
             if (Files.size(temporary) == 0) throw new IOException("No resource pack was written: " + output);
             Files.move(temporary, output, StandardCopyOption.REPLACE_EXISTING);
         } finally {
@@ -1042,9 +1044,9 @@ public abstract class AbstractPackManager implements PackManager {
         }
 
         @Override
-        public void zip(String path, boolean protection) throws IOException {
+        public void zip(String path, boolean protection, boolean storePng) throws IOException {
             Path output = resolveWorkflowPath(path);
-            writePack(this.pack, output, this.generator, protection && VersionHelper.PREMIUM);
+            writePack(this.pack, output, this.generator, protection && VersionHelper.PREMIUM, storePng);
             dispatchGenerationEvent(this.pack.path(), output);
         }
 
@@ -1198,6 +1200,13 @@ public abstract class AbstractPackManager implements PackManager {
     @SuppressWarnings("DuplicatedCode")
     private void optimizeResourcePack(Path path) {
         Timestamp timestamp = new Timestamp();
+        this.optimizationCache.setMaximumBytes(Config.optimizationCacheSize());
+        Path optimizationCachePath = this.plugin.dataFolderPath().resolve("cache").resolve("pack-optimization.bin");
+        try {
+            this.optimizationCache.load(optimizationCachePath);
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to load pack optimization cache; resources will be optimized again", e);
+        }
         // 收集全部overlay
         Path[] rootPaths;
         try {
@@ -1340,52 +1349,43 @@ public abstract class AbstractPackManager implements PackManager {
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.json_optimization_started"));
             AtomicLong previousBytes = new AtomicLong(0L);
             AtomicLong afterBytes = new AtomicLong(0L);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             int amount = commonJsonToOptimize.size() + modelJsonToOptimize.size();
             AtomicInteger finished = new AtomicInteger(0);
-            for (Path jsonPath : commonJsonToOptimize) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        byte[] before = Files.readAllBytes(jsonPath);
-                        previousBytes.getAndAdd(before.length);
-                        byte[] after = GsonHelper.toString(GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8))).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
-                        if (after.length < before.length) {
-                            afterBytes.addAndGet(after.length);
-                            Files.write(jsonPath, after);
-                        } else {
-                            afterBytes.addAndGet(before.length);
-                        }
-                        finished.incrementAndGet();
-                    } catch (IOException | JsonParseException | NullPointerException ignored) {
+            ForkJoinPool executor = (ForkJoinPool) this.plugin.scheduler().async();
+            CompletableFuture<Void> commonFuture = CompletableFutures.forEachAsync(commonJsonToOptimize, jsonPath -> {
+                try {
+                    byte[] before = Files.readAllBytes(jsonPath);
+                    previousBytes.getAndAdd(before.length);
+                    byte[] after = this.optimizationCache.optimize(PackOptimizationCache.Type.JSON, 0, before,
+                            () -> optimizeJson(before, false));
+                    if (after.length < before.length) {
+                        afterBytes.addAndGet(after.length);
+                        Files.write(jsonPath, after);
+                    } else {
+                        afterBytes.addAndGet(before.length);
                     }
-                }, this.plugin.scheduler().async()));
-            }
-            for (Path jsonPath : modelJsonToOptimize) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        byte[] before = Files.readAllBytes(jsonPath);
-                        previousBytes.getAndAdd(before.length);
-                        JsonObject json = GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8)).getAsJsonObject();
-                        List<String> invalidKey = json.keySet().stream().filter(k -> !ALLOWED_MODEL_TAGS.contains(k)).toList();
-                        if (!invalidKey.isEmpty()) {
-                            for (String key : invalidKey) {
-                                json.remove(key);
-                            }
-                        }
-                        byte[] after = GsonHelper.toString(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
-                        if (after.length < before.length) {
-                            afterBytes.addAndGet(after.length);
-                            Files.write(jsonPath, after);
-                        } else {
-                            afterBytes.addAndGet(before.length);
-                        }
-                        finished.incrementAndGet();
-                    } catch (IOException | JsonParseException | IllegalStateException | NullPointerException ignored) {
+                    finished.incrementAndGet();
+                } catch (IOException | JsonParseException | NullPointerException ignored) {
+                }
+            }, executor.getParallelism(), executor);
+            CompletableFuture<Void> modelFuture = CompletableFutures.forEachAsync(modelJsonToOptimize, jsonPath -> {
+                try {
+                    byte[] before = Files.readAllBytes(jsonPath);
+                    previousBytes.getAndAdd(before.length);
+                    byte[] after = this.optimizationCache.optimize(PackOptimizationCache.Type.MODEL_JSON, 0, before,
+                            () -> optimizeJson(before, true));
+                    if (after.length < before.length) {
+                        afterBytes.addAndGet(after.length);
+                        Files.write(jsonPath, after);
+                    } else {
+                        afterBytes.addAndGet(before.length);
                     }
-                }, this.plugin.scheduler().async()));
-            }
+                    finished.incrementAndGet();
+                } catch (IOException | JsonParseException | IllegalStateException | NullPointerException ignored) {
+                }
+            }, executor.getParallelism(), executor);
 
-            CompletableFuture<Void> overallFuture = CompletableFutures.allOf(futures);
+            CompletableFuture<Void> overallFuture = CompletableFuture.allOf(commonFuture, modelFuture);
             long startTime = System.currentTimeMillis();
             for (;;) {
                 try {
@@ -1409,29 +1409,28 @@ public abstract class AbstractPackManager implements PackManager {
 
         if (Config.optimizeTexture()) {
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.texture_optimization_started"));
+            int zopfliIterations = Config.zopfliIterations();
             AtomicLong previousBytes = new AtomicLong(0L);
             AtomicLong afterBytes = new AtomicLong(0L);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             int amount = imagesToOptimize.size();
             AtomicInteger finished = new AtomicInteger(0);
-            for (Path imagePath : imagesToOptimize) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        byte[] previousImageBytes = Files.readAllBytes(imagePath);
-                        byte[] optimized = optimizeImage(imagePath, previousImageBytes);
-                        previousBytes.addAndGet(previousImageBytes.length);
-                        if (optimized.length < previousImageBytes.length) {
-                            afterBytes.addAndGet(optimized.length);
-                            Files.write(imagePath, optimized);
-                        } else {
-                            afterBytes.addAndGet(previousImageBytes.length);
-                        }
-                        finished.incrementAndGet();
-                    } catch (IOException ignored) {
+            ForkJoinPool executor = (ForkJoinPool) this.plugin.scheduler().async();
+            CompletableFuture<Void> overallFuture = CompletableFutures.forEachAsync(imagesToOptimize, imagePath -> {
+                try {
+                    byte[] previousImageBytes = Files.readAllBytes(imagePath);
+                    byte[] optimized = this.optimizationCache.optimize(PackOptimizationCache.Type.PNG, zopfliIterations, previousImageBytes,
+                            () -> optimizeImage(imagePath, previousImageBytes, zopfliIterations));
+                    previousBytes.addAndGet(previousImageBytes.length);
+                    if (optimized.length < previousImageBytes.length) {
+                        afterBytes.addAndGet(optimized.length);
+                        Files.write(imagePath, optimized);
+                    } else {
+                        afterBytes.addAndGet(previousImageBytes.length);
                     }
-                }, this.plugin.scheduler().async()));
-            }
-            CompletableFuture<Void> overallFuture = CompletableFutures.allOf(futures);
+                    finished.incrementAndGet();
+                } catch (IOException ignored) {
+                }
+            }, executor.getParallelism(), executor);
             long startTime = System.currentTimeMillis();
             for (;;) {
                 try {
@@ -1451,6 +1450,11 @@ public abstract class AbstractPackManager implements PackManager {
             long optimizedSize = afterBytes.get();
             double compressionRatio = ((double) optimizedSize / originalSize) * 100;
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_result", formatSize(originalSize), formatSize(optimizedSize), String.format("%.2f", compressionRatio)));
+        }
+        try {
+            this.optimizationCache.save(optimizationCachePath);
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to save pack optimization cache", e);
         }
         this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_finished", String.valueOf(timestamp.deltaMillis())));
     }
@@ -1487,18 +1491,28 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    private byte[] optimizeImage(Path imagePath, byte[] previousImageBytes) throws IOException {
+    private static byte[] optimizeJson(byte[] input, boolean model) {
+        JsonElement json = GsonHelper.parseJson(new String(input, StandardCharsets.UTF_8));
+        if (model) {
+            JsonObject object = json.getAsJsonObject();
+            List<String> invalidKey = object.keySet().stream().filter(k -> !ALLOWED_MODEL_TAGS.contains(k)).toList();
+            for (String key : invalidKey) object.remove(key);
+        }
+        return PackJsonWriter.toJson(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+    }
+
+    private byte[] optimizeImage(Path imagePath, byte[] previousImageBytes, int zopfliIterations) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(previousImageBytes)) {
-            BufferedImage src = ImageIO.read(is);
+            BufferedImage src = PngOptimizer.readPng(is);
             if (src == null) {
                 Debugger.RESOURCE_PACK.debug(() -> "Cannot read image " + imagePath.toString());
                 return previousImageBytes;
             }
-            if (src.getType() == BufferedImage.TYPE_CUSTOM) {
+            if (!PngOptimizer.canOptimize(src)) {
                 return previousImageBytes;
             }
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            new PngOptimizer(src).write(baos);
+            new PngOptimizer(src, zopfliIterations).write(baos);
             return baos.toByteArray();
         }
     }
@@ -1507,7 +1521,7 @@ public abstract class AbstractPackManager implements PackManager {
         List<OverlayCombination.Segment> segments = new ArrayList<>();
         // 完全小于1.21.11或完全大于1.21.11
         if (Config.packMaxVersion().isBelow(MinecraftVersion.V1_21_11) || Config.packMinVersion().isAtOrAbove(MinecraftVersion.V1_21_11)) {
-            OverlayCombination combination = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().majorPackFormat(), Config.packMaxVersion().majorPackFormat());
+            OverlayCombination combination = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().packFormat(), Config.packMaxVersion().packFormat());
             while (combination.hasNext()) {
                 OverlayCombination.Segment segment = combination.nextSegment();
                 if (segment != null) {
@@ -1519,7 +1533,7 @@ public abstract class AbstractPackManager implements PackManager {
         }
         // 混合版本
         else {
-            OverlayCombination combinationLegacy = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().majorPackFormat(), 72 /* 25w44a */);
+            OverlayCombination combinationLegacy = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().packFormat(), new PackVersion(72, Integer.MAX_VALUE) /* 25w44a */);
             while (combinationLegacy.hasNext()) {
                 OverlayCombination.Segment segment = combinationLegacy.nextSegment();
                 if (segment != null) {
@@ -1528,7 +1542,7 @@ public abstract class AbstractPackManager implements PackManager {
                     break;
                 }
             }
-            OverlayCombination combinationModern = new OverlayCombination(packOverlays.overlays(), 73 /* 25w45a */, Config.packMaxVersion().majorPackFormat());
+            OverlayCombination combinationModern = new OverlayCombination(packOverlays.overlays(), new PackVersion(73) /* 25w45a */, Config.packMaxVersion().packFormat());
             while (combinationModern.hasNext()) {
                 OverlayCombination.Segment segment = combinationModern.nextSegment();
                 if (segment != null) {
@@ -1567,7 +1581,7 @@ public abstract class AbstractPackManager implements PackManager {
 
             this.plugin.logger().info(TranslationManager.instance().plainTranslation(
                     "resource_pack.validation_started",
-                    String.valueOf(i + 1), String.valueOf(size), String.valueOf(segment.min()), String.valueOf(segment.max()), overlayInOrder.stream().map(Overlay::directory).toList().toString()
+                    String.valueOf(i + 1), String.valueOf(size), segment.minVersion().asString(), segment.maxVersion().asString(), overlayInOrder.stream().map(Overlay::directory).toList().toString()
             ));
 
             Set<Path> fixedModels = new HashSet<>();
@@ -1585,14 +1599,14 @@ public abstract class AbstractPackManager implements PackManager {
             if (fixAtlasOnValidation) {
                 // 有修复物品
                 if (result.fixedItemAtlas != null) {
-                    itemFixer.addEntry(segment.min(), segment.max(), result.fixedItemAtlas);
+                    itemFixer.addEntry(segment.minVersion(), segment.maxVersion(), result.fixedItemAtlas);
                 }
                 // 有修复方块
                 if (result.fixedBlockAtlas != null) {
-                    blockFixer.addEntry(segment.min(), segment.max(), result.fixedBlockAtlas);
+                    blockFixer.addEntry(segment.minVersion(), segment.maxVersion(), result.fixedBlockAtlas);
                 } else if (hasNonOverlaySupport) {
                     // 如果有低版本的支持，那么要通过overlay复原atlas
-                    blockFixer.addEntry(segment.min(), segment.max(), Objects.requireNonNullElseGet(result.originalBlockAtlas, JsonObject::new));
+                    blockFixer.addEntry(segment.minVersion(), segment.maxVersion(), Objects.requireNonNullElseGet(result.originalBlockAtlas, JsonObject::new));
                 }
             }
         }
@@ -1605,24 +1619,24 @@ public abstract class AbstractPackManager implements PackManager {
         if (fixAtlasOnValidation) {
             // 物品
             for (AtlasFixer.Entry entry : itemFixer.entries()) {
-                int min = entry.min();
-                int max = entry.max();
-                String directoryName = Config.createOverlayFolderName(min + "-" + max);
+                PackVersion min = entry.min();
+                PackVersion max = entry.max();
+                String directoryName = Config.createOverlayFolderName(min.asString() + "-" + max.asString());
                 Path atlasPath = path.resolve(directoryName)
                         .resolve("assets")
                         .resolve("minecraft")
                         .resolve("atlases")
                         .resolve("items.json");
                 writeJsonSafely(entry.atlas(), atlasPath);
-                packOverlays.addOverlay(new Overlay(new PackVersion(min), new PackVersion(max), directoryName));
+                packOverlays.addOverlay(new Overlay(min, max, directoryName));
             }
             // 方块
             for (AtlasFixer.Entry entry : blockFixer.entries()) {
-                int min = entry.min();
-                int max = entry.max();
-                String directoryName = Config.createOverlayFolderName(min + "-" + max);
+                PackVersion min = entry.min();
+                PackVersion max = entry.max();
+                String directoryName = Config.createOverlayFolderName(min.asString() + "-" + max.asString());
                 // 这个版本不认可overlay，得把atlas直接写进主包内
-                if (min <= MinecraftVersion.V1_20_1.packFormat().major()) {
+                if (min.major() <= MinecraftVersion.V1_20_1.packFormat().major()) {
                     Path atlasPath = path.resolve("assets")
                             .resolve("minecraft")
                             .resolve("atlases")
@@ -1635,7 +1649,7 @@ public abstract class AbstractPackManager implements PackManager {
                             .resolve("atlases")
                             .resolve("blocks.json");
                     writeJsonSafely(entry.atlas(), atlasPath);
-                    packOverlays.addOverlay(new Overlay(new PackVersion(min), new PackVersion(max), directoryName));
+                    packOverlays.addOverlay(new Overlay(min, max, directoryName));
                 }
             }
         }
@@ -1928,6 +1942,13 @@ public abstract class AbstractPackManager implements PackManager {
             String modelStringPath = "assets/" + modelPath.namespace() + "/models/" + modelPath.value() + ".json";
             Path modelJsonPath = rpView.getExistingReversed(modelStringPath);
             if (modelJsonPath != null) {
+                // A shared block/item model has already been read and validated in this pass.
+                // Resolve the path first: validation may have generated a higher-priority overlay.
+                TexturedModel blockModel = blockModels.get(modelPath);
+                if (blockModel != null && checkedModels.contains(modelJsonPath)) {
+                    itemModels.put(modelPath, blockModel);
+                    continue;
+                }
                 JsonObject modelJson = readJsonObjectFromFileOrWarn(modelJsonPath);
                 if (modelJson == null) continue;
                 TexturedModel texturedModel = getTexturedModel(modelPath, TexturedModel.getParent(modelJson), TexturedModel.getTextures(modelJson), rootPaths, modelsCache);
@@ -3370,6 +3391,11 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(texturePath.getParent());
                 Files.write(texturePath, entry.getValue());
+                JsonObject metadata = generator.textureMetadataToGenerate().get(entry.getKey());
+                if (metadata != null) {
+                    Path metadataPath = texturePath.resolveSibling(texturePath.getFileName() + ".mcmeta");
+                    if (!Files.exists(metadataPath)) writeJsonSafely(metadata, metadataPath);
+                }
             } catch (IOException e) {
                 this.plugin.logger().warn("Failed to generate texture " + texturePath.toAbsolutePath(), e);
             }

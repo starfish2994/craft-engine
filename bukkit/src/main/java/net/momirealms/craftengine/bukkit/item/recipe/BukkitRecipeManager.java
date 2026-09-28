@@ -18,6 +18,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.ItemKeys;
 import net.momirealms.craftengine.core.item.recipe.*;
+import net.momirealms.craftengine.core.item.recipe.predicate.DataComponentPredicate;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.util.*;
@@ -65,6 +66,9 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         it.put(RecipeSerializers.SMITHING_TRIM, recipe -> FastNMS.INSTANCE.createSmithingTrimRecipe((CustomSmithingTrimRecipe) recipe));
         it.put(RecipeSerializers.SMITHING_TRANSFORM, recipe -> FastNMS.INSTANCE.createSmithingTransformRecipe((CustomSmithingTransformRecipe) recipe));
         it.put(RecipeSerializers.DYE, recipe -> FastNMS.INSTANCE.createDyeRecipe((CustomDyeRecipe) recipe));
+        if (VersionHelper.isOrAbove26_3) {
+            it.put(RecipeSerializers.BREWING, recipe -> FastNMS.INSTANCE.createBrewingRecipe((CustomBrewingRecipe) recipe));
+        }
     });
 
     // nms 模块需要使用此方法
@@ -92,8 +96,8 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
     // 需要在主线程卸载的配方
     private final List<Key> nativeRecipesToUnregister = new ArrayList<>();
     private final List<Key> brewingRecipesToUnregister = new ArrayList<>();
-    // 已经被替换过的数据包配方
-    private final Set<Key> replacedDatapackRecipes = new HashSet<>();
+    // 已经被替换过的数据包配方，以及上次是否包含自定义物品
+    private final Map<Key, Boolean> replacedDatapackRecipes = new HashMap<>();
     // 换成的数据包配方
     private Map<Key, JsonObject> lastDatapackRecipes = Map.of();
     private Object lastRecipeManager = null;
@@ -129,6 +133,11 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
 
     public static BukkitRecipeManager instance() {
         return instance;
+    }
+
+    @Override
+    public DataComponentPredicate parsePotionContentsPredicate(JsonObject json) {
+        return FastNMS.INSTANCE.parsePotionContentsPredicate(json);
     }
 
     @Override
@@ -182,23 +191,20 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         ExceptionCollector<Exception> collector = new ExceptionCollector<>(Exception.class);
         for (Recipe recipe : super.nativeRecipes) {
             Key id = recipe.id();
-            if (isDataPackRecipe(id)) {
-                // 如果这个数据包配方已经被换成了注入配方，那么是否需要重新注册取决于其是否含有tag，且tag里有自定义物品
-                if (!this.replacedDatapackRecipes.add(id)) {
-                    outer: {
-                        for (Ingredient ingredient : recipe.ingredientsInUse()) {
-                            if (ingredient.hasCustomItem()) {
-                                break outer;
-                            }
-                        }
-                        // 没有自定义物品，且被注入过了，那么就不需要移除后重新注册
-                        continue;
-                    }
+            boolean dataPackRecipe = isDataPackRecipe(id);
+            boolean hasCustomItem = dataPackRecipe && recipe.ingredientsInUse().stream().anyMatch(Ingredient::hasCustomItem);
+            if (dataPackRecipe) {
+                // 上次有自定义物品、这次没有时也要刷新，以移除旧的 tag 成员或材料替代。
+                if (!hasCustomItem && Boolean.FALSE.equals(this.replacedDatapackRecipes.get(id))) {
+                    continue;
                 }
                 super.recipeRegistry.unregister(id);
             }
             try {
                 super.recipeRegistry.register(id, RECIPE_GENERATOR.get(recipe.serializerType()).apply(recipe));
+                if (dataPackRecipe) {
+                    this.replacedDatapackRecipes.put(id, hasCustomItem);
+                }
             } catch (Exception e) {
                 collector.add(e);
             }
@@ -281,8 +287,6 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
                 }
             }
         }
-
-        // todo 26.3 酿造
 
         // 重载资源
         if (VersionHelper.isOrAbove1_21_6 && !VersionHelper.hasFoliaPatch) {
@@ -396,7 +400,13 @@ public final class BukkitRecipeManager extends AbstractRecipeManager {
         List<Object> selected = PackRepositoryProxy.INSTANCE.getSelected(packRepository);
         List<Object> packResources = new ArrayList<>();
         for (Object pack : selected) {
-            packResources.add(PackProxy.INSTANCE.open(pack));
+            if (VersionHelper.isOrAbove26_3) {
+                try (java.util.stream.Stream<?> resources = (java.util.stream.Stream<?>) PackProxy.INSTANCE.open(pack)) {
+                    resources.forEach(packResources::add);
+                }
+            } else {
+                packResources.add(PackProxy.INSTANCE.open(pack));
+            }
         }
         Map<Key, JsonObject> recipes = new HashMap<>();
         try (AutoCloseable resourceManager = (AutoCloseable) MultiPackResourceManagerProxy.INSTANCE.newInstance(PackTypeProxy.SERVER_DATA, packResources)) {

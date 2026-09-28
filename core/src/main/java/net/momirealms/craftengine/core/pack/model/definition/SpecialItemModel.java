@@ -106,7 +106,7 @@ public final class SpecialItemModel implements ItemModel {
             if (blueprintValue != null) {
                 BBModelConverter.Converted converted = BBModelConverter.convert(pack, path, "item", section.getValue(BASE), blueprintValue);
                 base = converted.model();
-                modelGeneration = ModelGeneration.raw(converted.json(), converted.textures());
+                modelGeneration = ModelGeneration.raw(converted.json(), converted.textures(), converted.textureMetadata());
             } else {
                 ConfigValue baseValue = section.getNonNullValue(BASE, ConfigConstants.ARGUMENT_IDENTIFIER);
                 base = baseValue.getAsIdentifier();

@@ -135,6 +135,7 @@ public final class Config {
     private List<String> resource_pack$protection$obfuscation$bypass_equipments;
     private List<String> resource_pack$protection$obfuscation$bypass_item_models;
 
+    private int resource_pack$optimization$cache_size;
     private boolean resource_pack$optimization$texture$enable;
     private Set<String> resource_pack$optimization$texture$exlude;
     private int resource_pack$optimization$texture$zopfli_iterations;
@@ -164,6 +165,7 @@ public final class Config {
     private boolean chunk_system$cache_system = true;
     private boolean chunk_system$async_write = true;
     private boolean chunk_system$async_read = true;
+    private boolean chunk_system$lifecycle_cache;
     private boolean chunk_system$injection$target;
     private boolean chunk_system$process_invalid_furniture$enable;
     private Map<String, String> chunk_system$process_invalid_furniture$mapping;
@@ -497,6 +499,7 @@ public final class Config {
         this.resource_pack$protection$obfuscation$bypass_sounds = config.getStringList("resource-pack.protection.obfuscation.bypass-sounds");
         this.resource_pack$protection$obfuscation$bypass_equipments = config.getStringList("resource-pack.protection.obfuscation.bypass-equipments");
         this.resource_pack$protection$obfuscation$bypass_item_models = config.getStringList("resource-pack.protection.obfuscation.bypass-item-models");
+        this.resource_pack$optimization$cache_size = Math.max(0, config.getInt("resource-pack.optimization.cache-size", 64));
         this.resource_pack$optimization$texture$enable = config.getBoolean("resource-pack.optimization.texture.enable", true);
         this.resource_pack$optimization$texture$zopfli_iterations = config.getInt("resource-pack.optimization.texture.zopfli-iterations", 0);
         this.resource_pack$optimization$texture$exlude = config.getStringList("resource-pack.optimization.texture.exclude").stream().map(p -> {
@@ -564,6 +567,13 @@ public final class Config {
         this.chunk_system$cache_system = config.getBoolean("chunk-system.cache-system", true);
         this.chunk_system$async_write = config.getBoolean("chunk-system.async-write", true);
         this.chunk_system$async_read = config.getBoolean("chunk-system.async-read", true);
+        if (this.firstTime) {
+            String cacheMode = config.getString("chunk-system.cache-mode", "lifecycle");
+            if (!cacheMode.equalsIgnoreCase("timed") && !cacheMode.equalsIgnoreCase("lifecycle")) {
+                throw new IllegalArgumentException("Unknown chunk-system.cache-mode: " + cacheMode);
+            }
+            this.chunk_system$lifecycle_cache = cacheMode.equalsIgnoreCase("lifecycle");
+        }
 
         if (this.firstTime) {
             this.chunk_system$injection$target = config.getString("chunk-system.injection.target", "palette").equalsIgnoreCase("palette") || (VersionHelper.hasLeafPatch && !VersionHelper.isOrAbove1_21_11);
@@ -1469,6 +1479,10 @@ public final class Config {
         return instance.chunk_system$async_read;
     }
 
+    public static boolean lifecycleChunkCache() {
+        return instance.chunk_system$lifecycle_cache;
+    }
+
     public static boolean addNonItalicTag() {
         return instance.item$non_italic_tag;
     }
@@ -1586,12 +1600,41 @@ public final class Config {
         return instance.item$default_material;
     }
 
+    /**
+     * Returns the first ZIP output path in resource pack workflow configuration order.
+     * Absolute paths are used directly; relative paths are resolved against the plugin data folder.
+     * The returned path is absolute and normalized.
+     *
+     * @throws IllegalStateException if no workflow contains a ZIP output step
+     * @deprecated Resource pack workflows can have multiple output paths, so there is no
+     * single resource pack path. Use the output path of the intended workflow instead.
+     */
+    @Deprecated
+    public static Path resourcePackPath() {
+        Object value = YamlUtils.reader(instance.settings()).getValue("resource-pack.workflows");
+        ConfigSection workflows = ConfigSection.of("resource-pack.workflows", value == null ? Map.of() : value);
+        for (String name : workflows.keySet()) {
+            ConfigSection workflow = Objects.requireNonNull(workflows.getValue(name)).getAsSection();
+            for (ConfigSection step : workflow.getList("steps", entry -> entry.value() instanceof String
+                    ? ConfigSection.of(entry.path(), Map.of("type", entry.getAsString())) : entry.getAsSection())) {
+                if (Key.ce(step.getNonEmptyString("type")).equals(Key.ce("zip"))) {
+                    return instance.plugin.dataFolderPath().resolve(step.getNonEmptyString("path")).toAbsolutePath().normalize();
+                }
+            }
+        }
+        throw new IllegalStateException("No resource pack workflow contains a ZIP output step");
+    }
+
     public void setObf(boolean enable) {
         this.resource_pack$protection$obfuscation$enable = enable;
     }
 
     public static boolean optimizeTexture() {
         return instance.resource_pack$optimization$texture$enable;
+    }
+
+    public static long optimizationCacheSize() {
+        return instance.resource_pack$optimization$cache_size * 1024L * 1024L;
     }
 
     public static Set<String> optimizeTextureExclude() {

@@ -4,6 +4,7 @@ import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.ClassFileVersion;
 import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.matcher.ElementMatchers;
+import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.proxy.minecraft.core.BlockPosProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.BlockGetterProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.level.block.state.BlockBehaviourProxy;
@@ -39,8 +40,10 @@ public final class StatePredicateGenerator {
             return byteBuddy
                     .subclass(Object.class)
                     .name(generatedClassName)
-                    .implement(BlockBehaviourProxy.StatePredicateProxy.CLASS)
-                    .method(ElementMatchers.is(method$StatePredicate$test))
+                    .implement(VersionHelper.isOrAbove26_3
+                            ? new Class<?>[]{BlockBehaviourProxy.StatePredicateProxy.CLASS, BlockBehaviourProxy.StateArgumentPredicateProxy.CLASS}
+                            : new Class<?>[]{BlockBehaviourProxy.StatePredicateProxy.CLASS})
+                    .method(ElementMatchers.named("test"))
                     .intercept(FixedValue.value(trueOrFalse))
                     .make()
                     .load(StatePredicateGenerator.class.getClassLoader())

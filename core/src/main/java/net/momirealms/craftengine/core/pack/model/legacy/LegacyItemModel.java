@@ -78,7 +78,7 @@ public final class LegacyItemModel {
         ConfigValue blueprintValue = section.getValue("blueprint");
         if (blueprintValue != null) {
             BBModelConverter.Converted converted = BBModelConverter.convert(pack, path, "item", section.getValue(PATH), blueprintValue);
-            return Pair.of(converted.model(), ModelGeneration.raw(converted.json(), converted.textures()));
+            return Pair.of(converted.model(), ModelGeneration.raw(converted.json(), converted.textures(), converted.textureMetadata()));
         }
         ConfigValue pathValue = section.getNonNullValue(PATH, ConfigConstants.ARGUMENT_IDENTIFIER);
         ConfigSection generationSection = section.getSection("generation");

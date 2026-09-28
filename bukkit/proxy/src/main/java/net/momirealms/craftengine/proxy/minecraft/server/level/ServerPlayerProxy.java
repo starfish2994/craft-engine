@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.proxy.minecraft.server.level;
 
 import net.momirealms.craftengine.proxy.minecraft.commands.arguments.EntityAnchorArgumentProxy;
+import net.momirealms.craftengine.proxy.minecraft.util.PredictionProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.entity.player.PlayerProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.inventory.AbstractContainerMenuProxy;
 import net.momirealms.craftengine.proxy.minecraft.world.item.ItemStackProxy;
@@ -37,11 +38,16 @@ public interface ServerPlayerProxy extends PlayerProxy {
     @MethodInvoker(name = "closeContainer")
     void closeContainer(Object target);
 
-    @MethodInvoker(name = "drop", activeIf = "min_version=1.21.4 && has_patch=paper")
-    Object drop(Object target, @Type(clazz = ItemStackProxy.class) Object droppedItem, boolean dropAround, boolean traceItem, boolean callEvent, @Nullable Consumer<Item> entityOperation);
+    @MethodInvoker(name = "drop", activeIf = "min_version=1.21.4 && max_version=26.2 && has_patch=paper")
+    default Object drop(Object target, @Type(clazz = ItemStackProxy.class) Object droppedItem, boolean dropAround, boolean traceItem, boolean callEvent, @Nullable Consumer<Item> entityOperation) {
+        return drop(target, droppedItem, traceItem, net.momirealms.craftengine.proxy.minecraft.util.PredictionProxy.SERVER_ONLY, dropAround, callEvent, entityOperation);
+    }
 
-    @MethodInvoker(name = "drop", activeIf = "(min_version=1.20.3 && max_version=1.21.3) || !has_patch=paper")
+    @MethodInvoker(name = "drop", activeIf = "(min_version=1.20.3 && max_version=1.21.3) || (max_version=26.2 && !has_patch=paper)")
     Object drop$1(Object target, @Type(clazz = ItemStackProxy.class) Object droppedItem, boolean dropAround, boolean traceItem, boolean callEvent);
+
+    @MethodInvoker(name = "drop", activeIf = "min_version=26.3 && !has_patch=paper")
+    Object drop$2(Object target, @Type(clazz = ItemStackProxy.class) Object droppedItem, boolean thrownFromHand, @Type(clazz = PredictionProxy.class) Object prediction, boolean callEvent);
 
     @MethodInvoker(name = "getBukkitEntity")
     Player getBukkitEntity(Object target);

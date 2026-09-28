@@ -310,6 +310,13 @@ debug_internal_block_state:
     - /craftengine debug internal-block-state
     - /ce debug internal-block-state
 
+debug_export_block_state_mappings:
+  enable: true
+  permission: ce.command.debug.export_block_state_mappings
+  usage:
+    - /craftengine debug export-block-state-mappings
+    - /ce debug export-block-state-mappings
+
 debug_get_block_internal_id:
   enable: true
   permission: ce.command.debug.get_block_internal_id

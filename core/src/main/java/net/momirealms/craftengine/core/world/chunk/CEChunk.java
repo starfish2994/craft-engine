@@ -506,8 +506,12 @@ public class CEChunk {
 
     public void activateAllBlockEntities() {
         if (this.activated) return;
+        // onLoad may query neighbors. Restore all cached entities before a lookup
+        // can mistake a not-yet-activated neighbor for an invalid entity and remove it.
         for (BlockEntity blockEntity : this.blockEntities.values()) {
             blockEntity.setValid(true);
+        }
+        for (BlockEntity blockEntity : this.blockEntities.values()) {
             this.replaceOrCreateTickingBlockEntity(blockEntity);
             this.createDynamicBlockEntityRenderer(blockEntity);
             try {

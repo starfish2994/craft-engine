@@ -88,6 +88,6 @@ public final class GeneratedItemModelReader implements SimplifiedItemModelReader
     @Override
     public ItemModel buildFromBlueprints(List<BBModelConverter.Converted> blueprints) {
         BBModelConverter.Converted converted = blueprints.getFirst();
-        return new BaseItemModel(converted.model(), this.tints, ModelGeneration.raw(converted.json(), converted.textures()));
+        return new BaseItemModel(converted.model(), this.tints, ModelGeneration.raw(converted.json(), converted.textures(), converted.textureMetadata()));
     }
 }

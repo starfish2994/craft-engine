@@ -1,6 +1,7 @@
 package net.momirealms.craftengine.core.pack.mcmeta.overlay;
 
 import net.momirealms.craftengine.core.pack.mcmeta.Overlay;
+import net.momirealms.craftengine.core.pack.mcmeta.PackVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,36 +11,42 @@ public final class OverlayCombination {
     private final List<VersionBasedEvent> versionBasedEvents;
     private final List<Overlay> currentOverlays;
     private int cursor;
-    private int version;
+    private long version;
 
     public OverlayCombination(List<Overlay> overlays, int minVersion, int maxVersion) {
+        this(overlays, new PackVersion(minVersion), new PackVersion(maxVersion, Integer.MAX_VALUE));
+    }
+
+    public OverlayCombination(List<Overlay> overlays, PackVersion minVersion, PackVersion maxVersion) {
         this.versionBasedEvents = new ArrayList<>();
         this.currentOverlays = new ArrayList<>();
-        this.version = minVersion;
+        this.version = encode(minVersion);
         this.cursor = 0;
 
-        Map<Integer, List<Event>> eventsByVersion = new TreeMap<>();
-        eventsByVersion.computeIfAbsent(minVersion, k -> new ArrayList<>());
-        eventsByVersion.computeIfAbsent(maxVersion + 1, k -> new ArrayList<>());
+        long min = encode(minVersion);
+        long max = encode(maxVersion);
+        Map<Long, List<Event>> eventsByVersion = new TreeMap<>();
+        eventsByVersion.computeIfAbsent(min, k -> new ArrayList<>());
+        eventsByVersion.computeIfAbsent(max + 1, k -> new ArrayList<>());
         for (Overlay overlay : overlays) {
-            if (overlay.minVersion().major() > maxVersion) {
+            if (overlay.minVersion().isAbove(maxVersion)) {
                 continue;
             }
-            if (overlay.maxVersion().major() < minVersion) {
+            if (overlay.maxVersion().isBelow(minVersion)) {
                 continue;
             }
 
             // 取最小中的较大值
-            int join = Math.max(overlay.minVersion().major(), minVersion);
+            long join = Math.max(encode(overlay.minVersion()), min);
             // 去最大中的较小值
-            int leave = Math.min(overlay.maxVersion().major(), maxVersion);
+            long leave = Math.min(encode(overlay.maxVersion()), max);
             List<Event> joinEvents = eventsByVersion.computeIfAbsent(join, k -> new ArrayList<>());
             joinEvents.add(new Event(overlay, Operation.JOIN));
             List<Event> leaveEvents = eventsByVersion.computeIfAbsent(leave + 1, k -> new ArrayList<>());
             leaveEvents.add(new Event(overlay, Operation.LEAVE));
         }
 
-        for (Map.Entry<Integer, List<Event>> entry : eventsByVersion.entrySet()) {
+        for (Map.Entry<Long, List<Event>> entry : eventsByVersion.entrySet()) {
             this.versionBasedEvents.add(new VersionBasedEvent(entry.getKey(), entry.getValue()));
         }
     }
@@ -55,7 +62,7 @@ public final class OverlayCombination {
             return null;
         }
         // 第一次100%有问题
-        if (next.min > next.max) {
+        if (next.minVersion.isAbove(next.maxVersion)) {
             return next();
         }
         return next;
@@ -70,7 +77,7 @@ public final class OverlayCombination {
         // 获取事件
         VersionBasedEvent events = this.versionBasedEvents.get(this.cursor++);
         // 将上一个版本和上次记录的版本打为一个overlay返回
-        Segment segment = new Segment(this.version, events.version - 1, Set.copyOf(this.currentOverlays));
+        Segment segment = new Segment(decode(this.version), decode(events.version - 1), Set.copyOf(this.currentOverlays));
         this.version = events.version;
         // 变更当前成员
         for (Event event : events.events) {
@@ -84,13 +91,33 @@ public final class OverlayCombination {
         return segment;
     }
 
-    public record Segment(int min, int max, Set<Overlay> overlays) {
+    // Pack formats are ordered pairs of nonnegative ints. Keep minor boundaries during the sweep.
+    private static long encode(PackVersion version) {
+        return ((long) version.major() << 31) + version.minor();
+    }
+
+    private static PackVersion decode(long version) {
+        return new PackVersion((int) (version >> 31), (int) (version & Integer.MAX_VALUE));
+    }
+
+    public record Segment(PackVersion minVersion, PackVersion maxVersion, Set<Overlay> overlays) {
+        public Segment(int min, int max, Set<Overlay> overlays) {
+            this(new PackVersion(min), new PackVersion(max), overlays);
+        }
+
+        public int min() {
+            return this.minVersion.major();
+        }
+
+        public int max() {
+            return this.maxVersion.major();
+        }
 
         @Override
         public @NotNull String toString() {
             return "OverlaySegment{" +
-                    "min=" + this.min +
-                    ", max=" + this.max +
+                    "min=" + this.minVersion.asString() +
+                    ", max=" + this.maxVersion.asString() +
                     ", overlays=" + this.overlays +
                     '}';
         }
@@ -107,7 +134,7 @@ public final class OverlayCombination {
         }
     }
 
-    record VersionBasedEvent(int version, List<Event> events) {
+    record VersionBasedEvent(long version, List<Event> events) {
 
         @Override
         public @NotNull String toString() {
