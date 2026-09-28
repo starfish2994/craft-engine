@@ -1521,7 +1521,7 @@ public abstract class AbstractPackManager implements PackManager {
         List<OverlayCombination.Segment> segments = new ArrayList<>();
         // 完全小于1.21.11或完全大于1.21.11
         if (Config.packMaxVersion().isBelow(MinecraftVersion.V1_21_11) || Config.packMinVersion().isAtOrAbove(MinecraftVersion.V1_21_11)) {
-            OverlayCombination combination = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().majorPackFormat(), Config.packMaxVersion().majorPackFormat());
+            OverlayCombination combination = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().packFormat(), Config.packMaxVersion().packFormat());
             while (combination.hasNext()) {
                 OverlayCombination.Segment segment = combination.nextSegment();
                 if (segment != null) {
@@ -1533,7 +1533,7 @@ public abstract class AbstractPackManager implements PackManager {
         }
         // 混合版本
         else {
-            OverlayCombination combinationLegacy = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().majorPackFormat(), 72 /* 25w44a */);
+            OverlayCombination combinationLegacy = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().packFormat(), new PackVersion(72, Integer.MAX_VALUE) /* 25w44a */);
             while (combinationLegacy.hasNext()) {
                 OverlayCombination.Segment segment = combinationLegacy.nextSegment();
                 if (segment != null) {
@@ -1542,7 +1542,7 @@ public abstract class AbstractPackManager implements PackManager {
                     break;
                 }
             }
-            OverlayCombination combinationModern = new OverlayCombination(packOverlays.overlays(), 73 /* 25w45a */, Config.packMaxVersion().majorPackFormat());
+            OverlayCombination combinationModern = new OverlayCombination(packOverlays.overlays(), new PackVersion(73) /* 25w45a */, Config.packMaxVersion().packFormat());
             while (combinationModern.hasNext()) {
                 OverlayCombination.Segment segment = combinationModern.nextSegment();
                 if (segment != null) {
@@ -1581,7 +1581,7 @@ public abstract class AbstractPackManager implements PackManager {
 
             this.plugin.logger().info(TranslationManager.instance().plainTranslation(
                     "resource_pack.validation_started",
-                    String.valueOf(i + 1), String.valueOf(size), String.valueOf(segment.min()), String.valueOf(segment.max()), overlayInOrder.stream().map(Overlay::directory).toList().toString()
+                    String.valueOf(i + 1), String.valueOf(size), segment.minVersion().asString(), segment.maxVersion().asString(), overlayInOrder.stream().map(Overlay::directory).toList().toString()
             ));
 
             Set<Path> fixedModels = new HashSet<>();
@@ -1599,14 +1599,14 @@ public abstract class AbstractPackManager implements PackManager {
             if (fixAtlasOnValidation) {
                 // 有修复物品
                 if (result.fixedItemAtlas != null) {
-                    itemFixer.addEntry(segment.min(), segment.max(), result.fixedItemAtlas);
+                    itemFixer.addEntry(segment.minVersion(), segment.maxVersion(), result.fixedItemAtlas);
                 }
                 // 有修复方块
                 if (result.fixedBlockAtlas != null) {
-                    blockFixer.addEntry(segment.min(), segment.max(), result.fixedBlockAtlas);
+                    blockFixer.addEntry(segment.minVersion(), segment.maxVersion(), result.fixedBlockAtlas);
                 } else if (hasNonOverlaySupport) {
                     // 如果有低版本的支持，那么要通过overlay复原atlas
-                    blockFixer.addEntry(segment.min(), segment.max(), Objects.requireNonNullElseGet(result.originalBlockAtlas, JsonObject::new));
+                    blockFixer.addEntry(segment.minVersion(), segment.maxVersion(), Objects.requireNonNullElseGet(result.originalBlockAtlas, JsonObject::new));
                 }
             }
         }
@@ -1619,24 +1619,24 @@ public abstract class AbstractPackManager implements PackManager {
         if (fixAtlasOnValidation) {
             // 物品
             for (AtlasFixer.Entry entry : itemFixer.entries()) {
-                int min = entry.min();
-                int max = entry.max();
-                String directoryName = Config.createOverlayFolderName(min + "-" + max);
+                PackVersion min = entry.min();
+                PackVersion max = entry.max();
+                String directoryName = Config.createOverlayFolderName(min.asString() + "-" + max.asString());
                 Path atlasPath = path.resolve(directoryName)
                         .resolve("assets")
                         .resolve("minecraft")
                         .resolve("atlases")
                         .resolve("items.json");
                 writeJsonSafely(entry.atlas(), atlasPath);
-                packOverlays.addOverlay(new Overlay(new PackVersion(min), new PackVersion(max), directoryName));
+                packOverlays.addOverlay(new Overlay(min, max, directoryName));
             }
             // 方块
             for (AtlasFixer.Entry entry : blockFixer.entries()) {
-                int min = entry.min();
-                int max = entry.max();
-                String directoryName = Config.createOverlayFolderName(min + "-" + max);
+                PackVersion min = entry.min();
+                PackVersion max = entry.max();
+                String directoryName = Config.createOverlayFolderName(min.asString() + "-" + max.asString());
                 // 这个版本不认可overlay，得把atlas直接写进主包内
-                if (min <= MinecraftVersion.V1_20_1.packFormat().major()) {
+                if (min.major() <= MinecraftVersion.V1_20_1.packFormat().major()) {
                     Path atlasPath = path.resolve("assets")
                             .resolve("minecraft")
                             .resolve("atlases")
@@ -1649,7 +1649,7 @@ public abstract class AbstractPackManager implements PackManager {
                             .resolve("atlases")
                             .resolve("blocks.json");
                     writeJsonSafely(entry.atlas(), atlasPath);
-                    packOverlays.addOverlay(new Overlay(new PackVersion(min), new PackVersion(max), directoryName));
+                    packOverlays.addOverlay(new Overlay(min, max, directoryName));
                 }
             }
         }
