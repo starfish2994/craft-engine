@@ -1,14 +1,22 @@
 package net.momirealms.craftengine.core.item.processor;
 
-import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
+import net.momirealms.craftengine.core.item.network.ItemPacketSource;
+import net.momirealms.craftengine.core.item.network.NetworkItemBuildContext;
 import net.momirealms.sparrow.nbt.CompoundTag;
 
-// TODO 接口方法设计地不好，未来重构
 public interface ItemProcessor {
 
-    Item apply(Item item, ItemBuildContext context);
+    void apply(ItemBuildContext context);
 
-    default void prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
+    default boolean isConstant() {
+        return false;
+    }
+
+    default void prepareNetworkItem(NetworkItemBuildContext context, CompoundTag networkData) {
+    }
+
+    default boolean shouldSkip(ItemPacketSource source) {
+        return false;
     }
 }

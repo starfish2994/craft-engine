@@ -2,6 +2,7 @@ package net.momirealms.craftengine.core.pack;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import net.momirealms.craftengine.core.pack.mcmeta.PackVersion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ final class AtlasFixer {
     }
 
     // 理论是从小到大加的
-    public void addEntry(int min, int max, JsonObject atlas) {
+    public void addEntry(PackVersion min, PackVersion max, JsonObject atlas) {
         if (!atlas.has("sources")) {
             atlas.add("sources", new JsonArray());
         }
@@ -38,20 +39,20 @@ final class AtlasFixer {
     }
 
     protected static class Entry {
-        private int min, max;
+        private PackVersion min, max;
         private final JsonObject atlas;
 
-        public Entry(int min, int max, JsonObject atlas) {
+        public Entry(PackVersion min, PackVersion max, JsonObject atlas) {
             this.min = min;
             this.max = max;
             this.atlas = atlas;
         }
 
-        public int min() {
+        public PackVersion min() {
             return min;
         }
 
-        public int max() {
+        public PackVersion max() {
             return max;
         }
 
@@ -59,11 +60,11 @@ final class AtlasFixer {
             return this.atlas;
         }
 
-        public void setMin(int min) {
+        public void setMin(PackVersion min) {
             this.min = min;
         }
 
-        public void setMax(int max) {
+        public void setMax(PackVersion max) {
             this.max = max;
         }
     }

@@ -68,8 +68,8 @@ public final class ConditionItemModelReader implements SimplifiedItemModelReader
         BBModelConverter.Converted idle = blueprints.get(0);
         BBModelConverter.Converted special = blueprints.get(1);
         return build(
-                idle.model(), ModelGeneration.raw(idle.json(), idle.textures()),
-                special.model(), ModelGeneration.raw(special.json(), special.textures())
+                idle.model(), ModelGeneration.raw(idle.json(), idle.textures(), idle.textureMetadata()),
+                special.model(), ModelGeneration.raw(special.json(), special.textures(), special.textureMetadata())
         );
     }
 

@@ -23,6 +23,7 @@ public final class GeneratedItemModelReader implements SimplifiedItemModelReader
     public static final GeneratedItemModelReader GENERATED = new GeneratedItemModelReader(Key.of("item/generated"), List.of());
     public static final GeneratedItemModelReader HANDHELD = new GeneratedItemModelReader(Key.of("item/handheld"), List.of());
     public static final GeneratedItemModelReader HANDHELD_MACE = new GeneratedItemModelReader(Key.of("item/handheld_mace"), List.of());
+    public static final GeneratedItemModelReader HANDHELD_ROD = new GeneratedItemModelReader(Key.of("item/handheld_rod"), List.of());
     public static final GeneratedItemModelReader LEATHER = new GeneratedItemModelReader(Key.of("item/generated"), List.of(new SimpleDefaultTint(Key.of("dye"), Either.left(16777215))));
     public static final GeneratedItemModelReader FIREWORK_STAR = new GeneratedItemModelReader(Key.of("item/generated"), List.of(new ConstantTint(Either.left(-1)), new SimpleDefaultTint(Key.of("firework"), Either.left(16777215))));
 
@@ -87,6 +88,6 @@ public final class GeneratedItemModelReader implements SimplifiedItemModelReader
     @Override
     public ItemModel buildFromBlueprints(List<BBModelConverter.Converted> blueprints) {
         BBModelConverter.Converted converted = blueprints.getFirst();
-        return new BaseItemModel(converted.model(), this.tints, ModelGeneration.raw(converted.json(), converted.textures()));
+        return new BaseItemModel(converted.model(), this.tints, ModelGeneration.raw(converted.json(), converted.textures(), converted.textureMetadata()));
     }
 }

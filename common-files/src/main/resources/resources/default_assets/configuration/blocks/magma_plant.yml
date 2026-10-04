@@ -41,7 +41,7 @@ blocks:
         - default:sound/grass
       overrides:
         item: default:magma_fruit
-        push_reaction: destroy
+        push_reaction: popped
         map_color: 24
     behavior:
       - type: crop_block
@@ -102,7 +102,7 @@ blocks:
         crop_item: default:magma_fruit
         ripe_age: 3
     events:
-      - on: break
+      - on: block_break
         conditions:
           - type: match_block_property
             properties:

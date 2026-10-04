@@ -19,6 +19,10 @@ config_factory#basic:
       replaced_door_type: oak
       # Available types: oak, spruce, birch, jungle, acacia, dark_oak, mangrove, cherry, pale_oak, bamboo, warped, crimson
       replaced_fence_gate_type: oak
+      # Optional base fence/button type
+      # They are based on the block entity renderer, so the base block is not that important.
+      fence_type: oak
+      button_type: oak
       # If leaves can be tinted by biomes
       leaves_tintable: true
       default_leaves_color: "#48B358"
@@ -285,7 +289,7 @@ config_factory#basic:
               template:
                 - default:sound/wood
               overrides:
-                push_reaction: destroy
+                push_reaction: popped
                 map_color: ${planks_map_color}
                 instrument: bass
                 hardness: 3.0
@@ -298,7 +302,7 @@ config_factory#basic:
             states:
               template: default:block_state/door
               arguments:
-                door_base_block: oak_door
+                door_base_block: ${replaced_door_type}_door
                 door_model: ${asset_path_prefix}${tree_type}_door
                 door_texture_top: ${asset_path_prefix}${tree_type}_door_top
                 door_texture_bottom: ${asset_path_prefix}${tree_type}_door_bottom
@@ -319,7 +323,7 @@ config_factory#basic:
                 - default:hardness/planks
               overrides:
                 burnable: true
-                push_reaction: destroy
+                push_reaction: popped
                 map_color: ${planks_map_color:-wood}
                 instrument: bass
                 tags:
@@ -401,7 +405,7 @@ config_factory#basic:
                 burnable: true
                 is_suffocating: false
                 is_redstone_conductor: false
-                push_reaction: NORMAL
+                push_reaction: push_pull
                 instrument: BASS
                 map_color: ${planks_map_color:-wood}
                 tags:
@@ -456,7 +460,7 @@ config_factory#basic:
                 - default:hardness/button
               overrides:
                 burnable: true
-                push_reaction: destroy
+                push_reaction: popped
                 map_color: ${planks_map_color:-wood}
                 instrument: harp
                 tags:
@@ -475,7 +479,7 @@ config_factory#basic:
             states:
               template: default:block_state/button
               arguments:
-                button_base_block: oak_button
+                button_base_block: ${button_type:-oak}_button
                 button_pressed_item: ${namespace}:${tree_type}_button_pressed
                 button_not_pressed_item: ${namespace}:${tree_type}_button_not_pressed
       ${namespace}:${tree_type}_button_pressed:
@@ -609,7 +613,10 @@ $$>=1.20.3:
       - namespace: default
         tree_type: palm
         asset_path_prefix: minecraft:block/custom/
-        replaced_slab_type: cut_copper
+        # petrified_oak, cut_copper, exposed_cut_copper, weathered_cut_copper, oxidized_cut_copper
+        replaced_slab_type: petrified_oak
+        # cut_copper, exposed_cut_copper, weathered_cut_copper, oxidized_cut_copper
+        replaced_stair_type: cut_copper
         planks_map_color: sand
     blueprint:
       items:
@@ -641,7 +648,7 @@ $$>=1.20.3:
               states:
                 template: default:block_state/slab
                 arguments:
-                  slab_base_block: petrified_oak_slab
+                  slab_base_block: ${replaced_slab_type}_slab
                   slab_texture: ${asset_path_prefix}${tree_type}_planks
                   slab_model: ${asset_path_prefix}${tree_type}_slab
                   planks_model: ${asset_path_prefix}${tree_type}_planks
@@ -673,7 +680,7 @@ $$>=1.20.3:
               states:
                 template: default:block_state/stairs
                 arguments:
-                  stairs_base_block: ${replaced_slab_type}_stairs
+                  stairs_base_block: ${replaced_stair_type}_stairs
                   stairs_model: ${asset_path_prefix}${tree_type}_stairs
                   stairs_texture: ${asset_path_prefix}${tree_type}_planks
       recipes:
@@ -705,32 +712,97 @@ $$>=1.20.3:
 # Defines the tree's appearance using the same structure as Minecraft's vanilla tree feature.
 # Generate this configuration via a data pack editor (see: https://misode.github.io/worldgen/feature/) and export in YAML format.
 configured_feature:
-  default:palm_tree:
-    type: 'minecraft:tree'
-    config:
+  $$<26.3#default:palm_tree:
+    default:palm_tree:
+      type: 'minecraft:tree'
+      config:
+        ignore_vines: true
+        force_dirt: false
+        minimum_size:
+          type: 'minecraft:two_layers_feature_size'
+          min_clipped_height: 10
+          limit: 1
+          lower_size: 0
+          upper_size: 2
+        dirt_provider:
+          type: 'minecraft:simple_state_provider'
+          state:
+            Name: 'minecraft:sand'
+        trunk_provider:
+          type: 'minecraft:simple_state_provider'
+          state:
+            Name: 'default:palm_log'
+            Properties:
+              axis: 'y'
+        foliage_provider:
+          type: 'minecraft:simple_state_provider'
+          state:
+            Name: 'default:palm_leaves'
+            Properties:
+              distance: '7'
+              persistent: 'false'
+              waterlogged: 'false'
+        trunk_placer:
+          type: 'minecraft:straight_trunk_placer'
+          base_height: 6
+          height_rand_a: 5
+          height_rand_b: 0
+        foliage_placer:
+          type: 'minecraft:cherry_foliage_placer'
+          radius: 5
+          offset: 0
+          height: 4
+          wide_bottom_layer_hole_chance: 0.8
+          corner_hole_chance: 1
+          hanging_leaves_chance: 0.8
+          hanging_leaves_extension_chance: 0.4
+        decorators: []
+        $$>=26.2:
+          below_trunk_provider:
+            type: 'minecraft:rule_based_state_provider'
+            rules:
+              - if_true:
+                  type: 'minecraft:not'
+                  predicate:
+                    type: 'minecraft:matching_block_tag'
+                    tag: 'minecraft:cannot_replace_below_tree_trunk'
+                then:
+                  type: 'minecraft:simple_state_provider'
+                  state:
+                    Name: 'minecraft:dirt'
+  $$>=26.3#default:palm_tree:
+    default:palm_tree:
+      type: 'minecraft:tree'
       ignore_vines: true
-      force_dirt: false
       minimum_size:
         type: 'minecraft:two_layers_feature_size'
         min_clipped_height: 10
         limit: 1
         lower_size: 0
         upper_size: 2
-      dirt_provider:
-        type: 'minecraft:simple_state_provider'
-        state:
-          Name: 'minecraft:sand'
+      below_trunk_provider:
+        type: 'minecraft:rule_based'
+        rules:
+          - if_true:
+              type: 'minecraft:not'
+              predicate:
+                type: 'minecraft:matching_block_tag'
+                tag: 'minecraft:cannot_replace_below_tree_trunk'
+            then:
+              type: 'minecraft:simple'
+              state:
+                id: 'minecraft:dirt'
       trunk_provider:
-        type: 'minecraft:simple_state_provider'
+        type: 'minecraft:simple'
         state:
-          Name: 'default:palm_log'
-          Properties:
+          id: 'default:palm_log'
+          properties:
             axis: 'y'
       foliage_provider:
-        type: 'minecraft:simple_state_provider'
+        type: 'minecraft:simple'
         state:
-          Name: 'default:palm_leaves'
-          Properties:
+          id: 'default:palm_leaves'
+          properties:
             distance: '7'
             persistent: 'false'
             waterlogged: 'false'
@@ -749,16 +821,3 @@ configured_feature:
         hanging_leaves_chance: 0.8
         hanging_leaves_extension_chance: 0.4
       decorators: []
-      $$>=26.2:
-        below_trunk_provider:
-          type: 'minecraft:rule_based_state_provider'
-          rules:
-            - if_true:
-                type: 'minecraft:not'
-                predicate:
-                  type: 'minecraft:matching_block_tag'
-                  tag: 'minecraft:cannot_replace_below_tree_trunk'
-              then:
-                type: 'minecraft:simple_state_provider'
-                state:
-                  Name: 'minecraft:dirt'

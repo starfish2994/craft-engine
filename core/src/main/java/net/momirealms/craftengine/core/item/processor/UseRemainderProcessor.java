@@ -17,12 +17,16 @@ public final class UseRemainderProcessor implements ItemProcessor {
     }
 
     @Override
-    public Item apply(Item item, ItemBuildContext context) {
+    public boolean isConstant() {
+        return true;
+    }
+
+    @Override
+    public void apply(ItemBuildContext context) {
+        Item item = context.item();
         Item wrappedItem = Item.byId(data, context.player());
         if (wrappedItem != null) {
-            return item.useRemainder(wrappedItem, count);
-        } else {
-            return item;
+            item.useRemainder(wrappedItem, count);
         }
     }
 

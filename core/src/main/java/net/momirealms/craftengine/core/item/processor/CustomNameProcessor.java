@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.item.processor;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.network.ItemPacketSource;
 import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.text.minimessage.FormattedLine;
@@ -29,14 +30,23 @@ public final class CustomNameProcessor implements SimpleNetworkItemProcessor {
         this.line = FormattedLine.create(this.argument);
     }
 
+    @Override
+    public boolean shouldSkip(ItemPacketSource source) {
+        return source.canSkipName;
+    }
+
+    @Override
+    public boolean isConstant() {
+        return this.line.isConstant();
+    }
+
     public String customName() {
         return this.argument;
     }
 
     @Override
-    public Item apply(Item item, ItemBuildContext context) {
-        item.customNameComponent(this.line.parse(context));
-        return item;
+    public void apply(ItemBuildContext context) {
+        context.item().customNameComponent(this.line.parse(context));
     }
 
     @Override

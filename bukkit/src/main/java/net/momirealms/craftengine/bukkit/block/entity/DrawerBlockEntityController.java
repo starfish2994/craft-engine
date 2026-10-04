@@ -127,7 +127,9 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
         CEChunk chunk = super.blockEntity.world.getChunkAtIfLoaded(super.blockEntity.pos.x >> 4, super.blockEntity.pos.z >> 4);
         if (chunk == null) return;
         for (Player trackedPlayer : chunk.getTrackedBy()) {
-            consumer.accept(this.element, trackedPlayer);
+            if (trackedPlayer.isDynamicBlockEntityVisible(super.blockEntity.pos)) {
+                consumer.accept(this.element, trackedPlayer);
+            }
         }
     }
 
@@ -458,7 +460,7 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
             // 非法数据
             if (itemTag == null || count <= 0) return;
 
-            this.setTemplateItem(ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion)));
+            this.setTemplateItem(ItemStackUtils.wrap(ItemStackUtils.parseCachedMinecraftItem(itemTag, dataVersion)));
             this.setItemCount(count);
 
             Item item = this.item();
@@ -472,8 +474,9 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
         public void saveCustomData(CompoundTag tag) {
             if (isEmpty() || this.itemCount() <= 0) return;
             CompoundTag data = new CompoundTag();
-            data.put("data_version", new IntTag(VersionHelper.WORLD_VERSION));
-            data.put("count", new IntTag(this.itemCount()));
+            
+            data.put("data_version", IntTag.valueOf(VersionHelper.WORLD_VERSION));
+            data.put("count", IntTag.valueOf(this.itemCount()));
             data.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.item().minecraftItem()));
             tag.put(behavior.customDataKey, data);
         }
@@ -712,7 +715,7 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
                 return;
             }
 
-            Item itemTemplate = ItemStackUtils.wrap(ItemStackUtils.parseMinecraftItem(itemTag, dataVersion));
+            Item itemTemplate = ItemStackUtils.wrap(ItemStackUtils.parseCachedMinecraftItem(itemTag, dataVersion));
             int maxStackSize = itemTemplate.maxStackSize();
             int remaining = count;
 
@@ -736,8 +739,8 @@ public sealed abstract class DrawerBlockEntityController extends BlockEntityCont
         public void saveCustomData(CompoundTag tag) {
             if (isEmpty() || this.itemCount() <= 0) return;
             CompoundTag data = new CompoundTag();
-            data.put("data_version", new IntTag(Config.itemDataFixerUpperFallbackVersion()));
-            data.put("count", new IntTag(this.itemCount()));
+            data.put("data_version", IntTag.valueOf(Config.itemDataFixerUpperFallbackVersion()));
+            data.put("count", IntTag.valueOf(this.itemCount()));
             data.put("item", ItemStackUtils.saveMinecraftItemStackAsTag(this.items[0].copyWithCount(1).minecraftItem()));
             tag.put(behavior.customDataKey, data);
         }

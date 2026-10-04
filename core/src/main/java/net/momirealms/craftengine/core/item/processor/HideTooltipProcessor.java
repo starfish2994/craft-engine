@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.network.NetworkItemBuildContext;
 import net.momirealms.craftengine.core.item.network.NetworkItemHandler;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
@@ -89,18 +90,23 @@ public final class HideTooltipProcessor implements ItemProcessor {
         }
     }
 
+    @Override
+    public boolean isConstant() {
+        return true;
+    }
+
     public List<Key> components() {
         return this.components;
     }
 
     @Override
-    public Item apply(Item item, ItemBuildContext context) {
-        this.applier.apply(item);
-        return item;
+    public void apply(ItemBuildContext context) {
+        this.applier.apply(context.item());
     }
 
     @Override
-    public void prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
+    public void prepareNetworkItem(NetworkItemBuildContext context, CompoundTag networkData) {
+        Item item = context.item();
         if (VersionHelper.isOrAbove1_21_5) {
             Tag previous = item.getComponentAsSparrowTag(DataComponentKeys.TOOLTIP_DISPLAY);
             if (previous != null) {

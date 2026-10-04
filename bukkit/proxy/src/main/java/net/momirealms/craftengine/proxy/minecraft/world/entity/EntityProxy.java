@@ -66,10 +66,10 @@ public interface EntityProxy {
     @FieldSetter(name = "entityData")
     void setEntityData(Object target, Object entityData);
 
-    @FieldGetter(name = "hurtMarked")
+    @FieldGetter(name = {"syncVelocity", "hurtMarked"})
     boolean getHurtMarked(Object target);
 
-    @FieldSetter(name = "hurtMarked")
+    @FieldSetter(name = {"syncVelocity", "hurtMarked"})
     void setHurtMarked(Object target, boolean hurtMarked);
 
     @FieldGetter(name = {"trackedEntity", "tracker"}, activeIf = "has_patch=paper")
@@ -126,6 +126,12 @@ public interface EntityProxy {
     @MethodInvoker(name = "setDeltaMovement")
     void setDeltaMovement(Object target, @Type(clazz = Vec3Proxy.class) Object deltaMovement);
 
+    @MethodInvoker(name = "setPos")
+    void setPos(Object target, double x, double y, double z);
+
+    @MethodInvoker(name = "blockPosition")
+    Object getBlockPosition(Object target);
+
     @MethodInvoker(name = "getDeltaMovement")
     Object getDeltaMovement(Object target);
 
@@ -155,6 +161,9 @@ public interface EntityProxy {
 
     @FieldGetter(name = "blocksBuilding")
     boolean getBlocksBuilding(Object target);
+
+    @FieldSetter(name = "blocksBuilding")
+    void setBlocksBuilding(Object target, boolean blocksBuilding);
 
     @MethodInvoker(name = "getBoundingBox")
     Object getBoundingBox(Object target);

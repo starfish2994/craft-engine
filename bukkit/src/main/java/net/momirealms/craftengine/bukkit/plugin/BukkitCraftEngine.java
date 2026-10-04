@@ -81,6 +81,7 @@ public final class BukkitCraftEngine extends CraftEngine {
     private final List<AntiGriefCompatibility> antiGriefProviders = new ArrayList<>(1);
     private final Path dataFolderPath;
     private SchedulerTask tickTask;
+    private SchedulerTask asyncTickTask;
     private boolean successfullyLoaded = false;
     private boolean successfullyEnabled = false;
     private AntiGriefLib antiGrief;
@@ -138,6 +139,7 @@ public final class BukkitCraftEngine extends CraftEngine {
             BlockGenerator.init();
             BlockStateGenerator.init();
             StatePredicateGenerator.init();
+            FallingBlockEntityGenerator.init();
             super.blockManager = new BukkitBlockManager(this);
         } catch (Throwable e) {
             throw new InjectionException("Error injecting blocks", e);
@@ -183,6 +185,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         }
         // 初始化一些注册表
         super.onPluginLoad();
+        RuntimePatcher.checkChunkCacheAvailability(this);
         NBTComponentSerializer.setClickEventFactory(RelocatedClickEventProxy.INSTANCE::newInstance);
         BukkitBlockBehaviors.init();
         BukkitItemBehaviors.init();
@@ -225,8 +228,12 @@ public final class BukkitCraftEngine extends CraftEngine {
         super.attributeManager = new BukkitAttributeManager(this);
         // 初始化实体管理器
         super.entityManager = new BukkitEntityManager(this);
+        // 阻止无物品谓词的原版商人交易接受 CE 物品
+        RuntimePatcher.installMerchantItemMatchHook(this);
         // 重定义 LivingEntity
         RuntimePatcher.installEquipmentChangeHook(this);
+        // 为 Spigot 补上世界实体加入/移除回调；Paper 使用原生事件。
+        RuntimePatcher.installEntityWorldHook(this);
         // 注册默认的parser
         this.registerDefaultParsers();
         // 脚本事件订阅挂到 Bukkit 事件总线
@@ -296,8 +303,10 @@ public final class BukkitCraftEngine extends CraftEngine {
     @Override
     public void onPluginDisable() {
         if (super.isDisabled) return;
+        RuntimePatcher.clearEntityWorldCallbacks(this);
         super.onPluginDisable();
         if (this.tickTask != null) this.tickTask.cancel();
+        if (this.asyncTickTask != null) this.asyncTickTask.cancel();
         if (VersionHelper.hasPaperPatch && ServerUtils.isRunning()) {
             logger().error(" ");
             logger().error(" ");
@@ -315,6 +324,7 @@ public final class BukkitCraftEngine extends CraftEngine {
         if (Config.metrics()) {
             new Metrics(this.javaPlugin(), 24333);
         }
+        this.asyncTickTask = this.scheduler().platform().runAsyncRepeating(new AsyncTickTask(this), 1, 1);
         // tick task
         if (!VersionHelper.hasFoliaPatch) {
             this.tickTask = this.scheduler().platform().runRepeating(new MainTickTask(this), 1, 1);
@@ -371,6 +381,8 @@ public final class BukkitCraftEngine extends CraftEngine {
             patches.add("canvas");
         if (VersionHelper.hasLeafPatch)
             patches.add("leaf");
+        if (VersionHelper.hasUniverseSpigotPatch)
+            patches.add("universespigot");
         return patches;
     }
 

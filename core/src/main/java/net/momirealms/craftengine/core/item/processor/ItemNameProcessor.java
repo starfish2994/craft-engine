@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.item.processor;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.network.ItemPacketSource;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.plugin.text.minimessage.FormattedLine;
 import net.momirealms.craftengine.core.util.AdventureHelper;
@@ -24,9 +25,18 @@ public final class ItemNameProcessor implements SimpleNetworkItemProcessor {
     }
 
     @Override
-    public Item apply(Item item, ItemBuildContext context) {
-        item.itemNameComponent(this.line.parse(context));
-        return item;
+    public boolean shouldSkip(ItemPacketSource source) {
+        return source.canSkipName;
+    }
+
+    @Override
+    public boolean isConstant() {
+        return this.line.isConstant();
+    }
+
+    @Override
+    public void apply(ItemBuildContext context) {
+        context.item().itemNameComponent(this.line.parse(context));
     }
 
     @Override

@@ -16,10 +16,15 @@ public final class OverwritableCustomModelDataProcessor implements SimpleNetwork
     }
 
     @Override
-    public Item apply(Item item, ItemBuildContext context) {
-        if (item.customModelData().isPresent()) return item;
+    public void apply(ItemBuildContext context) {
+        Item item = context.item();
+        if (item.customModelData().isPresent()) return;
         item.customModelData(this.argument.getInt(context));
-        return item;
+    }
+
+    @Override
+    public boolean isConstant() {
+        return this.argument.isConstant();
     }
 
     @Override

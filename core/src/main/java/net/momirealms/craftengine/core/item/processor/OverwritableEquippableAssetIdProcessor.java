@@ -26,7 +26,13 @@ public final class OverwritableEquippableAssetIdProcessor implements SimpleNetwo
     }
 
     @Override
-    public Item apply(Item item, ItemBuildContext context) {
+    public boolean isConstant() {
+        return true;
+    }
+
+    @Override
+    public void apply(ItemBuildContext context) {
+        Item item = context.item();
         Optional<EquipmentData> optionalData = item.equippable();
         optionalData.ifPresentOrElse(data ->
                 {
@@ -80,7 +86,6 @@ public final class OverwritableEquippableAssetIdProcessor implements SimpleNetwo
                     item.setJavaComponent(DataComponentKeys.EQUIPPABLE, equippableData);
                 }
         );
-        return item;
     }
 
     @Override

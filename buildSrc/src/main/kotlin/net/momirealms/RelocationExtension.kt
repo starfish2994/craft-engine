@@ -1,6 +1,7 @@
 package net.momirealms
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.file.DuplicatesStrategy
 
 open class RelocationExtension {
     open fun applyCommon(task: ShadowJar) {
@@ -10,14 +11,14 @@ open class RelocationExtension {
             relocate("net.momirealms.sparrow.reflection", "$libs.reflection")
             relocate("net.momirealms.sparrow.nbt", "$libs.nbt")
             relocate("net.momirealms.sparrow.message", "$libs.message")
+            relocate("net.momirealms.sparrow.expr", "$libs.expression")
+            relocate("net.momirealms.sparrow.yaml", "$libs.yaml")
             relocate("net.momirealms.antigrieflib", "$libs.antigrieflib")
             relocate("cn.gtemc.itembridge", "$libs.itembridge")
             relocate("cn.gtemc.levelerbridge", "$libs.levelerbridge")
             relocate("org.incendo", libs)
-            relocate("dev.dejvokep", libs)
             relocate("org.bstats", "$libs.bstats")
             relocate("com.github.benmanes.caffeine", "$libs.caffeine")
-            relocate("com.ezylang.evalex", "$libs.evalex")
             relocate("net.bytebuddy", "$libs.bytebuddy")
             relocate("org.snakeyaml", "$libs.snakeyaml")
             relocate("org.ahocorasick", "$libs.ahocorasick")
@@ -35,7 +36,17 @@ open class RelocationExtension {
             relocate("io.netty.handler.codec.spdy", "$libs.netty.handler.codec.spdy")
             relocate("io.netty.handler.codec.http2", "$libs.netty.handler.codec.http2")
             relocate("io.github.bucket4j", "$libs.bucket4j")
+            relocate("com.zaxxer.hikari", "$libs.hikari")
+            relocate("org.jdbi", "$libs.jdbi")
+            relocate("org.flywaydb", "$libs.flywaydb")
+            relocate("com.fasterxml.jackson", "$libs.jackson")
+            relocate("tools.jackson", "$libs.jackson3")
+            relocate("com.mongodb", "$libs.mongodb")
+            relocate("org.bson", "$libs.bson")
             mergeServiceFiles()
+            filesMatching("META-INF/services/**") {
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
+            }
         }
     }
 }

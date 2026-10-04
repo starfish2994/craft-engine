@@ -3,6 +3,8 @@ package net.momirealms.craftengine.core.item.processor.lore;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.network.ItemPacketSource;
+import net.momirealms.craftengine.core.item.network.NetworkItemBuildContext;
 import net.momirealms.craftengine.core.item.processor.ItemProcessorFactory;
 import net.momirealms.craftengine.core.item.processor.SimpleNetworkItemProcessor;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
@@ -19,17 +21,28 @@ public final class OverwritableLoreProcessor implements SimpleNetworkItemProcess
     }
 
     @Override
-    public Item apply(Item item, ItemBuildContext context) {
+    public boolean shouldSkip(ItemPacketSource source) {
+        return source.canSkipLore;
+    }
+
+    @Override
+    public void apply(ItemBuildContext context) {
+        Item item = context.item();
         if (VersionHelper.COMPONENT_RELEASE) {
             if (item.hasNonDefaultComponent(DataComponentKeys.LORE)) {
-                return item;
+                return;
             }
         } else {
             if (item.hasTag("display", "Lore")) {
-                return item;
+                return;
             }
         }
-        return this.loreProcessor.apply(item, context);
+        this.loreProcessor.apply(context);
+    }
+
+    @Override
+    public boolean isConstant() {
+        return this.loreProcessor.isConstant();
     }
 
     @Override
@@ -48,7 +61,8 @@ public final class OverwritableLoreProcessor implements SimpleNetworkItemProcess
     }
 
     @Override
-    public void prepareNetworkItem(Item item, ItemBuildContext context, CompoundTag networkData) {
+    public void prepareNetworkItem(NetworkItemBuildContext context, CompoundTag networkData) {
+        Item item = context.item();
         if (VersionHelper.COMPONENT_RELEASE) {
             if (item.hasNonDefaultComponent(DataComponentKeys.LORE)) {
                 return;
@@ -58,7 +72,7 @@ public final class OverwritableLoreProcessor implements SimpleNetworkItemProcess
                 return;
             }
         }
-        SimpleNetworkItemProcessor.super.prepareNetworkItem(item, context, networkData);
+        SimpleNetworkItemProcessor.super.prepareNetworkItem(context, networkData);
     }
 
     private static class Factory implements ItemProcessorFactory<OverwritableLoreProcessor> {

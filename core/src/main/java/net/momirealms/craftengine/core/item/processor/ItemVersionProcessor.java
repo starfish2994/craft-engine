@@ -21,7 +21,13 @@ public final class ItemVersionProcessor implements ItemProcessor {
     }
 
     @Override
-    public Item apply(Item item, ItemBuildContext context) {
+    public boolean isConstant() {
+        return true;
+    }
+
+    @Override
+    public void apply(ItemBuildContext context) {
+        Item item = context.item();
         if (VersionHelper.isOrAbove1_20_5) {
             CompoundTag customData = (CompoundTag) Optional.ofNullable(item.getComponentAsSparrowTag(DataComponentKeys.CUSTOM_DATA)).orElseGet(CompoundTag::new);
             customData.putInt(VERSION_TAG, this.version);
@@ -29,6 +35,5 @@ public final class ItemVersionProcessor implements ItemProcessor {
         } else {
             item.setTag(this.version, VERSION_TAG);
         }
-        return item;
     }
 }

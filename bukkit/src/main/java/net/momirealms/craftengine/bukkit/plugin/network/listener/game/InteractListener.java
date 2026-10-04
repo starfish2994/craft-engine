@@ -21,15 +21,18 @@ import net.momirealms.craftengine.core.item.ItemDefinition;
 import net.momirealms.craftengine.core.item.behavior.FurnitureItem;
 import net.momirealms.craftengine.core.item.behavior.ItemBehavior;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
 import net.momirealms.craftengine.core.plugin.network.listener.ByteBufferPacketListener;
 import net.momirealms.craftengine.core.util.Cancellable;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
+import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.BlockHitResult;
 import net.momirealms.craftengine.core.world.BlockPos;
@@ -51,6 +54,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import java.util.List;
 import java.util.Optional;
 
 public final class InteractListener {
@@ -176,13 +180,7 @@ public final class InteractListener {
             // 先检查碰撞箱部分是否存在
             FurnitureHitBox hitBox = furniture.hitboxByEntityId(entityId);
             if (hitBox == null) return;
-            FurnitureHitboxPart part = null;
-            for (FurnitureHitboxPart p : hitBox.parts()) {
-                if (p.entityId() == entityId) {
-                    part = p;
-                    break;
-                }
-            }
+            FurnitureHitboxPart part = hitBox.findPart(entityId);
             if (part == null) {
                 return;
             }
@@ -204,8 +202,7 @@ public final class InteractListener {
             // 获取正确的交互点
             Location interactionPoint = new Location(platformPlayer.getWorld(), hitLocation.x, hitLocation.y, hitLocation.z);
             // 触发事件
-            ContextHolder.Builder contextBuilder = ContextHolder.builder();
-            FurnitureInteractEvent interactEvent = new FurnitureInteractEvent(serverPlayer.platformPlayer(), furniture, hand, interactionPoint, hitBox, contextBuilder);
+            FurnitureInteractEvent interactEvent = new FurnitureInteractEvent(serverPlayer.platformPlayer(), furniture, hand, interactionPoint, hitBox);
             if (EventUtils.fireAndCheckCancel(interactEvent)) {
                 return;
             }
@@ -234,20 +231,26 @@ public final class InteractListener {
 
             // 执行事件动作
             Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
-            Cancellable cancellable = Cancellable.of(interactEvent::isCancelled, interactEvent::setCancelled);
-            // execute functions
-            PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
-                    contextBuilder
-                            .withParameter(DirectContextParameters.EVENT, cancellable)
-                            .withParameter(DirectContextParameters.FURNITURE, furniture)
-                            .withParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand)
-                            .withParameter(DirectContextParameters.HAND, hand)
-                            .withParameter(DirectContextParameters.POSITION, furniture.position())
-            );
-            furniture.config().execute(context, EventTrigger.RIGHT_CLICK);
-            if (cancellable.isCancelled()) {
-                return;
+
+            // 执行函数
+            List<Function<Context>> functions = furniture.config.eventFunctions(EventTrigger.RIGHT_CLICK);
+            if (!functions.isEmpty()) {
+                Cancellable cancellable = Cancellable.of(interactEvent::isCancelled, interactEvent::setCancelled);
+                Function.execute(PlayerOptionalContext.of(serverPlayer,
+                        ContextHolder.builder()
+                                .withParameter(DirectContextParameters.PLAYER, serverPlayer)
+                                .withParameter(DirectContextParameters.EVENT, cancellable)
+                                .withParameter(DirectContextParameters.FURNITURE, furniture)
+                                .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.emptyToNull(itemInHand))
+                                .withParameter(DirectContextParameters.HAND, hand)
+                                .withParameter(DirectContextParameters.POSITION, furniture.position())
+                                .build()
+                ), functions);
+                if (cancellable.isCancelled()) {
+                    return;
+                }
             }
+
             // 不处理调试棒
             if (BukkitItemUtils.isDebugStick(itemInHand)) {
                 return;

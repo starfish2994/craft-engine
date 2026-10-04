@@ -26,10 +26,13 @@ replay_pid*
 build/
 .gradle/
 .idea/
+.codex*/
 
 !/libs/*.jar
 !/gradle/wrapper/*.jar
 .vscode/settings.json
 /runPaper/
 /runFolia/
+/server/
 /buildSrc/.kotlin/
+/target

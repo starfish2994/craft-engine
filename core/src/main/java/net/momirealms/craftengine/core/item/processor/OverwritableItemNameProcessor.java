@@ -3,6 +3,7 @@ package net.momirealms.craftengine.core.item.processor;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.network.ItemPacketSource;
 import net.momirealms.craftengine.core.plugin.config.ConfigValue;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.util.VersionHelper;
@@ -16,17 +17,28 @@ public final class OverwritableItemNameProcessor implements SimpleNetworkItemPro
     }
 
     @Override
-    public Item apply(Item item, ItemBuildContext context) {
+    public void apply(ItemBuildContext context) {
+        Item item = context.item();
         if (VersionHelper.COMPONENT_RELEASE) {
             if (item.hasNonDefaultComponent(DataComponentKeys.ITEM_NAME)) {
-                return item;
+                return;
             }
         } else {
             if (item.hasTag("display", "Name")) {
-                return item;
+                return;
             }
         }
-        return this.modifier.apply(item, context);
+        this.modifier.apply(context);
+    }
+
+    @Override
+    public boolean shouldSkip(ItemPacketSource source) {
+        return source.canSkipName;
+    }
+
+    @Override
+    public boolean isConstant() {
+        return this.modifier.isConstant();
     }
 
     @Override

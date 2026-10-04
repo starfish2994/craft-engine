@@ -5,6 +5,7 @@ import net.momirealms.craftengine.proxy.minecraft.core.RegistryProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.component.DataComponentHolderProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.component.DataComponentPatchProxy;
 import net.momirealms.craftengine.proxy.minecraft.core.component.DataComponentTypeProxy;
+import net.momirealms.craftengine.proxy.minecraft.core.component.PatchedDataComponentMapProxy;
 import net.momirealms.craftengine.proxy.minecraft.nbt.CompoundTagProxy;
 import net.momirealms.craftengine.proxy.minecraft.network.codec.StreamCodecProxy;
 import net.momirealms.craftengine.proxy.minecraft.tags.TagKeyProxy;
@@ -56,8 +57,10 @@ public interface ItemStackProxy extends DataComponentHolderProxy, ItemInstancePr
     @MethodInvoker(name = "setCount")
     void setCount(Object target, int count);
 
-    @MethodInvoker(name = "getBukkitStack", activeIf = "has_patch=paper")
-    ItemStack getBukkitStack(Object target);
+    @MethodInvoker(name = "getBukkitStack", activeIf = "has_patch=paper && max_version=26.2")
+    default ItemStack getBukkitStack(Object target) {
+        return net.momirealms.craftengine.proxy.bukkit.craftbukkit.inventory.CraftItemStackProxy.INSTANCE.asCraftMirror(target);
+    }
 
     @MethodInvoker(name = "copyWithCount")
     Object copyWithCount(Object target, int count);
@@ -104,6 +107,9 @@ public interface ItemStackProxy extends DataComponentHolderProxy, ItemInstancePr
     @MethodInvoker(name = "getComponentsPatch", activeIf = "min_version=1.20.5")
     Object getComponentsPatch(Object target);
 
+    @FieldSetter(name = "components", activeIf = "min_version=1.20.5")
+    void setComponents(Object target, @Type(clazz = PatchedDataComponentMapProxy.class) Object components);
+
     @MethodInvoker(name = "transmuteCopy", activeIf = "min_version=1.20.5")
     Object transmuteCopy(Object target, @Type(clazz = ItemLikeProxy.class) Object item, int count);
 
@@ -131,9 +137,12 @@ public interface ItemStackProxy extends DataComponentHolderProxy, ItemInstancePr
     @MethodInvoker(name = "isSameItemSameTags", isStatic = true, activeIf = "max_version=1.20.4")
     boolean isSameItemSameTags(@Type(clazz = ItemStackProxy.class) Object stack, @Type(clazz = ItemStackProxy.class) Object otherStack);
 
-    @MethodInvoker(name = "isSameItemSameComponents", isStatic = true, activeIf = "min_version=1.20.5")
+    @MethodInvoker(name = {"isSameItemSameComponents", "isSameItemSameTags"}, isStatic = true)
     boolean isSameItemSameComponents(@Type(clazz = ItemStackProxy.class) Object stack, @Type(clazz = ItemStackProxy.class) Object otherStack);
 
     @MethodInvoker(name = "isValidRepairItem", activeIf = "min_version=1.21.2")
     boolean isValidRepairItem(Object target, @Type(clazz = ItemStackProxy.class) Object repairItem);
+
+    @MethodInvoker(name = "hashItemAndComponents", activeIf = "min_version=1.20.5", isStatic = true)
+    int hashItemAndComponents(@Type(clazz = ItemStackProxy.class) Object target);
 }

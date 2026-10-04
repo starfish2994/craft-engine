@@ -19,9 +19,15 @@ public final class OverwritableItemModelProcessor implements SimpleNetworkItemPr
     }
 
     @Override
-    public Item apply(Item item, ItemBuildContext context) {
-        if (item.hasNonDefaultComponent(DataComponentKeys.ITEM_MODEL)) return item;
-        return item.itemModel(this.data.asString());
+    public void apply(ItemBuildContext context) {
+        Item item = context.item();
+        if (item.hasNonDefaultComponent(DataComponentKeys.ITEM_MODEL)) return;
+        item.itemModel(this.data.asString());
+    }
+
+    @Override
+    public boolean isConstant() {
+        return true;
     }
 
     @Override

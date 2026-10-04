@@ -79,11 +79,11 @@ public final class BaseItemModel implements ItemModel {
     }
 
     public static BaseItemModel ofBBModel(BBModelConverter.Converted converted) {
-        return new BaseItemModel(converted.model(), List.of(), ModelGeneration.raw(converted.json(), converted.textures()), null);
+        return new BaseItemModel(converted.model(), List.of(), ModelGeneration.raw(converted.json(), converted.textures(), converted.textureMetadata()), null);
     }
 
     public static BaseItemModel ofBBModel(BBModelConverter.Converted converted, @Nullable List<Tint> tints, @Nullable Transformation transformation) {
-        return new BaseItemModel(converted.model(), tints, ModelGeneration.raw(converted.json(), converted.textures()), transformation);
+        return new BaseItemModel(converted.model(), tints, ModelGeneration.raw(converted.json(), converted.textures(), converted.textureMetadata()), transformation);
     }
 
     @Override

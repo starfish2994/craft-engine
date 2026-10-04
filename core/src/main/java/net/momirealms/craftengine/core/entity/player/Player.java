@@ -5,19 +5,23 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.advancement.AdvancementType;
 import net.momirealms.craftengine.core.attribute.damage.DamageVisibility;
 import net.momirealms.craftengine.core.block.entity.render.ConstantBlockEntityRenderer;
+import net.momirealms.craftengine.core.block.entity.render.DynamicBlockEntityRenderer;
 import net.momirealms.craftengine.core.entity.LivingEntity;
 import net.momirealms.craftengine.core.entity.culling.Cullable;
 import net.momirealms.craftengine.core.entity.culling.CullableHolder;
 import net.momirealms.craftengine.core.entity.furniture.behavior.FurnitureLightData;
 import net.momirealms.craftengine.core.item.Item;
+import net.momirealms.craftengine.core.plugin.config.Config;
 import net.momirealms.craftengine.core.plugin.context.ContextKey;
 import net.momirealms.craftengine.core.plugin.context.CooldownData;
+import net.momirealms.craftengine.core.plugin.context.PlayerContext;
 import net.momirealms.craftengine.core.plugin.context.parameter.PlayerParameterProvider;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.GameEdition;
 import net.momirealms.craftengine.core.util.Key;
+import net.momirealms.craftengine.core.util.Tristate;
 import net.momirealms.craftengine.core.world.BlockPos;
 import net.momirealms.craftengine.core.world.Position;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -29,10 +33,13 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 public interface Player extends NetWorkUser, LivingEntity {
     Key TYPE = Key.of("minecraft:player");
+
+    PlayerContext constantContext();
 
     @Override
     default <T> Optional<T> getParameter(ContextKey<T> key) {
@@ -55,6 +62,8 @@ public interface Player extends NetWorkUser, LivingEntity {
     void setClientSideWorld(World world);
 
     void entityCullingTick();
+
+    void asyncTick();
 
     float getDestroyProgress(Object blockState, BlockPos pos);
 
@@ -118,6 +127,10 @@ public interface Player extends NetWorkUser, LivingEntity {
 
     boolean hasPermission(String permission);
 
+    boolean discoverRecipe(Key recipe);
+
+    boolean hasDiscoveredRecipe(Key recipe);
+
     boolean canInstabuild();
 
     default void playSound(Key sound) {
@@ -155,6 +168,26 @@ public interface Player extends NetWorkUser, LivingEntity {
     void clearEntityView();
 
     void unloadCurrentResourcePack();
+
+    /**
+     * 更新并保存单个资源包的偏好。TRUE 为启用，FALSE 为禁用，UNDEFINED 为恢复配置默认值。
+     * 本服实际选择发生变化时重新发送资源包；未托管的包仅保存偏好。
+     *
+     * @return 偏好保存和必要的发送操作完成后返回是否修改了偏好，不等待客户端加载完成
+     */
+    default CompletableFuture<Boolean> setPackPreference(@NotNull String pack, @NotNull Tristate enabled) {
+        return plugin().packManager().setPackPreference(uuid(), pack, enabled);
+    }
+
+    /**
+     * 批量更新资源包偏好，未提供的包保持原偏好。UNDEFINED 表示恢复该包的配置默认值。
+     * 整批保存后至多重新发送一次资源包，不会逐包触发重载。
+     *
+     * @return 偏好保存和必要的发送操作完成后返回是否修改了偏好，不等待客户端加载完成
+     */
+    default CompletableFuture<Boolean> setPackPreference(@NotNull Map<String, @NotNull Tristate> preferences) {
+        return plugin().packManager().setPackPreferences(uuid(), preferences);
+    }
 
     void performCommand(String command, boolean asOp);
 
@@ -205,6 +238,8 @@ public interface Player extends NetWorkUser, LivingEntity {
 
     void setEntityCullingDistanceScale(double value);
 
+    double entityCullingDistanceScale();
+
     void setDisplayEntityViewDistanceScale(double value);
 
     double displayEntityViewDistance();
@@ -249,6 +284,33 @@ public interface Player extends NetWorkUser, LivingEntity {
 
     void clearTrackedBlockEntities();
 
+    void addTrackedDynamicBlockEntities(Map<BlockPos, DynamicBlockEntityRenderer> renderers);
+
+    void addTrackedDynamicBlockEntity(BlockPos blockPos, DynamicBlockEntityRenderer renderer);
+
+    CullableHolder getTrackedDynamicBlockEntity(BlockPos blockPos);
+
+    default boolean setDynamicBlockEntityForceVisible(BlockPos pos, boolean forceVisible) {
+        CullableHolder holder = this.getTrackedDynamicBlockEntity(pos);
+        if (holder == null) {
+            return false;
+        }
+        holder.setForceVisible(this, forceVisible);
+        return true;
+    }
+
+    void removeTrackedDynamicBlockEntities(Collection<BlockPos> renders);
+
+    void removeTrackedDynamicBlockEntity(BlockPos pos);
+
+    default boolean isDynamicBlockEntityVisible(BlockPos pos) {
+        if (!Config.enableEntityCulling()) {
+            return true;
+        }
+        CullableHolder holder = this.getTrackedDynamicBlockEntity(pos);
+        return holder != null && holder.isShown;
+    }
+
     int clearOrCountMatchingInventoryItems(Predicate<Item> predicate, int count);
 
     default int clearOrCountMatchingInventoryItems(Key itemId, int count) {
@@ -265,6 +327,7 @@ public interface Player extends NetWorkUser, LivingEntity {
 
     void playParticle(Key particleId, double x, double y, double z);
 
+    /** 仅移除实体的剔除追踪记录；客户端隐藏由调用方负责。 */
     void removeTrackedEntity(int entityId);
 
     void clearTrackedEntities();

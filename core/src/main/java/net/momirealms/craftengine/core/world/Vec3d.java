@@ -34,6 +34,14 @@ public final class Vec3d implements Position {
         return new Vec3d(x + this.x, y + this.y, z + this.z);
     }
 
+    public double length() {
+        return Math.sqrt(lengthSqr());
+    }
+
+    public double lengthSqr() {
+        return x * x + y * y + z * z;
+    }
+
     public static Vec3d atLowerCornerOf(Vec3i vec) {
         return new Vec3d(vec.x(), vec.y(), vec.z());
     }
@@ -85,9 +93,10 @@ public final class Vec3d implements Position {
 
     @Override
     public int hashCode() {
-        int result = Double.hashCode(x);
-        result = 31 * result + Double.hashCode(y);
-        result = 31 * result + Double.hashCode(z);
+        // equals treats positive and negative zero as equal.
+        int result = Double.hashCode(x == 0 ? 0 : x);
+        result = 31 * result + Double.hashCode(y == 0 ? 0 : y);
+        result = 31 * result + Double.hashCode(z == 0 ? 0 : z);
         return result;
     }
 

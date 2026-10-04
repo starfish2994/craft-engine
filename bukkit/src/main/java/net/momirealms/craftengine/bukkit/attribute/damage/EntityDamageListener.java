@@ -33,6 +33,7 @@ public final class EntityDamageListener extends AbstractListener {
         if (Config.enableAttributeSystem()) {
             damageEvent = new BukkitDamageEvent(event);
             this.manager.processDamageEvent(damageEvent);
+            if (event.isCancelled()) return;
         }
         if (Config.enableDamageIndicator()
                 && event instanceof EntityDamageByEntityEvent e
@@ -52,15 +53,15 @@ public final class EntityDamageListener extends AbstractListener {
             if (attackerUser.damageVisibility() != DamageVisibility.NONE) {
                 viewers.add(attackerUser);
             }
-            for (BukkitServerPlayer user : EntityUtils.getTrackedBy(victim, BukkitAdaptor::adapt)) {
+            for (BukkitServerPlayer user : EntityUtils.getTrackedBySet(victim, BukkitAdaptor::adapt)) {
                 if (user == null || user.damageVisibility() != DamageVisibility.ALL) continue;
                 viewers.add(user);
             }
             if (viewers.isEmpty()) return;
             if (damageEvent == null) {
                 damageEvent = new BukkitDamageEvent(event);
+                damageEvent.initFinalDamage();
             }
-            damageEvent.initFinalDamage();
             net.momirealms.craftengine.core.entity.Entity coreVictim = BukkitAdaptor.adapt(victim);
             List<net.momirealms.craftengine.core.entity.player.Player> coreViewers = List.copyOf(viewers);
             for (DamageIndicator scheme : Config.damageIndicatorSchemes()) {

@@ -6,7 +6,6 @@ import io.netty.channel.ChannelPipeline;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.plugin.Manageable;
 import net.momirealms.craftengine.core.plugin.text.component.ComponentProvider;
-import net.momirealms.craftengine.core.util.StringValueOnlyTagVisitor;
 import net.momirealms.sparrow.nbt.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,9 +60,7 @@ public interface NetworkManager extends Manageable {
 
     Map<String, ComponentProvider> matchNetworkTags(JsonElement json);
 
-    default Map<String, ComponentProvider> matchNetworkTags(Tag nbt) {
-        return matchNetworkTags(new StringValueOnlyTagVisitor().visit(nbt));
-    }
+    Map<String, ComponentProvider> matchNetworkTags(Tag nbt);
 
     default IllegalCharacterProcessResult processIllegalCharacters(String raw) {
         return processIllegalCharacters(raw, '*');

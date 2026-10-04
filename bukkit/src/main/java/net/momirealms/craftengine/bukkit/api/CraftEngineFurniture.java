@@ -13,6 +13,7 @@ import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.loot.Loot;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
+import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.core.world.WorldPosition;
@@ -86,13 +87,7 @@ public final class CraftEngineFurniture {
     public static BukkitFurniture rayTrace(Player player, double maxDistance) {
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         if (serverPlayer == null) return null;
-        Location eyeLocation = serverPlayer.getEyeLocation();
-        RayTraceResult result = player.getWorld().rayTrace(eyeLocation, eyeLocation.getDirection(),
-                maxDistance, FluidCollisionMode.NEVER, true, 0d, CraftEngineFurniture::isCollisionEntity);
-        if (result == null) return null;
-        Entity hitEntity = result.getHitEntity();
-        if (hitEntity == null) return null;
-        return getLoadedFurnitureByCollider(hitEntity);
+        return rayTrace(serverPlayer.getEyeLocation(), maxDistance);
     }
 
     /**
@@ -105,12 +100,7 @@ public final class CraftEngineFurniture {
     public static BukkitFurniture rayTrace(Player player) {
         BukkitServerPlayer serverPlayer = BukkitAdaptor.adapt(player);
         if (serverPlayer == null) return null;
-        Location eyeLocation = serverPlayer.getEyeLocation();
-        RayTraceResult result = player.getWorld().rayTrace(eyeLocation, eyeLocation.getDirection(), serverPlayer.getCachedInteractionRange(), FluidCollisionMode.NEVER, true, 0d, CraftEngineFurniture::isCollisionEntity);
-        if (result == null) return null;
-        Entity hitEntity = result.getHitEntity();
-        if (hitEntity == null) return null;
-        return getLoadedFurnitureByCollider(hitEntity);
+        return rayTrace(serverPlayer.getEyeLocation(), serverPlayer.getCachedInteractionRange());
     }
 
     /**
@@ -380,11 +370,13 @@ public final class CraftEngineFurniture {
             ContextHolder.Builder builder = ContextHolder.builder()
                     .withParameter(DirectContextParameters.POSITION, position)
                     .withParameter(DirectContextParameters.FURNITURE, furniture)
+                    .withParameter(DirectContextParameters.THIS_ENTITY, furniture.metaDataEntity)
                     .withOptionalParameter(DirectContextParameters.FURNITURE_ITEM, furniture.sourceItem());
             if (player != null) {
                 Item itemInHand = player.getItemInHand(InteractionHand.MAIN_HAND);
                 builder.withParameter(DirectContextParameters.PLAYER, player)
-                        .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, itemInHand.isEmpty() ? null : itemInHand);
+                        .withParameter(DirectContextParameters.ENTITY, player)
+                        .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.emptyToNull(itemInHand));
             }
             List<Item> items = loot.getRandomItems(builder.build(), world, player);
             for (Item item : items) {

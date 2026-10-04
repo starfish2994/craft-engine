@@ -17,6 +17,9 @@ import java.util.Set;
 
 public final class PaperItemEventListener implements Listener {
 
+    public PaperItemEventListener() {
+    }
+
     @EventHandler(ignoreCancelled = true)
     public void onReadyArrow(PlayerReadyArrowEvent event) {
         BukkitItem bowItem = BukkitAdaptor.adapt(event.getBow());
@@ -30,7 +33,8 @@ public final class PaperItemEventListener implements Listener {
         }
     }
 
-    // 自定义堆肥改了
+    // 自定义堆肥改了 26.3
+    @SuppressWarnings("removal")
     @EventHandler(ignoreCancelled = true)
     public void onCompost(CompostItemEvent event) {
         ItemStack itemToCompost = event.getItem();

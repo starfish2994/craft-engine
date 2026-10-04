@@ -5,10 +5,7 @@ import net.momirealms.craftengine.proxy.minecraft.network.RegistryFriendlyByteBu
 import net.momirealms.craftengine.proxy.minecraft.network.protocol.PacketProxy;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
-import net.momirealms.sparrow.reflection.proxy.annotation.ConstructorInvoker;
-import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
-import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
-import net.momirealms.sparrow.reflection.proxy.annotation.Type;
+import net.momirealms.sparrow.reflection.proxy.annotation.*;
 
 import java.util.List;
 
@@ -19,6 +16,12 @@ public interface ClientboundSetEntityDataPacketProxy extends PacketProxy {
 
     @ConstructorInvoker
     Object newInstance(int id, List<?> packedItems);
+
+    @FieldGetter(name = "id")
+    int getId(Object target);
+
+    @FieldGetter(name = "packedItems")
+    List<Object> getPackedItems(Object target);
 
     @MethodInvoker(name = "pack", isStatic = true, activeIf = "max_version=1.20.4")
     void pack$0(List<?> trackedValues, @Type(clazz = FriendlyByteBufProxy.class) Object buf);

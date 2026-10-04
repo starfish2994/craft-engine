@@ -1,5 +1,6 @@
 package net.momirealms.craftengine.bukkit.world;
 
+import net.momirealms.craftengine.bukkit.plugin.agent.ChunkLifecycleAgent;
 import net.momirealms.craftengine.bukkit.world.chunk.BukkitCEChunk;
 import net.momirealms.craftengine.bukkit.world.chunk.FoliaCEChunk;
 import net.momirealms.craftengine.bukkit.world.chunk.storage.PersistentDataContainerStorage;
@@ -67,7 +68,7 @@ public class BukkitStorageAdaptor implements StorageAdaptor {
             }
             case PDC -> {
                 if (Config.enableChunkCache()) {
-                    return new CachedStorage<>(new PersistentDataContainerStorage(world, VersionHelper.hasFoliaPatch ? FOLIA_FACTORY : BUKKIT_FACTORY));
+                    return cache(new PersistentDataContainerStorage(world, VersionHelper.hasFoliaPatch ? FOLIA_FACTORY : BUKKIT_FACTORY));
                 } else {
                     return new PersistentDataContainerStorage(world, VersionHelper.hasFoliaPatch ? FOLIA_FACTORY : BUKKIT_FACTORY);
                 }
@@ -79,9 +80,16 @@ public class BukkitStorageAdaptor implements StorageAdaptor {
     private @NotNull WorldDataStorage wrap(@NotNull RegionStorage regionStorage) {
         WorldDataStorage storage = Config.enableAsyncChunkWrite() ? new AsyncStorage(regionStorage) : regionStorage;
         if (Config.enableChunkCache()) {
-            return new CachedStorage<>(storage);
+            return cache(storage);
         } else {
             return storage;
         }
+    }
+
+    private WorldDataStorage cache(WorldDataStorage storage) {
+        if (!Config.lifecycleChunkCache() || !ChunkLifecycleAgent.installed()) {
+            return new CachedStorage<>(storage);
+        }
+        return new LifecycleCachedStorage(storage);
     }
 }

@@ -15,10 +15,13 @@ import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitBox;
 import net.momirealms.craftengine.core.entity.furniture.hitbox.FurnitureHitboxPart;
 import net.momirealms.craftengine.core.entity.furniture.setting.FurnitureHitData;
 import net.momirealms.craftengine.core.entity.player.InteractionHand;
+import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
+import net.momirealms.craftengine.core.plugin.context.Context;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.EventTrigger;
 import net.momirealms.craftengine.core.plugin.context.PlayerOptionalContext;
+import net.momirealms.craftengine.core.plugin.context.function.Function;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
 import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.plugin.network.event.ByteBufPacketEvent;
@@ -27,6 +30,7 @@ import net.momirealms.craftengine.core.sound.SoundData;
 import net.momirealms.craftengine.core.sound.SoundSource;
 import net.momirealms.craftengine.core.util.Cancellable;
 import net.momirealms.craftengine.core.util.FriendlyByteBuf;
+import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.VersionHelper;
 import net.momirealms.craftengine.core.world.EntityHitResult;
 import net.momirealms.craftengine.core.world.Vec3d;
@@ -34,6 +38,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import java.util.List;
 import java.util.Optional;
 
 public final class AttackListener implements ByteBufferPacketListener {
@@ -89,13 +94,7 @@ public final class AttackListener implements ByteBufferPacketListener {
             if (!BukkitCraftEngine.instance().antiGriefProvider().test(platformPlayer, Flag.BREAK, location))
                 return;
 
-            FurnitureHitboxPart part = null;
-            for (FurnitureHitboxPart p : hitBox.parts()) {
-                if (p.entityId() == entityId) {
-                    part = p;
-                    break;
-                }
-            }
+            FurnitureHitboxPart part = hitBox.findPart(entityId);
             if (part == null) {
                 return;
             }
@@ -113,14 +112,11 @@ public final class AttackListener implements ByteBufferPacketListener {
             // 获取正确的交互点
             Location interactionPoint = new Location(platformPlayer.getWorld(), hitLocation.x, hitLocation.y, hitLocation.z);
 
-            ContextHolder.Builder contextBuilder = ContextHolder.builder()
-                    .withParameter(DirectContextParameters.FURNITURE, furniture)
-                    .withParameter(DirectContextParameters.HAND, InteractionHand.MAIN_HAND)
-                    .withParameter(DirectContextParameters.ITEM_IN_HAND, serverPlayer.getItemInHand(InteractionHand.MAIN_HAND))
-                    .withParameter(DirectContextParameters.POSITION, furniture.position());
-            FurnitureHitEvent hitEvent = new FurnitureHitEvent(serverPlayer.platformPlayer(), furniture, interactionPoint, hitBox, contextBuilder);
+            FurnitureHitEvent hitEvent = new FurnitureHitEvent(serverPlayer.platformPlayer(), furniture, interactionPoint, hitBox);
             if (EventUtils.fireAndCheckCancel(hitEvent))
                 return;
+
+            Item itemInHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
 
             int hitTimes = config.settings().hitTimes();
             if (hitTimes > 1 && !serverPlayer.isCreativeMode()) {
@@ -129,12 +125,21 @@ public final class AttackListener implements ByteBufferPacketListener {
                 int alreadyHit = furnitureHitData.hit(furniture.entityId());
 
                 // execute functions
-                PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
-                        contextBuilder
-                                .withParameter(DirectContextParameters.EVENT, Cancellable.of(hitEvent::isCancelled, hitEvent::setCancelled))
-                                .withParameter(DirectContextParameters.HIT_TIMES, alreadyHit)
-                );
-                config.execute(context, EventTrigger.LEFT_CLICK);
+
+                List<Function<Context>> functions = config.eventFunctions(EventTrigger.LEFT_CLICK);
+                if (!functions.isEmpty()) {
+                    Function.execute(PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
+                            .withParameter(DirectContextParameters.PLAYER, serverPlayer)
+                            .withParameter(DirectContextParameters.HIT_TIMES, alreadyHit)
+                            .withParameter(DirectContextParameters.FURNITURE, furniture)
+                            .withParameter(DirectContextParameters.HAND, InteractionHand.MAIN_HAND)
+                            .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.emptyToNull(itemInHand))
+                            .withParameter(DirectContextParameters.POSITION, furniture.position())
+                            .withParameter(DirectContextParameters.EVENT, Cancellable.of(hitEvent::isCancelled, hitEvent::setCancelled))
+                            .build()
+                    ), functions);
+
+                }
                 if (hitEvent.isCancelled()) {
                     furnitureHitData.setTimes(previousTimes);
                     return;
@@ -149,18 +154,28 @@ public final class AttackListener implements ByteBufferPacketListener {
                 }
             }
 
-            FurnitureBreakEvent breakEvent = new FurnitureBreakEvent(serverPlayer.platformPlayer(), furniture, contextBuilder);
+            FurnitureBreakEvent breakEvent = new FurnitureBreakEvent(serverPlayer.platformPlayer(), furniture);
             breakEvent.setDropItems(!serverPlayer.isCreativeMode());
             if (EventUtils.fireAndCheckCancel(breakEvent))
                 return;
 
-            // execute functions
-            PlayerOptionalContext context = PlayerOptionalContext.of(serverPlayer,
-                    contextBuilder.withParameter(DirectContextParameters.EVENT, Cancellable.of(breakEvent::isCancelled, breakEvent::setCancelled)));
-            config.execute(context, EventTrigger.BREAK);
-            if (breakEvent.isCancelled()) {
-                return;
+            // 执行函数
+            List<Function<Context>> functions = config.eventFunctions(EventTrigger.FURNITURE_BREAK);
+            if (!functions.isEmpty()) {
+                Function.execute(PlayerOptionalContext.of(serverPlayer, ContextHolder.builder()
+                        .withParameter(DirectContextParameters.PLAYER, serverPlayer)
+                        .withParameter(DirectContextParameters.FURNITURE, furniture)
+                        .withParameter(DirectContextParameters.HAND, InteractionHand.MAIN_HAND)
+                        .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.emptyToNull(itemInHand))
+                        .withParameter(DirectContextParameters.POSITION, furniture.position())
+                        .withParameter(DirectContextParameters.EVENT, Cancellable.of(breakEvent::isCancelled, breakEvent::setCancelled))
+                        .build()
+                ), functions);
+                if (breakEvent.isCancelled()) {
+                    return;
+                }
             }
+
             CraftEngineFurniture.remove(furniture, serverPlayer, breakEvent.dropItems(), true);
         };
 

@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.gson.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.momirealms.craftengine.core.block.ImmutableBlockState;
 import net.momirealms.craftengine.core.entity.player.Player;
 import net.momirealms.craftengine.core.font.BitmapImage;
@@ -14,13 +15,16 @@ import net.momirealms.craftengine.core.item.equipment.ComponentBasedEquipment;
 import net.momirealms.craftengine.core.item.equipment.Equipment;
 import net.momirealms.craftengine.core.item.equipment.EquipmentLayerType;
 import net.momirealms.craftengine.core.item.equipment.TrimBasedEquipment;
-import net.momirealms.craftengine.core.item.processor.ObfuscatedItemModelProcessor;
 import net.momirealms.craftengine.core.pack.atlas.*;
 import net.momirealms.craftengine.core.pack.conflict.PathContext;
 import net.momirealms.craftengine.core.pack.conflict.resolution.ConditionalResolution;
+import net.momirealms.craftengine.core.pack.host.ResourcePackDownloadData;
 import net.momirealms.craftengine.core.pack.host.ResourcePackHost;
+import net.momirealms.craftengine.core.pack.host.ResourcePackHostGroup;
 import net.momirealms.craftengine.core.pack.host.ResourcePackHosts;
 import net.momirealms.craftengine.core.pack.host.impl.NoneHost;
+import net.momirealms.craftengine.core.pack.host.impl.SelfHost;
+import net.momirealms.craftengine.core.pack.host.impl.SelfHostHttpServer;
 import net.momirealms.craftengine.core.pack.mcmeta.Overlay;
 import net.momirealms.craftengine.core.pack.mcmeta.Overlays;
 import net.momirealms.craftengine.core.pack.mcmeta.PackVersion;
@@ -35,6 +39,10 @@ import net.momirealms.craftengine.core.pack.model.legacy.LegacyOverridesModel;
 import net.momirealms.craftengine.core.pack.model.simplified.item.*;
 import net.momirealms.craftengine.core.pack.revision.Revision;
 import net.momirealms.craftengine.core.pack.revision.Revisions;
+import net.momirealms.craftengine.core.pack.validation.ModelUvBoundsValidator;
+import net.momirealms.craftengine.core.pack.workflow.PackWorkflowContext;
+import net.momirealms.craftengine.core.pack.workflow.PackWorkflowSequence;
+import net.momirealms.craftengine.core.pack.workflow.PackWorkflowValidation;
 import net.momirealms.craftengine.core.plugin.CraftEngine;
 import net.momirealms.craftengine.core.plugin.config.*;
 import net.momirealms.craftengine.core.plugin.config.lifecycle.LoadingPyramid;
@@ -47,6 +55,7 @@ import net.momirealms.craftengine.core.plugin.config.yaml.StringKeyConstructor;
 import net.momirealms.craftengine.core.plugin.locale.ClientLangData;
 import net.momirealms.craftengine.core.plugin.locale.TranslationManager;
 import net.momirealms.craftengine.core.plugin.logger.Debugger;
+import net.momirealms.craftengine.core.plugin.network.NetWorkUser;
 import net.momirealms.craftengine.core.registry.BuiltInRegistries;
 import net.momirealms.craftengine.core.registry.Registries;
 import net.momirealms.craftengine.core.registry.WritableRegistry;
@@ -133,31 +142,28 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     private final CraftEngine plugin;
-    private final Consumer<PackCacheData> cacheEventDispatcher;
-    private final BiConsumer<Path, Path> generationEventDispatcher;
     private final Map<String, Pack> loadedPacks = new LinkedHashMap<>();
     private final Map<String, ConfigParser> sectionParsers = new HashMap<>();
     public final JsonObject vanillaBlockAtlas;
     public final JsonObject vanillaItemAtlas;
     private Map<Path, CachedConfigFile> cachedConfigFiles = Collections.emptyMap();
     private Map<Path, CachedAssetFile> cachedAssetFiles = Collections.emptyMap();
-    protected BiConsumer<Path, Path> zipGenerator;
-    protected ResourcePackHost resourcePackHost;
+    private final PackOptimizationCache optimizationCache = new PackOptimizationCache(0);
+    protected ZipGenerator zipGenerator;
+    protected volatile ResourcePackHost resourcePackHost = NoneHost.INSTANCE;
+    private volatile Map<String, ResourcePackHost> resourcePackHosts = Map.of();
+    private volatile Map<String, Boolean> defaultPacks = Map.of();
+    private volatile Map<String, PackWorkflowSequence> workflows = Map.of();
+    private volatile Map<String, PackPreset> packPresets = Map.of();
+    private final Map<NetWorkUser, Set<String>> selectedPacks = Collections.synchronizedMap(new WeakHashMap<>());
+    private final Map<NetWorkUser, Map<String, Boolean>> packPreferences = Collections.synchronizedMap(new WeakHashMap<>());
     private final SkipOptimizationParser skipOptimizationParser = new SkipOptimizationParser();
     private final ConfigFactoryParser bundleParser = new ConfigFactoryParser();
     private final AtlasConfigParser atlasConfigParser = new AtlasConfigParser();
 
-    public AbstractPackManager(CraftEngine plugin, Consumer<PackCacheData> cacheEventDispatcher, BiConsumer<Path, Path> generationEventDispatcher) {
+    public AbstractPackManager(CraftEngine plugin) {
         this.plugin = plugin;
-        this.cacheEventDispatcher = cacheEventDispatcher;
-        this.generationEventDispatcher = generationEventDispatcher;
-        this.zipGenerator = (p1, p2) -> {
-            try {
-                ZipUtils.compress(p1, p2);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to compress resource pack.", e);
-            }
-        };
+        this.zipGenerator = request -> ZipUtils.compress(request.source(), request.output(), request.storePng());
         Path resourcesFolder = this.plugin.dataFolderPath().resolve("resources");
         try {
             if (Files.notExists(resourcesFolder)) {
@@ -179,6 +185,10 @@ public abstract class AbstractPackManager implements PackManager {
             throw new RuntimeException("Failed to read internal/atlases/items.json", e);
         }
     }
+
+    protected abstract void dispatchCacheEvent(PackCacheData cacheData);
+
+    protected abstract void dispatchGenerationEvent(Path resourceFolder, Path zipPath);
 
     private void initInternalData() {
         loadInternalData("legacy_internal/models/item/_all.json", ((key, jsonObject) -> {
@@ -235,6 +245,8 @@ public abstract class AbstractPackManager implements PackManager {
         SIMPLIFIED_MODEL_READERS.put(ItemKeys.CROSSBOW, CrossbowItemModelReader.INSTANCE);
         SIMPLIFIED_MODEL_READERS.put(ItemKeys.FIREWORK_STAR, GeneratedItemModelReader.FIREWORK_STAR);
         SIMPLIFIED_MODEL_READERS.put(ItemKeys.MACE, GeneratedItemModelReader.HANDHELD_MACE);
+        SIMPLIFIED_MODEL_READERS.put(ItemKeys.WARPED_FUNGUS_ON_A_STICK, GeneratedItemModelReader.HANDHELD_ROD);
+        SIMPLIFIED_MODEL_READERS.put(ItemKeys.CARROT_ON_A_STICK, GeneratedItemModelReader.HANDHELD_ROD);
         for (Key spear : ItemKeys.SPEARS) {
             SIMPLIFIED_MODEL_READERS.put(spear, SpearItemModelReader.INSTANCE);
         }
@@ -286,33 +298,10 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     @Override
-    public Path resourcePackPath() {
-        return Config.resourcePackPath();
-    }
-
-    @Override
-    public void load() {
-        this.plugin.networkManager().setServerPortHost(null);
-        Object hostingObj = Config.instance().settings().get("resource-pack.delivery.hosting");
-        if (hostingObj == null) {
-            this.resourcePackHost = NoneHost.INSTANCE;
-            return;
-        }
-        ConfigValue configValue = ConfigValue.of("resource-pack.delivery.hosting", hostingObj);
-        try {
-            List<ResourcePackHost> hosts = configValue.getAsList(v -> ResourcePackHosts.fromConfig(v.getAsSection()));
-            if (hosts.isEmpty()) {
-                this.resourcePackHost = NoneHost.INSTANCE;
-            } else {
-                this.resourcePackHost = hosts.getFirst();
-            }
-        } catch (KnownResourceException e) {
-            this.plugin.logger().warn(TranslationManager.instance().plainTranslation("config.errors_detected", e.getLocalizedMessage()));
-            this.resourcePackHost = NoneHost.INSTANCE;
-        } catch (Throwable e) {
-            this.plugin.logger().warn("Failed to load resource-pack.delivery.hosting", e);
-            this.resourcePackHost = NoneHost.INSTANCE;
-        }
+    public synchronized void load() {
+        this.loadHosts();
+        this.loadWorkflows();
+        this.loadPackPresets();
     }
 
     @Override
@@ -321,20 +310,113 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     @Override
-    public void uploadResourcePack() {
-        Timestamp timestamp = new Timestamp();
-        this.plugin.logger().info(TranslationManager.instance().plainTranslation("host.upload_started"));
-        resourcePackHost().upload(Config.fileToUpload()).whenComplete((d, e) -> {
-            if (e != null) {
-                this.plugin.logger().warn(TranslationManager.instance().plainTranslation("host.upload_failed"), e);
-                return;
-            }
-            this.plugin.logger().info(TranslationManager.instance().plainTranslation("host.upload_finished", String.valueOf(timestamp.deltaMillis())));
-            if (!Config.sendPackOnUpload()) return;
-            for (Player player : this.plugin.networkManager().onlineUsers()) {
-                sendResourcePack(player);
-            }
+    public Map<String, ResourcePackHost> resourcePackHosts() {
+        return this.resourcePackHosts;
+    }
+
+    @Override
+    public Map<String, Boolean> packPreferences(NetWorkUser user) {
+        return this.packPreferences.get(user);
+    }
+
+    protected void prepareResourcePackList(NetWorkUser user, List<String> packs) {}
+
+    @Override
+    public CompletableFuture<List<ResourcePackDownloadData>> prepareResourcePacks(NetWorkUser user) {
+        UUID playerId = user.uuid();
+        if (playerId == null) return CompletableFuture.completedFuture(List.of());
+        Map<String, ResourcePackHost> hosts = this.resourcePackHosts;
+        Map<String, Boolean> defaults = this.defaultPacks;
+        ResourcePackHost group = this.resourcePackHost;
+        return this.plugin.storageManager().submit(storage -> storage.loadPackPreferences(playerId)).thenApplyAsync(states -> {
+            this.packPreferences.put(user, Map.copyOf(states));
+            List<String> selected = new ArrayList<>(defaults.entrySet().stream()
+                    .filter(entry -> states.getOrDefault(entry.getKey(), entry.getValue()))
+                    .map(Map.Entry::getKey).toList());
+            prepareResourcePackList(user, selected);
+            // Plugins may change membership; configured order and known IDs remain authoritative.
+            return hosts.keySet().stream().filter(selected::contains).toList();
+        }, this.plugin.scheduler().async()).thenCompose(selected -> {
+            // Keep the selection even when a pack has not been generated or uploaded yet.
+            this.selectedPacks.put(user, Set.copyOf(selected));
+            if (!(group instanceof ResourcePackHostGroup hostGroup)) return CompletableFuture.completedFuture(List.of());
+            return hostGroup.requestResourcePackDownloadLink(user, selected.stream().map(hosts::get).toList());
         });
+    }
+
+    @Override
+    public CompletableFuture<Boolean> setPackPreference(UUID player, String pack, @NotNull Tristate enabled) {
+        return setPackPreferences(player, Collections.singletonMap(pack, enabled));
+    }
+
+    @Override
+    public Map<String, PackPreset> packPresets() {
+        return this.packPresets;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> applyPackPreset(UUID player, String name) {
+        Map<String, PackPreset> presets = this.packPresets;
+        PackPreset preset = presets.get(name);
+        if (preset == null) throw new IllegalArgumentException("Unknown resource pack preset: " + name);
+        Set<String> managedPacks = new HashSet<>(this.resourcePackHosts.keySet());
+        presets.values().forEach(value -> managedPacks.addAll(value.packs()));
+        return setPackPreferences(player, preset.preferences(managedPacks));
+    }
+
+    @Override
+    public CompletableFuture<Boolean> setPackPreferences(UUID player, Map<String, Tristate> updates) {
+        if (updates.isEmpty()) return CompletableFuture.completedFuture(false);
+        // 在提交异步任务前生成存储快照；UNDEFINED 在存储层通过移除覆盖来恢复默认值。
+        Map<String, Boolean> snapshot = new HashMap<>(updates.size());
+        updates.forEach((pack, state) -> snapshot.put(pack, switch (state) {
+            case TRUE -> true;
+            case FALSE -> false;
+            case UNDEFINED -> null;
+        }));
+        Map<String, Boolean> defaults = this.defaultPacks;
+        return this.plugin.storageManager().submit(storage -> {
+            Map<String, Boolean> previous = storage.loadPackPreferences(player);
+            // 比较保存的三态偏好，而非最终是否启用；默认启用与显式启用仍是不同偏好。
+            boolean preferencesChanged = snapshot.entrySet().stream()
+                    .anyMatch(entry -> !Objects.equals(previous.get(entry.getKey()), entry.getValue()));
+            if (!preferencesChanged) return new PackPreferenceUpdate(Map.copyOf(previous), false, false);
+            // 整批持久化后再更新缓存、重发，不能逐个调用单包接口导致多次加载。
+            storage.setPackPreferences(player, snapshot);
+            Map<String, Boolean> states = Map.copyOf(storage.loadPackPreferences(player));
+            boolean changed = defaults.entrySet().stream().anyMatch(entry ->
+                    !Objects.equals(previous.getOrDefault(entry.getKey(), entry.getValue()),
+                            states.getOrDefault(entry.getKey(), entry.getValue())));
+            return new PackPreferenceUpdate(states, true, changed);
+        }).thenCompose(result -> {
+            Player online = this.plugin.networkManager().getOnlineUser(player);
+            if (online == null) return CompletableFuture.completedFuture(result.preferencesChanged());
+            this.packPreferences.put(online, result.states());
+            // 本服实际选择未变化（包括只修改未托管的包）时，仅保存数据。
+            if (!result.selectionChanged()) return CompletableFuture.completedFuture(result.preferencesChanged());
+            return sendResourcePackAsync(online).thenApply(ignored -> result.preferencesChanged());
+        });
+    }
+
+    private record PackPreferenceUpdate(Map<String, Boolean> states, boolean preferencesChanged, boolean selectionChanged) {}
+
+    @Override
+    public CompletableFuture<Void> sendPackToUsers(String pack) {
+        if (!this.resourcePackHosts.containsKey(pack)) throw new IllegalArgumentException("Unknown resource pack: " + pack);
+        List<CompletableFuture<Void>> sends = new ArrayList<>();
+        for (Player player : this.plugin.networkManager().onlineUsers()) {
+            if (this.selectedPacks.getOrDefault(player, Set.of()).contains(pack)) sends.add(sendResourcePackAsync(player));
+        }
+        return CompletableFuture.allOf(sends.toArray(CompletableFuture[]::new));
+    }
+
+    @Override
+    public void disable() {
+        this.optimizationCache.clear();
+        this.selectedPacks.clear();
+        this.packPreferences.clear();
+        SelfHostHttpServer.instance().disable();
+        SelfHostHttpServer.instance().clearPacks();
     }
 
     @Override
@@ -346,6 +428,7 @@ public abstract class AbstractPackManager implements PackManager {
     public void unload() {
         this.skipOptimizationParser.clearCache();
         this.loadedPacks.clear();
+        this.workflows = Map.of();
     }
 
     @Override
@@ -366,7 +449,7 @@ public abstract class AbstractPackManager implements PackManager {
     public void initCachedAssets() {
         try {
             PackCacheData cacheData = new PackCacheData(this.plugin);
-            this.cacheEventDispatcher.accept(cacheData);
+            this.dispatchCacheEvent(cacheData);
             this.updateCachedAssets(cacheData, null);
         } catch (Exception e) {
             this.plugin.logger().warn("Failed to update cached assets", e);
@@ -638,7 +721,7 @@ public abstract class AbstractPackManager implements PackManager {
                 parser.postProcess();
                 long t2 = System.nanoTime();
                 int count = parser.count();
-                if (parser.silentIfNotExists() && count == 0) {
+                if (parser.silentIfNotExists() && count <= 0) {
                     return;
                 }
                 this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource.config_loaded",
@@ -683,20 +766,16 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    @Override
-    public void generateResourcePack() {
+    private GeneratedPack generatePackAssets(PackGenerationOptions options) throws IOException {
         this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.generation_started"));
         Timestamp timestamp = new Timestamp();
-        if (!Config.obfuscateItemModelUseCache()) {
-            ObfuscatedItemModelProcessor.resetMappings();
-        }
-
         // Create cache data
         PackCacheData cacheData = new PackCacheData(this.plugin);
-        this.cacheEventDispatcher.accept(cacheData);
+        this.dispatchCacheEvent(cacheData);
 
         // get the target location
-        try (FileSystem fs = Jimfs.newFileSystem(Configuration.forCurrentPlatform())) {
+        FileSystem fs = Jimfs.newFileSystem(Configuration.forCurrentPlatform());
+        try {
             // firstly merge existing folders
             Path generatedPackPath = fs.getPath("resource_pack");
             List<Pair<String, List<Path>>> duplicated = this.updateCachedAssets(cacheData, fs);
@@ -732,9 +811,8 @@ public abstract class AbstractPackManager implements PackManager {
             this.generateParticle(generatedPackPath);
             this.generateAtlases(generatedPackPath);
 
-            // 有地图兼容的情况下，先生成一半
-            boolean mapCompatibility = Config.enableMapPluginCompatibility();
-            if (mapCompatibility) {
+            // Maps use CraftEngine block IDs instead of sacrificed vanilla block states.
+            if (options.mapCompatibility()) {
                 this.generateBlockOverrides(generatedPackPath, false, true);
             } else {
                 this.generateBlockOverrides(generatedPackPath, true, Config.generateModAssets());
@@ -761,74 +839,240 @@ public abstract class AbstractPackManager implements PackManager {
                 this.removeAllShaders(generatedPackPath);
             }
 
-            // 如果开启地图兼容，先校验一遍 mcmeta
-            if (mapCompatibility) {
-                this.validatePackMetadata(packMcMeta, overlays);
-                this.writeJsonSafely(packMcMeta, generatedPackPath.resolve("pack.mcmeta"));
-                try {
-                    ZipUtils.compress(generatedPackPath, Config.mapPluginCompatibilityPath());
-                } catch (IOException e) {
-                    this.plugin.logger().error("Error creating map plugin resource pack", e);
-                }
-                this.deleteMapCompatibilityAssets(generatedPackPath);
-                // 再生成覆写原版的overrides
-                this.generateBlockOverrides(generatedPackPath, true, false);
-                if (!Config.generateModAssets()) {
-                    this.deleteModAssets(generatedPackPath);
-                }
-            }
-
-            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.generation_finished", String.valueOf(timestamp.deltaMillis())));
-
-            // 校验资源包
-            if (Config.validateResourcePack()) {
-                this.validateResourcePack(generatedPackPath, overlays);
-                this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.validation_finished", String.valueOf(timestamp.deltaMillis())));
-            }
-
-            // 验证完成后，应该重新校验pack.mcmeta并写入
-            this.validatePackMetadata(packMcMeta, overlays);
+            this.validatePackMetadata(packMcMeta, overlays, options.description());
             this.writeJsonSafely(packMcMeta, generatedPackPath.resolve("pack.mcmeta"));
-
-            // 优化资源包
-            if (Config.optimizeResourcePack()) {
-                this.optimizeResourcePack(generatedPackPath);
-                this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_finished", String.valueOf(timestamp.deltaMillis())));
-            }
-
-            if (Config.enablePackSquash()) {
-
-            }
-
-            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_started"));
-            Path finalPath = resourcePackPath();
-            Files.createDirectories(finalPath.getParent());
-
-            // 生成无保护资源包
-            if (VersionHelper.PREMIUM && Config.createUnprotectedCopy()) {
-                try {
-                    ZipUtils.compress(generatedPackPath, Config.unprotectedCopyPath());
-                } catch (IOException e) {
-                    this.plugin.logger().error("Error creating unprotected resource pack", e);
-                }
-            }
-            // 生成资源包
-            try {
-                this.zipGenerator.accept(generatedPackPath, finalPath);
-            } catch (Exception e) {
-                this.plugin.logger().error("Error creating resource pack", e);
-            }
-            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_finished", String.valueOf(timestamp.deltaMillis())));
-            this.generationEventDispatcher.accept(generatedPackPath, finalPath);
-            if (Config.autoUpload() && resourcePackHost().canUpload()) {
-                uploadResourcePack();
-            }
-        } catch (IOException e) {
-            this.plugin.logger().error("Error generating resource pack", e);
+            this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.generation_finished", String.valueOf(timestamp.deltaMillis())));
+            return new GeneratedPack(fs, generatedPackPath, packMcMeta, overlays, options);
+        } catch (IOException | RuntimeException | Error e) {
+            fs.close();
+            throw e;
         }
     }
 
-    private void validatePackMetadata(JsonObject rawMeta, Overlays packOverlays) {
+    private void validateGeneratedPack(GeneratedPack pack, boolean obfuscation) {
+        Timestamp timestamp = new Timestamp();
+        this.validateResourcePack(pack.path(), pack.overlays(), obfuscation);
+        if (pack.options() != null) {
+            this.validatePackMetadata(pack.metadata(), pack.overlays(), pack.options().description());
+            this.writeJsonSafely(pack.metadata(), pack.path().resolve("pack.mcmeta"));
+        }
+        this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.validation_finished", String.valueOf(timestamp.deltaMillis())));
+    }
+
+    private Path resolveWorkflowPath(String path) {
+        return this.plugin.dataFolderPath().resolve(path).toAbsolutePath().normalize();
+    }
+
+    private void writePack(GeneratedPack pack, Path output, ZipGenerator writer, boolean protection, boolean storePng) throws IOException {
+        this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_started"));
+        // 包含混淆、ZIP 写入和最终文件替换的耗时，仅在成功后输出完成提示。
+        Timestamp timestamp = new Timestamp();
+        Files.createDirectories(output.toAbsolutePath().getParent());
+        // Upload only a complete result, keeping a previous successful file intact if writing fails.
+        Path temporary = Files.createTempFile(output.toAbsolutePath().getParent(), ".pack-", ".zip");
+        try {
+            writer.generate(new PackZipRequest(pack.path(), temporary, protection, storePng));
+            if (Files.size(temporary) == 0) throw new IOException("No resource pack was written: " + output);
+            Files.move(temporary, output, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
+        this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.compression_finished", String.valueOf(timestamp.deltaMillis())));
+    }
+
+    protected void loadHosts() {
+        Object hostingObj = YamlUtils.reader(Config.instance().settings()).getValue("resource-pack.packs");
+        try {
+            ConfigSection packs = ConfigSection.of("resource-pack.packs", hostingObj == null ? Map.of() : hostingObj);
+            Map<String, ResourcePackHost> hosts = new LinkedHashMap<>();
+            Map<String, Boolean> defaults = new LinkedHashMap<>();
+            Map<String, Path> selfHostedPacks = new LinkedHashMap<>();
+            // 与工作流一样使用配置键作为 ID，并保留配置顺序作为资源包发送顺序。
+            for (String id : packs.keySet()) {
+                if (!id.matches("[A-Za-z0-9_-]{1,64}")) {
+                    throw new IllegalArgumentException("Invalid resource pack host id: " + id);
+                }
+                ConfigSection section = packs.getNonNullSection(id);
+                hosts.put(id, ResourcePackHosts.fromConfig(id, section));
+                defaults.put(id, section.getBoolean("default", true));
+                if (hosts.get(id) instanceof SelfHost selfHost) {
+                    selfHostedPacks.put(id, selfHost.storagePath());
+                }
+            }
+            if (!selfHostedPacks.isEmpty()) {
+                Object serverConfig = YamlUtils.reader(Config.instance().settings()).getValue("resource-pack.self-host");
+                SelfHostHttpServer.instance().load(ConfigSection.of("resource-pack.self-host", serverConfig == null ? Map.of() : serverConfig), selfHostedPacks);
+            } else {
+                SelfHostHttpServer.instance().disable();
+                SelfHostHttpServer.instance().clearPacks();
+            }
+            this.resourcePackHosts = Collections.unmodifiableMap(hosts);
+            this.defaultPacks = Collections.unmodifiableMap(defaults);
+            this.resourcePackHost = hosts.isEmpty() ? NoneHost.INSTANCE : new ResourcePackHostGroup(hosts.values());
+        } catch (KnownResourceException e) {
+            this.plugin.logger().warn(TranslationManager.instance().plainTranslation("config.errors_detected", e.getLocalizedMessage()));
+        } catch (Throwable e) {
+            this.plugin.logger().warn("Failed to load resource pack hosts", e);
+        }
+    }
+
+    private void loadPackPresets() {
+        Map<String, PackPreset> presets = new LinkedHashMap<>();
+        try {
+            Object value = YamlUtils.reader(Config.instance().settings()).getValue("resource-pack.presets");
+            ConfigSection section = ConfigSection.of("resource-pack.presets", value == null ? Map.of() : value);
+            for (String name : section.keySet()) {
+                try {
+                    presets.put(name, PackPreset.fromConfig(name, Objects.requireNonNull(section.getValue(name))));
+                } catch (KnownResourceException e) {
+                    this.plugin.logger().warn(TranslationManager.instance().plainTranslation("config.errors_detected", e.getLocalizedMessage()));
+                } catch (Exception e) {
+                    this.plugin.logger().warn("Failed to load resource pack preset: " + name, e);
+                }
+            }
+        } catch (KnownResourceException e) {
+            this.plugin.logger().warn(TranslationManager.instance().plainTranslation("config.errors_detected", e.getLocalizedMessage()));
+        }
+        this.packPresets = Collections.unmodifiableMap(presets);
+    }
+
+    private void loadWorkflows() {
+        Object value = YamlUtils.reader(Config.instance().settings()).getValue("resource-pack.workflows");
+        ConfigSection section = ConfigSection.of("resource-pack.workflows", value == null ? Map.of() : value);
+        Map<String, PackWorkflowSequence> workflows = new LinkedHashMap<>();
+        for (String name : section.keySet()) {
+            try {
+                PackWorkflowValidation validation = new PackWorkflowValidation(this.plugin.dataFolderPath(), this.resourcePackHosts);
+                workflows.put(name, PackWorkflowSequence.fromConfig(name, Objects.requireNonNull(section.getValue(name)), validation));
+            } catch (KnownResourceException e) {
+                this.plugin.logger().warn(TranslationManager.instance().plainTranslation("config.errors_detected", e.getLocalizedMessage()));
+            } catch (Exception e) {
+                this.plugin.logger().warn("Failed to load resource pack workflow: " + name, e);
+            }
+        }
+        this.workflows = Collections.unmodifiableMap(workflows);
+    }
+
+    @Override
+    public Collection<String> workflowNames() {
+        return List.copyOf(this.workflows.keySet());
+    }
+
+    @Override
+    public void triggerWorkflows(String event) throws Exception {
+        try (var operation = this.plugin.resourceOperations().acquire()) {
+            for (PackWorkflowSequence workflow : this.workflows.values()) {
+                if (workflow.triggers().contains(event)) {
+                    executeWorkflow(workflow);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void runWorkflow(String name) throws Exception {
+        try (var operation = this.plugin.resourceOperations().acquire()) {
+            PackWorkflowSequence sequence = this.workflows.get(name);
+            if (sequence == null) throw new IllegalArgumentException("Unknown resource pack workflow: " + name);
+            executeWorkflow(sequence);
+        }
+    }
+
+    private void executeWorkflow(PackWorkflowSequence sequence) throws Exception {
+        try (WorkflowRun run = new WorkflowRun(this.zipGenerator, sequence.protection())) {
+            sequence.execute(run);
+        }
+    }
+
+    private final class WorkflowRun implements PackWorkflowContext, AutoCloseable {
+        private GeneratedPack pack;
+        private final ZipGenerator generator;
+        private final boolean protection;
+
+        private WorkflowRun(ZipGenerator generator, boolean protection) {
+            this.generator = generator;
+            this.protection = protection;
+        }
+
+        @Override
+        public CraftEngine plugin() {
+            return plugin;
+        }
+
+        @Override
+        public Path resolvePath(String path) {
+            return resolveWorkflowPath(path);
+        }
+
+        @Override
+        public Path generatedPackPath() {
+            if (this.pack == null) throw new IllegalStateException("No resource pack has been generated");
+            return this.pack.path();
+        }
+
+        @Override
+        public void generate(PackGenerationOptions options) throws IOException {
+            this.pack = generatePackAssets(options);
+        }
+
+        @Override
+        public void loadZip(String path) throws IOException {
+            Timestamp timestamp = new Timestamp();
+            GeneratedPack loaded = GeneratedPack.loadZip(resolveWorkflowPath(path));
+            // 成功读取新包后再替换，避免加载失败时丢失原有工作流资源。
+            GeneratedPack previous = this.pack;
+            this.pack = loaded;
+            if (previous != null) previous.close();
+            plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.zip_loaded", path, String.valueOf(timestamp.deltaMillis())));
+        }
+
+        @Override
+        public void validatePack() {
+            validateGeneratedPack(this.pack, this.protection);
+        }
+
+        @Override
+        public void export(String path) throws IOException {
+            Timestamp timestamp = new Timestamp();
+            this.pack.export(resolveWorkflowPath(path));
+            plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.export_finished", path, String.valueOf(timestamp.deltaMillis())));
+        }
+
+        @Override
+        public void optimize() {
+            optimizeResourcePack(this.pack.path());
+        }
+
+        @Override
+        public void zip(String path, boolean protection, boolean storePng) throws IOException {
+            Path output = resolveWorkflowPath(path);
+            writePack(this.pack, output, this.generator, protection && VersionHelper.PREMIUM, storePng);
+            dispatchGenerationEvent(this.pack.path(), output);
+        }
+
+        @Override
+        public void upload(String pack, String path) throws IOException {
+            Path source = resolveWorkflowPath(path);
+            if (!Files.isRegularFile(source)) throw new IOException("Resource pack does not exist: " + source);
+            plugin.logger().info(TranslationManager.instance().plainTranslation("host.upload_started"));
+            Timestamp timestamp = new Timestamp();
+            // 托管上传是异步操作，等待完成后再统计耗时，失败时不输出成功提示。
+            resourcePackHosts.get(pack).upload(source).join();
+            plugin.logger().info(TranslationManager.instance().plainTranslation("host.upload_finished", String.valueOf(timestamp.deltaMillis())));
+        }
+
+        @Override
+        public void sendPack(String pack) {
+            sendPackToUsers(pack).join();
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (this.pack != null) this.pack.close();
+        }
+    }
+
+    private void validatePackMetadata(JsonObject rawMeta, Overlays packOverlays, String description) {
         // 获取设定的最大和最小值
         PackVersion minVersion = Config.packMinVersion().packFormat();
         PackVersion maxVersion = Config.packMaxVersion().packFormat();
@@ -837,8 +1081,8 @@ public abstract class AbstractPackManager implements PackManager {
         {
             JsonObject packJson = new JsonObject();
             rawMeta.add("pack", packJson);
-            JsonElement description = AdventureHelper.componentToJsonElement(AdventureHelper.miniMessage().deserialize(AdventureHelper.legacyToMiniMessage(Config.packDescription())));
-            packJson.add("description", description);
+            JsonElement descriptionJson = AdventureHelper.componentToJsonElement(AdventureHelper.miniMessage().deserialize(AdventureHelper.legacyToMiniMessage(description)));
+            packJson.add("description", descriptionJson);
             // 需要旧版本兼容性
             // https://minecraft.wiki/w/Java_Edition_25w31a
             if (minVersion.isBelow(PackVersion.PACK_FORMAT_CHANGE_VERSION)) {
@@ -955,6 +1199,14 @@ public abstract class AbstractPackManager implements PackManager {
 
     @SuppressWarnings("DuplicatedCode")
     private void optimizeResourcePack(Path path) {
+        Timestamp timestamp = new Timestamp();
+        this.optimizationCache.setMaximumBytes(Config.optimizationCacheSize());
+        Path optimizationCachePath = this.plugin.dataFolderPath().resolve("cache").resolve("pack-optimization.bin");
+        try {
+            this.optimizationCache.load(optimizationCachePath);
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to load pack optimization cache; resources will be optimized again", e);
+        }
         // 收集全部overlay
         Path[] rootPaths;
         try {
@@ -1097,52 +1349,43 @@ public abstract class AbstractPackManager implements PackManager {
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.json_optimization_started"));
             AtomicLong previousBytes = new AtomicLong(0L);
             AtomicLong afterBytes = new AtomicLong(0L);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             int amount = commonJsonToOptimize.size() + modelJsonToOptimize.size();
             AtomicInteger finished = new AtomicInteger(0);
-            for (Path jsonPath : commonJsonToOptimize) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        byte[] before = Files.readAllBytes(jsonPath);
-                        previousBytes.getAndAdd(before.length);
-                        byte[] after = GsonHelper.toString(GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8))).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
-                        if (after.length < before.length) {
-                            afterBytes.addAndGet(after.length);
-                            Files.write(jsonPath, after);
-                        } else {
-                            afterBytes.addAndGet(before.length);
-                        }
-                        finished.incrementAndGet();
-                    } catch (IOException | JsonParseException | NullPointerException ignored) {
+            ForkJoinPool executor = (ForkJoinPool) this.plugin.scheduler().async();
+            CompletableFuture<Void> commonFuture = CompletableFutures.forEachAsync(commonJsonToOptimize, jsonPath -> {
+                try {
+                    byte[] before = Files.readAllBytes(jsonPath);
+                    previousBytes.getAndAdd(before.length);
+                    byte[] after = this.optimizationCache.optimize(PackOptimizationCache.Type.JSON, 0, before,
+                            () -> optimizeJson(before, false));
+                    if (after.length < before.length) {
+                        afterBytes.addAndGet(after.length);
+                        Files.write(jsonPath, after);
+                    } else {
+                        afterBytes.addAndGet(before.length);
                     }
-                }, this.plugin.scheduler().async()));
-            }
-            for (Path jsonPath : modelJsonToOptimize) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        byte[] before = Files.readAllBytes(jsonPath);
-                        previousBytes.getAndAdd(before.length);
-                        JsonObject json = GsonHelper.parseJson(new String(before, StandardCharsets.UTF_8)).getAsJsonObject();
-                        List<String> invalidKey = json.keySet().stream().filter(k -> !ALLOWED_MODEL_TAGS.contains(k)).toList();
-                        if (!invalidKey.isEmpty()) {
-                            for (String key : invalidKey) {
-                                json.remove(key);
-                            }
-                        }
-                        byte[] after = GsonHelper.toString(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
-                        if (after.length < before.length) {
-                            afterBytes.addAndGet(after.length);
-                            Files.write(jsonPath, after);
-                        } else {
-                            afterBytes.addAndGet(before.length);
-                        }
-                        finished.incrementAndGet();
-                    } catch (IOException | JsonParseException | IllegalStateException | NullPointerException ignored) {
+                    finished.incrementAndGet();
+                } catch (IOException | JsonParseException | NullPointerException ignored) {
+                }
+            }, executor.getParallelism(), executor);
+            CompletableFuture<Void> modelFuture = CompletableFutures.forEachAsync(modelJsonToOptimize, jsonPath -> {
+                try {
+                    byte[] before = Files.readAllBytes(jsonPath);
+                    previousBytes.getAndAdd(before.length);
+                    byte[] after = this.optimizationCache.optimize(PackOptimizationCache.Type.MODEL_JSON, 0, before,
+                            () -> optimizeJson(before, true));
+                    if (after.length < before.length) {
+                        afterBytes.addAndGet(after.length);
+                        Files.write(jsonPath, after);
+                    } else {
+                        afterBytes.addAndGet(before.length);
                     }
-                }, this.plugin.scheduler().async()));
-            }
+                    finished.incrementAndGet();
+                } catch (IOException | JsonParseException | IllegalStateException | NullPointerException ignored) {
+                }
+            }, executor.getParallelism(), executor);
 
-            CompletableFuture<Void> overallFuture = CompletableFutures.allOf(futures);
+            CompletableFuture<Void> overallFuture = CompletableFuture.allOf(commonFuture, modelFuture);
             long startTime = System.currentTimeMillis();
             for (;;) {
                 try {
@@ -1166,29 +1409,28 @@ public abstract class AbstractPackManager implements PackManager {
 
         if (Config.optimizeTexture()) {
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.texture_optimization_started"));
+            int zopfliIterations = Config.zopfliIterations();
             AtomicLong previousBytes = new AtomicLong(0L);
             AtomicLong afterBytes = new AtomicLong(0L);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             int amount = imagesToOptimize.size();
             AtomicInteger finished = new AtomicInteger(0);
-            for (Path imagePath : imagesToOptimize) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        byte[] previousImageBytes = Files.readAllBytes(imagePath);
-                        byte[] optimized = optimizeImage(imagePath, previousImageBytes);
-                        previousBytes.addAndGet(previousImageBytes.length);
-                        if (optimized.length < previousImageBytes.length) {
-                            afterBytes.addAndGet(optimized.length);
-                            Files.write(imagePath, optimized);
-                        } else {
-                            afterBytes.addAndGet(previousImageBytes.length);
-                        }
-                        finished.incrementAndGet();
-                    } catch (IOException ignored) {
+            ForkJoinPool executor = (ForkJoinPool) this.plugin.scheduler().async();
+            CompletableFuture<Void> overallFuture = CompletableFutures.forEachAsync(imagesToOptimize, imagePath -> {
+                try {
+                    byte[] previousImageBytes = Files.readAllBytes(imagePath);
+                    byte[] optimized = this.optimizationCache.optimize(PackOptimizationCache.Type.PNG, zopfliIterations, previousImageBytes,
+                            () -> optimizeImage(imagePath, previousImageBytes, zopfliIterations));
+                    previousBytes.addAndGet(previousImageBytes.length);
+                    if (optimized.length < previousImageBytes.length) {
+                        afterBytes.addAndGet(optimized.length);
+                        Files.write(imagePath, optimized);
+                    } else {
+                        afterBytes.addAndGet(previousImageBytes.length);
                     }
-                }, this.plugin.scheduler().async()));
-            }
-            CompletableFuture<Void> overallFuture = CompletableFutures.allOf(futures);
+                    finished.incrementAndGet();
+                } catch (IOException ignored) {
+                }
+            }, executor.getParallelism(), executor);
             long startTime = System.currentTimeMillis();
             for (;;) {
                 try {
@@ -1209,6 +1451,12 @@ public abstract class AbstractPackManager implements PackManager {
             double compressionRatio = ((double) optimizedSize / originalSize) * 100;
             this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_result", formatSize(originalSize), formatSize(optimizedSize), String.format("%.2f", compressionRatio)));
         }
+        try {
+            this.optimizationCache.save(optimizationCachePath);
+        } catch (IOException e) {
+            this.plugin.logger().warn("Failed to save pack optimization cache", e);
+        }
+        this.plugin.logger().info(TranslationManager.instance().plainTranslation("resource_pack.optimization_finished", String.valueOf(timestamp.deltaMillis())));
     }
 
     private static final int BAR_LENGTH = 30;
@@ -1243,27 +1491,37 @@ public abstract class AbstractPackManager implements PackManager {
         }
     }
 
-    private byte[] optimizeImage(Path imagePath, byte[] previousImageBytes) throws IOException {
+    private static byte[] optimizeJson(byte[] input, boolean model) {
+        JsonElement json = GsonHelper.parseJson(new String(input, StandardCharsets.UTF_8));
+        if (model) {
+            JsonObject object = json.getAsJsonObject();
+            List<String> invalidKey = object.keySet().stream().filter(k -> !ALLOWED_MODEL_TAGS.contains(k)).toList();
+            for (String key : invalidKey) object.remove(key);
+        }
+        return PackJsonWriter.toJson(json).replace("\"minecraft:", "\"").getBytes(StandardCharsets.UTF_8);
+    }
+
+    private byte[] optimizeImage(Path imagePath, byte[] previousImageBytes, int zopfliIterations) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(previousImageBytes)) {
-            BufferedImage src = ImageIO.read(is);
+            BufferedImage src = PngOptimizer.readPng(is);
             if (src == null) {
                 Debugger.RESOURCE_PACK.debug(() -> "Cannot read image " + imagePath.toString());
                 return previousImageBytes;
             }
-            if (src.getType() == BufferedImage.TYPE_CUSTOM) {
+            if (!PngOptimizer.canOptimize(src)) {
                 return previousImageBytes;
             }
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            new PngOptimizer(src).write(baos);
+            new PngOptimizer(src, zopfliIterations).write(baos);
             return baos.toByteArray();
         }
     }
 
-    private void validateResourcePack(Path path, Overlays packOverlays) {
+    private void validateResourcePack(Path path, Overlays packOverlays, boolean obfuscation) {
         List<OverlayCombination.Segment> segments = new ArrayList<>();
         // 完全小于1.21.11或完全大于1.21.11
         if (Config.packMaxVersion().isBelow(MinecraftVersion.V1_21_11) || Config.packMinVersion().isAtOrAbove(MinecraftVersion.V1_21_11)) {
-            OverlayCombination combination = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().majorPackFormat(), Config.packMaxVersion().majorPackFormat());
+            OverlayCombination combination = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().packFormat(), Config.packMaxVersion().packFormat());
             while (combination.hasNext()) {
                 OverlayCombination.Segment segment = combination.nextSegment();
                 if (segment != null) {
@@ -1275,7 +1533,7 @@ public abstract class AbstractPackManager implements PackManager {
         }
         // 混合版本
         else {
-            OverlayCombination combinationLegacy = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().majorPackFormat(), 72 /* 25w44a */);
+            OverlayCombination combinationLegacy = new OverlayCombination(packOverlays.overlays(), Config.packMinVersion().packFormat(), new PackVersion(72, Integer.MAX_VALUE) /* 25w44a */);
             while (combinationLegacy.hasNext()) {
                 OverlayCombination.Segment segment = combinationLegacy.nextSegment();
                 if (segment != null) {
@@ -1284,7 +1542,7 @@ public abstract class AbstractPackManager implements PackManager {
                     break;
                 }
             }
-            OverlayCombination combinationModern = new OverlayCombination(packOverlays.overlays(), 73 /* 25w45a */, Config.packMaxVersion().majorPackFormat());
+            OverlayCombination combinationModern = new OverlayCombination(packOverlays.overlays(), new PackVersion(73) /* 25w45a */, Config.packMaxVersion().packFormat());
             while (combinationModern.hasNext()) {
                 OverlayCombination.Segment segment = combinationModern.nextSegment();
                 if (segment != null) {
@@ -1304,7 +1562,7 @@ public abstract class AbstractPackManager implements PackManager {
             hasNonOverlaySupport = segments.getFirst().min() <= MinecraftVersion.V1_20_1.packFormat().major();
         }
 
-        boolean fixAtlasOnValidation = Config.fixTextureAtlas() && !Config.enableObfuscation();
+        boolean fixAtlasOnValidation = Config.fixTextureAtlas() && !obfuscation;
         Set<Revision> revisions = new TreeSet<>();
         for (int i = 0, size = segments.size(); i < size; i++) {
             OverlayCombination.Segment segment = segments.get(i);
@@ -1323,7 +1581,7 @@ public abstract class AbstractPackManager implements PackManager {
 
             this.plugin.logger().info(TranslationManager.instance().plainTranslation(
                     "resource_pack.validation_started",
-                    String.valueOf(i + 1), String.valueOf(size), String.valueOf(segment.min()), String.valueOf(segment.max()), overlayInOrder.stream().map(Overlay::directory).toList().toString()
+                    String.valueOf(i + 1), String.valueOf(size), segment.minVersion().asString(), segment.maxVersion().asString(), overlayInOrder.stream().map(Overlay::directory).toList().toString()
             ));
 
             Set<Path> fixedModels = new HashSet<>();
@@ -1334,19 +1592,21 @@ public abstract class AbstractPackManager implements PackManager {
                     revisions,
                     segment.min() >= MinecraftVersion.V1_21_6.packFormat().major(),
                     segment.max() >= MinecraftVersion.V1_21_11.packFormat().major(),
-                    segment.min() >= MinecraftVersion.V26_1.packFormat().major()
+                    segment.min() >= MinecraftVersion.V26_1.packFormat().major(),
+                    segment.max() >= MinecraftVersion.V26_1.packFormat().major(),
+                    obfuscation
             );
             if (fixAtlasOnValidation) {
                 // 有修复物品
                 if (result.fixedItemAtlas != null) {
-                    itemFixer.addEntry(segment.min(), segment.max(), result.fixedItemAtlas);
+                    itemFixer.addEntry(segment.minVersion(), segment.maxVersion(), result.fixedItemAtlas);
                 }
                 // 有修复方块
                 if (result.fixedBlockAtlas != null) {
-                    blockFixer.addEntry(segment.min(), segment.max(), result.fixedBlockAtlas);
+                    blockFixer.addEntry(segment.minVersion(), segment.maxVersion(), result.fixedBlockAtlas);
                 } else if (hasNonOverlaySupport) {
                     // 如果有低版本的支持，那么要通过overlay复原atlas
-                    blockFixer.addEntry(segment.min(), segment.max(), Objects.requireNonNullElseGet(result.originalBlockAtlas, JsonObject::new));
+                    blockFixer.addEntry(segment.minVersion(), segment.maxVersion(), Objects.requireNonNullElseGet(result.originalBlockAtlas, JsonObject::new));
                 }
             }
         }
@@ -1355,29 +1615,28 @@ public abstract class AbstractPackManager implements PackManager {
         for (Revision revision : revisions) {
             packOverlays.addOverlay(revision.createOverlay());
         }
-
         // 尝试修复atlas
         if (fixAtlasOnValidation) {
             // 物品
             for (AtlasFixer.Entry entry : itemFixer.entries()) {
-                int min = entry.min();
-                int max = entry.max();
-                String directoryName = Config.createOverlayFolderName(min + "-" + max);
+                PackVersion min = entry.min();
+                PackVersion max = entry.max();
+                String directoryName = Config.createOverlayFolderName(min.asString() + "-" + max.asString());
                 Path atlasPath = path.resolve(directoryName)
                         .resolve("assets")
                         .resolve("minecraft")
                         .resolve("atlases")
                         .resolve("items.json");
                 writeJsonSafely(entry.atlas(), atlasPath);
-                packOverlays.addOverlay(new Overlay(new PackVersion(min), new PackVersion(max), directoryName));
+                packOverlays.addOverlay(new Overlay(min, max, directoryName));
             }
             // 方块
             for (AtlasFixer.Entry entry : blockFixer.entries()) {
-                int min = entry.min();
-                int max = entry.max();
-                String directoryName = Config.createOverlayFolderName(min + "-" + max);
+                PackVersion min = entry.min();
+                PackVersion max = entry.max();
+                String directoryName = Config.createOverlayFolderName(min.asString() + "-" + max.asString());
                 // 这个版本不认可overlay，得把atlas直接写进主包内
-                if (min <= MinecraftVersion.V1_20_1.packFormat().major()) {
+                if (min.major() <= MinecraftVersion.V1_20_1.packFormat().major()) {
                     Path atlasPath = path.resolve("assets")
                             .resolve("minecraft")
                             .resolve("atlases")
@@ -1390,7 +1649,7 @@ public abstract class AbstractPackManager implements PackManager {
                             .resolve("atlases")
                             .resolve("blocks.json");
                     writeJsonSafely(entry.atlas(), atlasPath);
-                    packOverlays.addOverlay(new Overlay(new PackVersion(min), new PackVersion(max), directoryName));
+                    packOverlays.addOverlay(new Overlay(min, max, directoryName));
                 }
             }
         }
@@ -1417,8 +1676,12 @@ public abstract class AbstractPackManager implements PackManager {
             Set<Revision> revisions,
             boolean v1_21_6, // no 22.5 angle limit
             boolean v1_21_11, // item atlas + no -45~45 angle limit
-            boolean v26_1  // texture format update
+            boolean v26_1,  // texture format update
+            boolean checkModelUvOutOfBounds,
+            boolean obfuscation
     ) {
+        boolean fixModelUvOutOfBounds = v26_1 && Config.fixModelUvOutOfBounds();
+
         Multimap<Key, Key> glyphToFonts = HashMultimap.create(128, 32); // 图片到字体的映射
         Multimap<Key, Key> modelToItemDefinitions = HashMultimap.create(128, 4); // 模型到物品的映射
         Multimap<Key, String> modelToBlockStates = HashMultimap.create(128, 32); // 模型到方块的映射
@@ -1659,7 +1922,7 @@ public abstract class AbstractPackManager implements PackManager {
                 TexturedModel texturedModel = getTexturedModel(modelPath, TexturedModel.getParent(modelJson), TexturedModel.getTextures(modelJson), rootPaths, modelsCache);
                 blockModels.put(modelPath, texturedModel);
                 if (checkedModels.add(modelJsonPath)) {
-                    validateModel(resourcePackPath, modelJson, modelJsonPath, modelStringPath, texturedModel, revisions, flags);
+                    validateModel(resourcePackPath, modelJson, modelJsonPath, modelStringPath, texturedModel, revisions, flags, checkModelUvOutOfBounds, fixModelUvOutOfBounds);
                 }
                 continue;
             }
@@ -1679,12 +1942,19 @@ public abstract class AbstractPackManager implements PackManager {
             String modelStringPath = "assets/" + modelPath.namespace() + "/models/" + modelPath.value() + ".json";
             Path modelJsonPath = rpView.getExistingReversed(modelStringPath);
             if (modelJsonPath != null) {
+                // A shared block/item model has already been read and validated in this pass.
+                // Resolve the path first: validation may have generated a higher-priority overlay.
+                TexturedModel blockModel = blockModels.get(modelPath);
+                if (blockModel != null && checkedModels.contains(modelJsonPath)) {
+                    itemModels.put(modelPath, blockModel);
+                    continue;
+                }
                 JsonObject modelJson = readJsonObjectFromFileOrWarn(modelJsonPath);
                 if (modelJson == null) continue;
                 TexturedModel texturedModel = getTexturedModel(modelPath, TexturedModel.getParent(modelJson), TexturedModel.getTextures(modelJson), rootPaths, modelsCache);
                 itemModels.put(modelPath, texturedModel);
                 if (checkedModels.add(modelJsonPath)) {
-                    validateModel(resourcePackPath, modelJson, modelJsonPath, modelStringPath, texturedModel, revisions, flags);
+                    validateModel(resourcePackPath, modelJson, modelJsonPath, modelStringPath, texturedModel, revisions, flags, checkModelUvOutOfBounds, fixModelUvOutOfBounds);
                 }
                 continue;
             }
@@ -1696,7 +1966,7 @@ public abstract class AbstractPackManager implements PackManager {
 
         ValidationResult result = null;
 
-        if (!Config.enableObfuscation()) {
+        if (!obfuscation) {
 
             if (v1_21_11) {
 
@@ -2084,13 +2354,37 @@ public abstract class AbstractPackManager implements PackManager {
                                String modelStringPath,
                                TexturedModel texturedModel,
                                Set<Revision> revisions,
-                               ModelFixFlags flags) {
+                               ModelFixFlags flags,
+                               boolean checkModelUvOutOfBounds,
+                               boolean fixModelUvOutOfBounds) {
         boolean changed = false;
         boolean illegalRotation225 = false;
         boolean illegalRotation45 = false;
         boolean illegalNewRotationFormat = false;
         boolean illegalTextures = false;
 
+        List<ModelUvBoundsValidator.Problem> uvProblems = List.of();
+        if (checkModelUvOutOfBounds) {
+            uvProblems = ModelUvBoundsValidator.validate(modelJson, texturedModel.textures);
+        }
+        if (!uvProblems.isEmpty()) {
+            if (fixModelUvOutOfBounds) {
+                if (ModelUvBoundsValidator.fix(modelJson, uvProblems) > 0) {
+                    changed = true;
+                }
+            } else {
+                for (ModelUvBoundsValidator.Problem problem : uvProblems) {
+                    this.plugin.logger().warn(TranslationManager.instance().plainTranslation(
+                            "resource_pack.model_uv_out_of_bounds",
+                            texturedModel.path.asString(),
+                            String.valueOf(problem.elementIndex() + 1),
+                            problem.face(),
+                            problem.uv(),
+                            problem.texture()
+                    ));
+                }
+            }
+        }
         if (flags.fixTexturesFormat && modelJson.get("textures") instanceof JsonObject textures) {
             for (Map.Entry<String, JsonElement> textureEntry : textures.entrySet()) {
                 if (textureEntry.getValue() instanceof JsonObject texture && texture.has("sprite")) {
@@ -3097,6 +3391,11 @@ public abstract class AbstractPackManager implements PackManager {
             try {
                 Files.createDirectories(texturePath.getParent());
                 Files.write(texturePath, entry.getValue());
+                JsonObject metadata = generator.textureMetadataToGenerate().get(entry.getKey());
+                if (metadata != null) {
+                    Path metadataPath = texturePath.resolveSibling(texturePath.getFileName() + ".mcmeta");
+                    if (!Files.exists(metadataPath)) writeJsonSafely(metadata, metadataPath);
+                }
             } catch (IOException e) {
                 this.plugin.logger().warn("Failed to generate texture " + texturePath.toAbsolutePath(), e);
             }
@@ -3170,32 +3469,6 @@ public abstract class AbstractPackManager implements PackManager {
                 writeJsonSafely(blueMapBlockStates, generatedPackPath.resolve("assets").resolve(Key.CRAFTENGINE_NAMESPACE).resolve("blockColors.json"));
             }
         }
-    }
-
-    private void deleteMapCompatibilityAssets(Path generatedPackPath) {
-        Path assetPath = generatedPackPath.resolve("assets");
-        Path blueMapblockColorsFile = assetPath.resolve(Key.CRAFTENGINE_NAMESPACE).resolve("blockColors.json");
-        if (Files.exists(blueMapblockColorsFile)) {
-            try {
-                Files.delete(blueMapblockColorsFile);
-            } catch (IOException ignored) {
-            }
-        }
-    }
-
-    private void deleteModAssets(Path generatedPackPath) {
-        Path assetPath = generatedPackPath.resolve("assets");
-        Path blockStatePath = assetPath.resolve(Key.CRAFTENGINE_NAMESPACE).resolve("blockstates");
-        for (Map.Entry<Integer, JsonElement> entry : this.plugin.blockManager().modBlockStates().entrySet()) {
-            Path overridedBlockPath = blockStatePath.resolve("custom_" + entry.getKey() + ".json");
-            if (Files.exists(overridedBlockPath)) {
-                try {
-                    Files.delete(overridedBlockPath);
-                } catch (IOException ignored) {
-                }
-            }
-        }
-        FileUtils.deleteEmptyParentDirectories(blockStatePath, assetPath);
     }
 
     private void generateModernItemModels1_21_2(Path generatedPackPath) {
@@ -3487,9 +3760,9 @@ public abstract class AbstractPackManager implements PackManager {
     }
 
     private List<Pair<String, List<Path>>> updateCachedAssets(@NotNull PackCacheData cacheData, @Nullable FileSystem fs) throws IOException {
-        Map<String, List<Path>> conflictChecker = new HashMap<>(Math.max(128, this.cachedAssetFiles.size()), 0.6f);
+        Map<String, List<Path>> conflictChecker = new HashMap<>(Math.max(128, this.cachedAssetFiles.size()), 0.5f);
         Map<Path, CachedAssetFile> previousFiles = this.cachedAssetFiles;
-        this.cachedAssetFiles = new HashMap<>(Math.max(128, this.cachedAssetFiles.size()), 0.6f);
+        this.cachedAssetFiles = Config.cacheResourceFiles() ? new Object2ObjectOpenHashMap<>(Math.max(128, this.cachedAssetFiles.size()), 0.5f) : new Object2ObjectOpenHashMap<>();
 
         List<Path> folders = new ArrayList<>();
         folders.addAll(loadedPacks().stream()
@@ -3510,7 +3783,7 @@ public abstract class AbstractPackManager implements PackManager {
             }
         }
         for (Path zip : cacheData.externalZips()) {
-            processZipFile(zip, zip.getParent(), fs, conflictChecker, previousFiles);
+            processZipFile(zip, fs, conflictChecker, previousFiles);
         }
 
         List<Pair<String, List<Path>>> conflicts = new ArrayList<>();
@@ -3527,22 +3800,30 @@ public abstract class AbstractPackManager implements PackManager {
         if (Config.excludeFileExtensions().contains(FileUtils.getExtension(file))) {
             return;
         }
-        CachedAssetFile cachedAsset = previousFiles.get(file);
         long lastModified = attrs.lastModifiedTime().toMillis();
         long size = attrs.size();
-        if (cachedAsset != null && cachedAsset.lastModified() == lastModified && cachedAsset.size() == size) {
-            this.cachedAssetFiles.put(file, cachedAsset);
+        byte[] data;
+        if (Config.cacheResourceFiles()) {
+            CachedAssetFile cachedAsset = previousFiles.get(file);
+            if (cachedAsset != null && cachedAsset.lastModified() == lastModified && cachedAsset.size() == size) {
+                this.cachedAssetFiles.put(file, cachedAsset);
+                data = cachedAsset.data();
+            } else {
+                data = Files.readAllBytes(file);
+                this.cachedAssetFiles.put(file, new CachedAssetFile(data, lastModified, size));
+            }
         } else {
-            cachedAsset = new CachedAssetFile(Files.readAllBytes(file), lastModified, size);
-            this.cachedAssetFiles.put(file, cachedAsset);
+            data = Files.readAllBytes(file);
         }
         if (fs == null) return;
         Path relative = sourceFolder.relativize(file);
-        updateConflictChecker(fs, conflictChecker, file, file, relative, cachedAsset.data());
+        updateConflictChecker(fs, conflictChecker, file, file, relative, data);
     }
 
-    private void processZipFile(Path zipFile, Path sourceFolder, @Nullable FileSystem fs,
-                                Map<String, List<Path>> conflictChecker, Map<Path, CachedAssetFile> previousFiles) {
+    private void processZipFile(Path zipFile,
+                                @Nullable FileSystem fs,
+                                Map<String, List<Path>> conflictChecker,
+                                Map<Path, CachedAssetFile> previousFiles) {
         try (FileSystem zipFs = FileSystems.newFileSystem(zipFile)) {
             long zipLastModified = Files.getLastModifiedTime(zipFile).toMillis();
             long zipSize = Files.size(zipFile);
@@ -3558,17 +3839,22 @@ public abstract class AbstractPackManager implements PackManager {
                     }
                     Path entryPathInZip = zipRoot.relativize(entry);
                     Path sourcePath = Path.of(zipFile + "!" + entryPathInZip);
-                    CachedAssetFile cachedAsset = previousFiles.get(sourcePath);
-                    if (cachedAsset != null && cachedAsset.lastModified() == zipLastModified && cachedAsset.size() == zipSize) {
-                        cachedAssetFiles.put(sourcePath, cachedAsset);
+                    byte[] data;
+                    if (Config.cacheResourceFiles()) {
+                        CachedAssetFile cachedAsset = previousFiles.get(sourcePath);
+                        if (cachedAsset != null && cachedAsset.lastModified() == zipLastModified && cachedAsset.size() == zipSize) {
+                            cachedAssetFiles.put(sourcePath, cachedAsset);
+                            data = cachedAsset.data();
+                        } else {
+                            data = Files.readAllBytes(entry);
+                            cachedAssetFiles.put(sourcePath, new CachedAssetFile(data, zipLastModified, zipSize));
+                        }
                     } else {
-                        byte[] data = Files.readAllBytes(entry);
-                        cachedAsset = new CachedAssetFile(data, zipLastModified, zipSize);
-                        cachedAssetFiles.put(sourcePath, cachedAsset);
+                        data = Files.readAllBytes(entry);
                     }
                     if (fs != null) {
                         try {
-                            updateConflictChecker(fs, conflictChecker, entry, sourcePath, entryPathInZip, cachedAsset.data());
+                            updateConflictChecker(fs, conflictChecker, entry, sourcePath, entryPathInZip, data);
                         } catch (Exception e) {
                             AbstractPackManager.this.plugin.logger().warn("Failed to update conflict checker", e);
                         }
@@ -3723,7 +4009,6 @@ public abstract class AbstractPackManager implements PackManager {
 
         @Override
         protected void parseSection(Pack pack, Path path, ConfigSection section) {
-            if (!Config.optimizeResourcePack()) return;
             List<String> textures = section.getStringList("texture");
             if (!textures.isEmpty()) {
                 for (String texture : textures) {

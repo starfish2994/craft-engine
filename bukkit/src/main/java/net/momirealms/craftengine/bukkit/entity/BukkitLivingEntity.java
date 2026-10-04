@@ -27,15 +27,14 @@ import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.ref.WeakReference;
 import java.util.Objects;
 import java.util.Optional;
 
 public class BukkitLivingEntity extends BukkitEntity implements net.momirealms.craftengine.core.entity.LivingEntity {
     private Object2ObjectOpenHashMap<Key, BukkitVanillaAttributeInstance> vanillaAttributes;
 
-    protected BukkitLivingEntity(WeakReference<Object> entity) {
-        super(entity);
+    protected BukkitLivingEntity() {
+        super();
     }
 
     public BukkitLivingEntity(Object entity) {
@@ -88,11 +87,11 @@ public class BukkitLivingEntity extends BukkitEntity implements net.momirealms.c
     }
 
     @Override
-    public void damage(double amount, Key damageType, @Nullable net.momirealms.craftengine.core.entity.Entity causeEntity) {
+    public void damage(double amount, Key damageType, @Nullable net.momirealms.craftengine.core.entity.Entity causingEntity) {
         @SuppressWarnings("deprecation")
         DamageType type = Registry.DAMAGE_TYPE.get(KeyUtils.toNamespacedKey(damageType));
         DamageSource source = DamageSource.builder(type != null ? type : DamageType.GENERIC)
-                .withCausingEntity(causeEntity != null ? (Entity) causeEntity.platformEntity() : this.platformEntity())
+                .withCausingEntity(causingEntity != null ? (Entity) causingEntity.platformEntity() : this.platformEntity())
                 .withDirectEntity(this.platformEntity())
                 .withDamageLocation(this.platformEntity().getLocation())
                 .build();

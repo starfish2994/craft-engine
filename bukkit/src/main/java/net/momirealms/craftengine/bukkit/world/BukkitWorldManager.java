@@ -87,7 +87,7 @@ import java.util.stream.Stream;
 public final class BukkitWorldManager implements WorldManager, Listener {
     private static BukkitWorldManager instance;
     private final BukkitCraftEngine plugin;
-    private boolean initialized = false;
+    private volatile boolean initialized = false;
     // loaded worlds
     private final ConcurrentChainedUUID2ReferenceHashTable<BukkitWorld> loadedWorlds;
     private final Cache<UUID, BukkitWorld> unloadedWorlds = Caffeine.newBuilder()
@@ -187,7 +187,8 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             if (!manager.initialized) return;
             World bukkitWorld = LevelProxy.INSTANCE.getWorld(args[0]);
             if (bukkitWorld == null) return;
-            CEWorld ceWorld = BukkitAdaptor.adapt(bukkitWorld).storageWorld();
+            CEWorld ceWorld = manager.getStorageWorld(bukkitWorld);
+            if (ceWorld == null) return;
             WorldDataStorage storage = ceWorld.worldDataStorage();
             Object nmsChunkPos = args[1];
             ChunkPos pos = new ChunkPos(ChunkPosProxy.INSTANCE.getX(nmsChunkPos), ChunkPosProxy.INSTANCE.getZ(nmsChunkPos));
@@ -206,6 +207,8 @@ public final class BukkitWorldManager implements WorldManager, Listener {
     public void disable() {
         if (this.disabled) return;
         this.disabled = true;
+        this.initialized = false;
+        BukkitChunkLifecycle.clear();
         HandlerList.unregisterAll(this);
         if (this.storageAdaptor instanceof Listener listener) {
             HandlerList.unregisterAll(listener);
@@ -227,6 +230,17 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             installStorageWorld(bukkitWorld, createStorageWorld(bukkitWorld));
         }
         return bukkitWorld;
+    }
+
+    /**
+     * Returns the storage installed during world initialization, if any.
+     * WorldEdit/FAWE regeneration worlds skip that lifecycle but still load chunks.
+     * Do not initialize storage here: those temporary worlds also skip normal unloading.
+     */
+    @Nullable
+    public CEWorld getStorageWorld(World world) {
+        Object worldBorder = CraftWorldProxy.INSTANCE.getWorldBorder(world);
+        return worldBorder instanceof BukkitWorld bukkitWorld ? bukkitWorld.storageWorld() : null;
     }
 
     /*
@@ -331,6 +345,8 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     public void handleWorldLoad(BukkitWorld world) {
         CEWorld ceWorld = world.storageWorld();
+        // 已有区块的启动/世界加载补扫描：下面主动标记 CE 实体阶段完成，
+        // 不代表这里等待了 Bukkit 实体磁盘加载。家具单实体补载用此标记与批量恢复分工。
         for (Chunk chunk : world.bukkitWorld().getLoadedChunks()) {
             if (VersionHelper.hasFoliaPatch) {
                 this.plugin.scheduler().platform().run(() -> {
@@ -380,12 +396,6 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         }
         BukkitWorld injectedWorld = FastNMS.INSTANCE.createInjectedWorld(world);
         CraftWorldProxy.INSTANCE.setWorldBorder(world, injectedWorld);
-        if (VersionHelper.hasPaperPatch) {
-            injectWorldGeneration(injectedWorld);
-            if (!VersionHelper.hasFoliaPatch) {
-                injectWorldCallback(injectedWorld.minecraftWorld());
-            }
-        }
         return injectedWorld;
     }
 
@@ -403,6 +413,14 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             }
         }
         ((WorldHolder) injectedWorld).setStorageWorld(ceWorld);
+        // Generation workers can call back as soon as the generator is installed.
+        // Both regular and Slime worlds must have their storage ready before that.
+        if (previous == null && VersionHelper.hasPaperPatch) {
+            injectWorldGeneration(injectedWorld);
+            if (!VersionHelper.hasFoliaPatch) {
+                injectWorldCallback(injectedWorld.minecraftWorld());
+            }
+        }
     }
 
     public CEWorld createStorageWorld(BukkitWorld injectedWorld) {
@@ -415,14 +433,16 @@ public final class BukkitWorldManager implements WorldManager, Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onChunkLoad(ChunkLoadEvent event) {
-        BukkitWorld bukkitWorld = BukkitAdaptor.adapt(event.getWorld());
-        handleChunkLoad(bukkitWorld.storageWorld(), event.getChunk());
+        CEWorld world = getStorageWorld(event.getWorld());
+        if (world == null) return;
+        handleChunkLoad(world, event.getChunk());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onChunkUnload(ChunkUnloadEvent event) {
-        BukkitWorld bukkitWorld = BukkitAdaptor.adapt(event.getWorld());
-        handleChunkUnload(bukkitWorld.storageWorld(), event.getChunk());
+        CEWorld world = getStorageWorld(event.getWorld());
+        if (world == null) return;
+        handleChunkUnload(world, event.getChunk());
     }
 
     @Override
@@ -491,7 +511,8 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         }
     }
 
-    // 用于从实体tick列表中移除家具实体以降低遍历开销
+    // 非 Folia Paper 的运行时追踪/tick 优化，不是另一套家具加载事件入口。
+    // 注入实现仍转发 onTrackingStart/onTrackingEnd；家具恢复由两个家具监听器负责。
     private void injectWorldCallback(Object serverLevel) {
         Object entityLookup = LevelUtils.getEntityLookup(serverLevel);
         Object worldCallback = EntityLookupProxy.INSTANCE.getWorldCallback(entityLookup);
@@ -982,6 +1003,9 @@ public final class BukkitWorldManager implements WorldManager, Listener {
         }
     }
 
+    private static final String BLOCK_ID = VersionHelper.isOrAbove26_3 ? "id" : "Name";
+    private static final String BLOCK_PROPERTIES = VersionHelper.isOrAbove26_3 ? "properties" : "Properties";
+
     //简单地处理一下，将feature转换
     @SuppressWarnings({"DuplicatedCode"})
     private Map<String, Object> processFeatureSection(ConfigSection section) {
@@ -993,7 +1017,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
             result.put(key.replace('-', '_'), processFeatureValue(value));
         }
         // 处理方块状态
-        Object rawName = result.get("Name");
+        Object rawName = result.get(BLOCK_ID);
         if (rawName instanceof String blockName) {
             Optional<BlockDefinition> customBlock = this.plugin.blockManager().blockById(Key.of(blockName));
             // 如果是自定义方块名
@@ -1001,7 +1025,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                 BlockDefinition block = customBlock.get();
                 ImmutableBlockState blockState = block.defaultState();
                 // 移除 properties 否则无法解析
-                Object properties = result.remove("Properties");
+                Object properties = result.remove(BLOCK_PROPERTIES);
                 if (properties instanceof Map<?,?> propertiesMap && !propertiesMap.isEmpty()) {
                     for (Map.Entry<?, ?> entry : propertiesMap.entrySet()) {
                         String propertyValue = entry.getValue().toString();
@@ -1014,7 +1038,7 @@ public final class BukkitWorldManager implements WorldManager, Listener {
                         }
                     }
                 }
-                result.put("Name", BlockStateUtils.getBlockOwnerIdFromState(blockState.customBlockState().minecraftState()).asString());
+                result.put(BLOCK_ID, BlockStateUtils.getBlockOwnerIdFromState(blockState.customBlockState().minecraftState()).asString());
             }
         }
         // 处理 block predicate 等功能

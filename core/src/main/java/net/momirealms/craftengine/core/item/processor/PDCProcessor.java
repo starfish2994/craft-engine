@@ -20,7 +20,13 @@ public final class PDCProcessor implements ItemProcessor {
     }
 
     @Override
-    public Item apply(Item item, ItemBuildContext context) {
+    public boolean isConstant() {
+        return true;
+    }
+
+    @Override
+    public void apply(ItemBuildContext context) {
+        Item item = context.item();
         if (VersionHelper.isOrAbove1_20_5) {
             CompoundTag customData = (CompoundTag) Optional.ofNullable(item.getComponentAsSparrowTag(DataComponentKeys.CUSTOM_DATA)).orElseGet(CompoundTag::new);
             customData.put(BUKKIT_PDC, this.data);
@@ -28,7 +34,6 @@ public final class PDCProcessor implements ItemProcessor {
         } else {
             item.setTag(this.data, BUKKIT_PDC);
         }
-        return item;
     }
 
     private static class Factory implements ItemProcessorFactory<PDCProcessor> {

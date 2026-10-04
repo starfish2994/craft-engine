@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.craftengine.core.item.Item;
 import net.momirealms.craftengine.core.item.ItemBuildContext;
 import net.momirealms.craftengine.core.item.component.DataComponentKeys;
+import net.momirealms.craftengine.core.item.network.ItemPacketSource;
 import net.momirealms.craftengine.core.item.processor.ItemProcessorFactory;
 import net.momirealms.craftengine.core.item.processor.SimpleNetworkItemProcessor;
 import net.momirealms.craftengine.core.plugin.config.Config;
@@ -30,6 +31,11 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
         permits LoreProcessor.EmptyLoreProcessor, LoreProcessor.CompositeLoreProcessor, LoreProcessor.DoubleLoreProcessor, LoreProcessor.SingleLoreProcessor {
     ItemProcessorFactory<LoreProcessor> FACTORY = new LoreFactory();
     Object[] NBT_PATH = new Object[]{"display", "Lore"};
+
+    @Override
+    default boolean shouldSkip(ItemPacketSource source) {
+        return source.canSkipLore;
+    }
 
     @Override
     @Nullable
@@ -66,7 +72,8 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
                     Arrays.stream(rawLore)
                             .map(AdventureHelper::legacyToMiniMessage)
                             .map(line -> Config.addNonItalicTag() && !line.startsWith("<!i>") ? FormattedLine.create("<!i>" + line) : FormattedLine.create(line))
-                            .toArray(FormattedLine[]::new), c -> true));
+                            .toArray(FormattedLine[]::new),
+                    LoreModification.ALWAYS_ADD));
         }
 
         List<LoreModificationHolder> modifications = getLoreModificationHolders(configValue);
@@ -96,8 +103,8 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
                         Arrays.stream(contents)
                                 .map(AdventureHelper::legacyToMiniMessage)
                                 .map(line -> Config.addNonItalicTag() && !line.startsWith("<!i>") ? FormattedLine.create("<!i>" + line) : FormattedLine.create(line))
-                                .toArray(FormattedLine[]::new), MiscUtils.allOf(conditions)
-                        ),
+                                .toArray(FormattedLine[]::new),
+                        conditions.isEmpty() ? LoreModification.ALWAYS_ADD : MiscUtils.allOf(conditions)),
                         priority
                 ));
                 lastPriority.set(priority);
@@ -107,7 +114,7 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
                                 LoreModification.Operation.APPEND,
                                 false,
                                 new FormattedLine[]{FormattedLine.create(v.getAsString())},
-                                (c) -> true
+                                LoreModification.ALWAYS_ADD
                         ),
                         lastPriority.intValue()
                 ));
@@ -119,13 +126,17 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
     non-sealed class EmptyLoreProcessor implements LoreProcessor {
 
         @Override
-        public Item apply(Item item, ItemBuildContext context) {
-            return item;
+        public void apply(ItemBuildContext context) {
         }
 
         @Override
         public List<LoreModification> lore() {
             return List.of();
+        }
+
+        @Override
+        public boolean isConstant() {
+            return true;
         }
     }
 
@@ -137,14 +148,18 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
         }
 
         @Override
-        public Item apply(Item item, ItemBuildContext context) {
-            item.loreComponent(this.modification.parseAsList(context));
-            return item;
+        public void apply(ItemBuildContext context) {
+            context.item().loreComponent(this.modification.parseAsList(context));
         }
 
         @Override
         public List<LoreModification> lore() {
             return List.of(modification);
+        }
+
+        @Override
+        public boolean isConstant() {
+            return this.modification.isConstant();
         }
     }
 
@@ -158,14 +173,18 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
         }
 
         @Override
-        public Item apply(Item item, ItemBuildContext context) {
-            item.loreComponent(this.modification2.apply(this.modification1.apply(Stream.empty(), context), context).toList());
-            return item;
+        public void apply(ItemBuildContext context) {
+            context.item().loreComponent(this.modification2.apply(this.modification1.apply(Stream.empty(), context), context).toList());
         }
 
         @Override
         public List<LoreModification> lore() {
-            return List.of(modification1, modification2);
+            return List.of(this.modification1, this.modification2);
+        }
+
+        @Override
+        public boolean isConstant() {
+            return this.modification1.isConstant() && this.modification2.isConstant();
         }
     }
 
@@ -177,14 +196,23 @@ public sealed interface LoreProcessor extends SimpleNetworkItemProcessor
         }
 
         @Override
-        public Item apply(Item item, ItemBuildContext context) {
-            item.loreComponent(Arrays.stream(this.modifications).reduce(Stream.<Component>empty(), (stream, modification) -> modification.apply(stream, context), Stream::concat).toList());
-            return item;
+        public void apply(ItemBuildContext context) {
+            context.item().loreComponent(Arrays.stream(this.modifications).reduce(Stream.<Component>empty(), (stream, modification) -> modification.apply(stream, context), Stream::concat).toList());
         }
 
         @Override
         public List<LoreModification> lore() {
-            return Arrays.asList(modifications);
+            return Arrays.asList(this.modifications);
+        }
+
+        @Override
+        public boolean isConstant() {
+            for (LoreModification modification : this.modifications) {
+                if (!modification.isConstant()) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

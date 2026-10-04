@@ -11,11 +11,12 @@ import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 import net.momirealms.sparrow.reflection.proxy.annotation.Type;
 
-@ReflectionProxy(name = "net.minecraft.world.level.levelgen.feature.ConfiguredFeature")
+@ReflectionProxy(name = {"net.minecraft.world.level.levelgen.feature.ConfiguredFeature", "net.minecraft.world.level.levelgen.feature.Feature"})
 public interface ConfiguredFeatureProxy {
     ConfiguredFeatureProxy INSTANCE = ASMProxyFactory.create(ConfiguredFeatureProxy.class);
     Codec<Object> CODEC = INSTANCE.getCodec();
 
+    // Both ConfiguredFeature and 26.3's Feature expose the Holder codec as CODEC.
     @FieldGetter(name = "CODEC", isStatic = true)
     Codec<Object> getCodec();
 

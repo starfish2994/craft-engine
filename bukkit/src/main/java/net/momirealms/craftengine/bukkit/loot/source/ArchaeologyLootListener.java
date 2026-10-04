@@ -15,6 +15,7 @@ import net.momirealms.craftengine.core.loot.source.LootSource;
 import net.momirealms.craftengine.core.loot.source.LootSources;
 import net.momirealms.craftengine.core.plugin.context.ContextHolder;
 import net.momirealms.craftengine.core.plugin.context.parameter.DirectContextParameters;
+import net.momirealms.craftengine.core.util.ItemUtils;
 import net.momirealms.craftengine.core.util.Key;
 import net.momirealms.craftengine.core.world.World;
 import net.momirealms.craftengine.proxy.bukkit.craftbukkit.CraftWorldProxy;
@@ -65,10 +66,11 @@ public final class ArchaeologyLootListener implements Listener {
         if (serverPlayer == null) return;
 
         ContextHolder holder = ContextHolder.builder()
+                .withParameter(DirectContextParameters.ENTITY, serverPlayer)
                 .withParameter(DirectContextParameters.PLAYER, serverPlayer)
                 .withParameter(DirectContextParameters.WORLD, world)
                 .withParameter(DirectContextParameters.POSITION, LocationUtils.toWorldPosition(block.getLocation()))
-                .withParameter(DirectContextParameters.ITEM_IN_HAND, serverPlayer.getItemInHand(hand))
+                .withOptionalParameter(DirectContextParameters.ITEM_IN_HAND, ItemUtils.emptyToNull(serverPlayer.getItemInHand(hand)))
                 .build();
         LootOutcome outcome = LootManager.eval(sources, new LootContext(world, serverPlayer, (float) serverPlayer.luck(), holder));
         if (!outcome.matched()) return;
